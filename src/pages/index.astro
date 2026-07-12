@@ -1,279 +1,146 @@
 ---
 import '../styles/global.css';
 
-const base = import.meta.env.BASE_URL;
-const year = new Date().getFullYear();
----
+const nav = [
+  ['home', 'خانه', '#stage-sketch'],
+  ['services', 'خدمات', '#stage-color'],
+  ['work', 'نمونه‌کارها', '#stage-color'],
+  ['pricing', 'قیمت‌ها', '#stage-color'],
+  ['about', 'درباره‌ما', '#stage-real'],
+  ['contact', 'تماس با ما', '#stage-real'],
+];
 
+const services = [
+  ['طراحی و توسعه وب‌سایت', '◎'],
+  ['طراحی UI/UX', '✎'],
+  ['پنل و ابزارهای اختصاصی', '⚙'],
+  ['خودکارسازی فرآیندها', '⌘'],
+  ['بهینه‌سازی و بهبود عملکرد', '↗'],
+  ['پشتیبانی و توسعه', '◉'],
+];
+---
 <!doctype html>
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#faf9f6" />
-    <meta name="description" content="وبیگرام؛ طراحی و توسعه وب‌سایت، پنل و ابزارهای اختصاصی برای رشد کسب‌وکارها." />
-    <meta property="og:title" content="وبیگرام | راهکار وب برای کسب‌وکار شما" />
-    <meta property="og:description" content="ایده‌های شما را به وب‌سایت، پنل و ابزارهای کاربردی تبدیل می‌کنیم." />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="fa_IR" />
-    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-    <title>وبیگرام | راهکار وب برای کسب‌وکار شما</title>
+    <meta name="description" content="وبیگرام؛ از طرح اولیه تا اجرای واقعی ایده‌های دیجیتال." />
+    <meta name="theme-color" content="#fbfaf7" />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+    <title>وبیگرام | از ایده تا اجرای واقعی</title>
   </head>
-  <body>
+  <body data-stage="sketch">
     <header class="site-header" id="site-header">
-      <div class="shell">
-        <nav class="navbar" aria-label="منوی اصلی">
-          <a class="brand" href="#home" aria-label="وبیگرام؛ صفحه اصلی">
-            <svg class="brand-mark" viewBox="0 0 64 52" aria-hidden="true">
-              <path d="M4 7 16 45 28 14l8 31L60 7" />
-              <path class="brand-echo" d="M7 9 17 41 28 17l8 25L57 9" />
-            </svg>
-            <span class="brand-word">Webigram</span>
-          </a>
-
-          <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="main-menu" aria-label="باز کردن منو">
-            <span></span><span></span><span></span>
-          </button>
-
-          <ul class="nav-links" id="main-menu">
-            <li><a class="active" href="#home">خانه</a></li>
-            <li><a href="#services">خدمات</a></li>
-            <li><a href="#work">نمونه‌کارها</a></li>
-            <li><a href="#pricing">قیمت‌ها</a></li>
-            <li><a href="#about">درباره ما</a></li>
-            <li><a href="#contact">تماس با ما</a></li>
-          </ul>
+      <div class="shell header-inner">
+        <a class="brand" href="#stage-sketch" aria-label="Webigram">
+          <svg viewBox="0 0 66 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L62 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L59 9"/></svg>
+          <strong>Webigram</strong>
+        </a>
+        <nav aria-label="منوی اصلی">
+          <ul>{nav.map(([key,label,href]) => <li><a href={href} data-nav={key}>{label}</a></li>)}</ul>
         </nav>
       </div>
     </header>
 
-    <main>
-      <section class="hero" id="home">
-        <div class="paper-grid" aria-hidden="true"></div>
-        <div class="shell hero-layout">
-          <div class="hero-copy">
-            <span class="eyebrow">طراحی، توسعه و اتوماسیون</span>
-            <h1>راهکار وب<br />برای کسب‌وکار شما</h1>
-            <p>
-              ما وب‌سایت‌هایی مدرن، سریع و هدفمند طراحی می‌کنیم تا برند شما در فضای دیجیتال بدرخشد و رشد کند. از ایده تا اجرا، همراه مطمئن شما هستیم.
-            </p>
+    <main class="story">
+      <div class="shell story-grid">
+        <aside class="visual-column">
+          <div class="visual-sticky" aria-label="نمای سه مرحله طراحی وبیگرام">
+            <div class="desk-glow"></div>
+            <div class="draft-grid"></div>
 
-            <div class="hero-actions">
-              <a class="sketch-button primary" href="#contact">
-                شروع پروژه
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6" /></svg>
-              </a>
-              <a class="sketch-button" href="#work">
-                مشاهده نمونه‌کارها
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6" /></svg>
-              </a>
-            </div>
-
-            <div class="hero-benefits" aria-label="مزیت‌های وبیگرام">
-              <span>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 3-1.7 5.3L17 11l-5.3 1.7L9 17l-1.7-4.3L3 11l4.3-2.7L9 3l2.7 4.7L14 3Z" /></svg>
-                طراحی اختصاصی
-              </span>
-              <i></i>
-              <span>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 5 13h6l-1 9 8-12h-6l1-8Z" /></svg>
-                سئو و سرعت بالا
-              </span>
-              <i></i>
-              <span>
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 14h3v6H5a1 1 0 0 1-1-1v-5Zm16 0h-3v6h2a1 1 0 0 0 1-1v-5ZM17 20c0 1-2 2-5 2" /></svg>
-                پشتیبانی و همراهی
-              </span>
-            </div>
-          </div>
-
-          <div class="hero-art" aria-label="طرح دستی فرایند طراحی یک وب‌سایت واکنش‌گرا">
-            <svg class="wire-layer" viewBox="0 0 780 650" fill="none" aria-hidden="true">
-              <path d="M176 128C226 132 242 166 274 205" />
-              <path d="M578 110C538 129 518 151 493 205" />
-              <path d="M118 326C180 326 199 331 245 339" />
-              <path d="M180 512C208 483 221 460 250 447" />
-              <path d="M438 563C446 535 449 500 440 468" />
-              <path class="dash" d="M476 565C559 598 627 580 691 522" />
-              <circle cx="176" cy="128" r="5" /><circle cx="274" cy="205" r="5" />
-              <circle cx="578" cy="110" r="5" /><circle cx="493" cy="205" r="5" />
-              <circle cx="118" cy="326" r="5" /><circle cx="245" cy="339" r="5" />
-              <circle cx="180" cy="512" r="5" /><circle cx="250" cy="447" r="5" />
-              <circle cx="438" cy="563" r="5" /><circle cx="440" cy="468" r="5" />
+            <svg class="wires" viewBox="0 0 1000 820" fill="none" aria-hidden="true">
+              <path d="M250 138c75 0 91 67 119 112"/><path d="M690 128c-54 26-67 74-72 124"/>
+              <path d="M175 365h132"/><path d="M169 596c82-10 90-76 147-104"/><path d="M508 700c-7-50-5-96 8-137"/>
+              <path class="dash" d="M620 690c93 26 161-12 212-72"/>
+              <circle cx="250" cy="138" r="5"/><circle cx="369" cy="250" r="5"/><circle cx="690" cy="128" r="5"/><circle cx="618" cy="252" r="5"/>
+              <circle cx="175" cy="365" r="5"/><circle cx="307" cy="365" r="5"/><circle cx="169" cy="596" r="5"/><circle cx="316" cy="492" r="5"/>
             </svg>
 
-            <article class="float-card ui-card">
-              <strong>طراحی UI / وایرفریم</strong>
-              <div class="mini-wireframe"><b></b><span></span><span></span><span></span></div>
+            <article class="float-card card-ui">
+              <h3>طراحی UI/UX حرفه‌ای</h3>
+              <div class="mini-picture"><i></i></div>
+              <div class="mini-copy"><b></b><b></b><b></b></div>
+              <div class="swatches"><i></i><i></i><i></i></div>
             </article>
 
-            <article class="float-card form-card">
-              <strong>فرم تماس</strong>
-              <span class="input-line"></span><span class="input-line short"></span><b class="mini-button"></b>
+            <article class="float-card card-form">
+              <h3>فرم تماس هوشمند</h3>
+              <span class="field"></span><span class="field"></span><button type="button">ارسال پیام</button>
             </article>
 
-            <article class="float-card chart-card">
-              <strong>نمودار رشد</strong>
-              <div class="chart-bars"><i></i><i></i><i></i><i></i><i></i><svg viewBox="0 0 150 70"><path d="M8 55 38 42 67 48 98 22 139 7" /><path d="m128 8 11-1-3 11" /></svg></div>
+            <article class="float-card card-chart">
+              <h3>نمودار رشد</h3><small>٪۴۲ رشد در ۳ ماه</small>
+              <div class="bars"><i></i><i></i><i></i><i></i></div>
+              <svg viewBox="0 0 150 78" aria-hidden="true"><path d="M7 65 40 48 72 42 108 20 141 7"/><path d="M123 7h18v17"/></svg>
             </article>
 
-            <article class="float-card chat-card">
-              <strong>چت و پیام‌رسانی</strong>
-              <div class="chat-bubble"><i></i><span></span><b>۵</b></div>
+            <article class="float-card card-chat">
+              <h3>چت و پشتیبانی آنلاین</h3>
+              <div class="bubble"><b>3</b><i></i><span>آنلاین</span></div>
             </article>
 
-            <article class="float-card admin-card">
-              <strong>پنل مدیریت</strong>
-              <div class="admin-mini"><i></i><span></span><span></span><b></b></div>
-            </article>
+            <section class="monitor" aria-label="پیش‌نمایش وب‌سایت">
+              <div class="monitor-top"><span class="dots"><i></i><i></i><i></i></span><b>W Webigram</b></div>
+              <div class="monitor-nav"><i></i><i></i><i></i><i></i></div>
+              <div class="mock-hero"><div class="mountain"><i></i></div><div class="hero-lines"><b></b><b></b><span></span><span></span><em></em></div></div>
+              <h4>خدمات ما</h4>
+              <div class="mock-services"><div>🖥<b>طراحی سایت</b></div><div>&lt;/&gt;<b>توسعه اختصاصی</b></div><div>🚀<b>سرعت و عملکرد</b></div></div>
+              <h4>پروژه‌های اخیر</h4>
+              <div class="mock-project"><div></div><span><b>پنل مدیریت فروشگاه</b><i></i><i></i><i></i></span></div>
+            </section>
 
-            <div class="browser-sketch">
-              <div class="browser-top">
-                <div class="window-dots"><i></i><i></i><i></i></div>
-                <span>W Webigram</span>
-              </div>
-              <div class="browser-page">
-                <div class="mock-hero">
-                  <div class="image-placeholder"><span></span><i></i></div>
-                  <div class="mock-copy"><b></b><b class="short"></b><span></span><span></span><em></em></div>
-                </div>
-                <strong class="mock-title">خدمات ما</strong>
-                <div class="mock-services"><i>▣<span></span></i><i>&lt;/&gt;<span></span></i><i>◈<span></span></i></div>
-                <strong class="mock-title bottom">ارتباط با ما</strong>
-                <div class="mock-contact"><div><span></span><span></span><span></span></div><em></em></div>
-              </div>
+            <section class="phone" aria-label="پیش‌نمایش موبایل">
+              <div class="notch"></div><b class="phone-brand">W Webigram</b>
+              <div class="phone-picture mountain"><i></i></div>
+              <div class="phone-lines"><i></i><i></i><i></i></div><button type="button"></button>
+              <h4>خدمات ما</h4><div class="phone-services"><i></i><i></i></div>
+              <h4>پروژه‌ها</h4><div class="phone-project"><i></i><i></i><i></i></div>
+            </section>
+
+            <article class="float-card card-panel"><h3>پنل مدیریت پیشرفته</h3><div class="panel-chart"><i></i><span></span></div></article>
+            <div class="cursor" aria-hidden="true"></div>
+            <div class="pencils" aria-hidden="true"><i></i><i></i></div>
+            <div class="ruler" aria-hidden="true">{Array.from({length:10}).map((_,i)=><span>{i+1}</span>)}</div>
+          </div>
+        </aside>
+
+        <div class="copy-column">
+          <section class="stage-panel sketch-panel" id="stage-sketch" data-stage-panel="sketch" data-active-nav="home">
+            <div class="copy-wrap">
+              <h1>راهکار وب<br/>برای کسب‌وکار شما</h1>
+              <p>ما وب‌سایت‌هایی مدرن، سریع و هدفمند طراحی می‌کنیم تا برند شما در فضای دیجیتال بدرخشد و رشد کند.<br/>از ایده تا اجرا، همراه مطمئن شما هستیم.</p>
+              <div class="actions"><a class="primary" href="#stage-real">شروع پروژه <span>←</span></a><a href="#stage-color">مشاهده نمونه‌کارها <span>←</span></a></div>
+              <div class="benefits"><span>✎ طراحی اختصاصی</span><i></i><span>🚀 سئو و سرعت بالا</span><i></i><span>◉ پشتیبانی و همراهی</span></div>
             </div>
+          </section>
 
-            <div class="phone-sketch">
-              <div class="phone-notch"></div>
-              <div class="phone-brand">W Webigram</div>
-              <div class="phone-image"><span></span></div>
-              <b></b><b class="short"></b><em></em>
-              <strong>خدمات ما</strong>
-              <div class="phone-services"><i></i><i></i></div>
-              <small>ارتباط با ما</small>
-              <div class="phone-input"></div>
+          <section class="stage-panel color-panel" id="stage-color" data-stage-panel="color" data-active-nav="services">
+            <div class="copy-wrap">
+              <h2>آنچه برای<br/><em>کسب‌وکار</em> شما می‌سازیم</h2>
+              <p>خدماتی متناسب با نیاز واقعی کسب‌وکار شما؛<br/>ساده، کاربردی و قابل توسعه</p>
+              <div class="service-list">{services.map(([title,icon]) => <div><span>{title}</span><b>{icon}</b></div>)}</div>
             </div>
+          </section>
 
-            <svg class="cursor-sketch" viewBox="0 0 84 94" aria-hidden="true">
-              <path d="m7 5 8 68 15-18 15 31 13-7-16-31 25-3L7 5Z" />
-              <path d="M13 5V0M1 17l-7-5M24 15l8-7" />
-            </svg>
-
-            <div class="pencil" aria-hidden="true"><span></span></div>
-            <div class="ruler" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
-          </div>
+          <section class="stage-panel real-panel" id="stage-real" data-stage-panel="real" data-active-nav="services">
+            <div class="copy-wrap">
+              <span class="stage-badge">✦ ایده را به واقعیت تبدیل می‌کنیم ✦</span>
+              <h2>برای ایده‌های<br/><em>شما</em> راه می‌سازیم</h2>
+              <p>ایده‌های خوب نباید فقط در ذهن باقی بمانند.<br/>ما کمک می‌کنیم مسیر اجرای ایده‌تان روشن شود و قدم‌به‌قدم آن را به یک وب‌سایت، پنل یا ابزار کاربردی تبدیل می‌کنیم.</p>
+            </div>
+          </section>
         </div>
-      </section>
-
-      <section class="idea-section" id="about">
-        <div class="shell idea-layout">
-          <div class="idea-visual reveal">
-            <div class="idea-stage draft"><span>طرح اولیه</span></div>
-            <div class="idea-stage build"><span>ساخت و توسعه</span></div>
-            <div class="idea-stage live"><span>محصول واقعی</span></div>
-          </div>
-          <div class="idea-copy reveal">
-            <span class="section-label">از فکر تا محصول</span>
-            <h2>برای ایده‌های شما راه می‌سازیم</h2>
-            <p>ایده‌های خوب نباید فقط در ذهن باقی بمانند. مسیر اجرا را روشن می‌کنیم و قدم‌به‌قدم آن را به یک وب‌سایت، پنل یا ابزار کاربردی تبدیل می‌کنیم.</p>
-            <a class="text-link" href="#contact">ایده‌تان را تعریف کنید <span>←</span></a>
-          </div>
-        </div>
-      </section>
-
-      <section class="content-section" id="services">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <span class="section-label">خدمات وبیگرام</span>
-            <h2>چیزی می‌سازیم که واقعاً به کارتان بیاید</h2>
-          </div>
-          <div class="service-grid">
-            <article class="service-card reveal"><span>01</span><h3>طراحی وب‌سایت</h3><p>سایت شرکتی، فروشگاهی و لندینگ‌پیج سریع، واکنش‌گرا و قابل توسعه.</p></article>
-            <article class="service-card reveal"><span>02</span><h3>طراحی UI/UX</h3><p>از وایرفریم تا رابط نهایی، با تمرکز روی مسیر ساده و قابل فهم کاربر.</p></article>
-            <article class="service-card reveal"><span>03</span><h3>پنل و ابزار اختصاصی</h3><p>داشبورد، CRM، ابزار داخلی و هر چیزی که نرم‌افزار آماده از پسش برنمی‌آید.</p></article>
-            <article class="service-card reveal"><span>04</span><h3>اتوماسیون دیجیتال</h3><p>کارهای تکراری را به گردش‌کارهای هوشمند، دقیق و قابل اندازه‌گیری تبدیل می‌کنیم.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section class="work-section" id="work">
-        <div class="shell">
-          <div class="section-heading reveal">
-            <span class="section-label">نمونه‌کارها</span>
-            <h2>چند قاب از چیزهایی که می‌توانیم بسازیم</h2>
-          </div>
-          <div class="work-grid">
-            <article class="work-card reveal"><div class="work-preview one"><span>Dashboard</span></div><h3>پنل مدیریت و تحلیل</h3><p>داشبورد اختصاصی برای تصمیم‌گیری سریع‌تر.</p></article>
-            <article class="work-card reveal"><div class="work-preview two"><span>Website</span></div><h3>وب‌سایت برند</h3><p>حضور آنلاین حرفه‌ای با هویت بصری منسجم.</p></article>
-            <article class="work-card reveal"><div class="work-preview three"><span>Automation</span></div><h3>گردش‌کار خودکار</h3><p>اتصال ابزارها و حذف پیگیری‌های دستی.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section class="pricing-section" id="pricing">
-        <div class="shell pricing-box reveal">
-          <div><span class="section-label">قیمت‌گذاری روشن</span><h2>اول مسئله را می‌فهمیم، بعد قیمت می‌دهیم.</h2></div>
-          <p>قیمت هر پروژه بر اساس محدوده واقعی کار، زمان اجرا و سطح پشتیبانی مشخص می‌شود؛ نه بر اساس یک فهرست مبهم و پر از ستاره و تبصره.</p>
-          <a class="sketch-button primary" href="#contact">درخواست برآورد پروژه</a>
-        </div>
-      </section>
-
-      <section class="contact-section" id="contact">
-        <div class="shell contact-layout">
-          <div class="contact-copy reveal">
-            <span class="section-label">شروع همکاری</span>
-            <h2>ایده‌ای دارید؟ بیایید از روی کاغذ بلندش کنیم.</h2>
-            <p>در چند خط بگویید چه چیزی می‌خواهید بسازید. برای روشن‌کردن مسیر، امکانات و قدم بعدی با شما تماس می‌گیریم.</p>
-          </div>
-          <form class="contact-form reveal" action="mailto:hello@webigram.ir" method="post" enctype="text/plain">
-            <label>نام شما<input type="text" name="name" autocomplete="name" required /></label>
-            <label>راه ارتباطی<input type="text" name="contact" required /></label>
-            <label>درباره پروژه<textarea name="message" rows="5" required></textarea></label>
-            <button class="sketch-button primary" type="submit">ارسال درخواست</button>
-          </form>
-        </div>
-      </section>
+      </div>
     </main>
 
-    <footer>
-      <div class="shell footer-inner">
-        <a class="brand footer-brand" href="#home"><span class="brand-word">Webigram</span></a>
-        <p>راهکار وب برای کسب‌وکار شما</p>
-        <small>© {year} Webigram</small>
-      </div>
-    </footer>
-
     <script is:inline>
-      const header = document.getElementById('site-header');
-      const toggle = document.getElementById('menu-toggle');
-      const menu = document.getElementById('main-menu');
-
-      const setHeader = () => header?.classList.toggle('scrolled', window.scrollY > 18);
-      setHeader();
-      window.addEventListener('scroll', setHeader, { passive: true });
-
-      toggle?.addEventListener('click', () => {
-        const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-        toggle.setAttribute('aria-expanded', String(!isOpen));
-        menu?.classList.toggle('open', !isOpen);
-      });
-
-      menu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
-        toggle?.setAttribute('aria-expanded', 'false');
-        menu.classList.remove('open');
-      }));
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.15 });
-
-      document.querySelectorAll('.reveal').forEach((element) => observer.observe(element));
+      const body=document.body,header=document.getElementById('site-header');
+      const panels=[...document.querySelectorAll('[data-stage-panel]')],links=[...document.querySelectorAll('[data-nav]')];
+      const setStage=(stage,nav)=>{body.dataset.stage=stage;links.forEach(a=>a.classList.toggle('active',a.dataset.nav===nav));};
+      const io=new IntersectionObserver(entries=>{const hit=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(hit)setStage(hit.target.dataset.stagePanel,hit.target.dataset.activeNav);},{threshold:[.35,.55,.75]});
+      panels.forEach(p=>io.observe(p));setStage('sketch','home');
+      const onScroll=()=>header?.classList.toggle('scrolled',scrollY>16);onScroll();addEventListener('scroll',onScroll,{passive:true});
     </script>
   </body>
 </html>
