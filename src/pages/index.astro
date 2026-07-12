@@ -85,11 +85,40 @@ const services = [
     const story=document.getElementById('story'),slides=[...document.querySelectorAll('[data-slide]')],dots=[...document.querySelectorAll('.progress button')],loader=document.getElementById('loader');
     const decode=async img=>{const parts=img.dataset.parts.split('|');const text=(await Promise.all(parts.map(p=>fetch(p).then(r=>{if(!r.ok)throw Error(p);return r.text()})))).join('').replace(/\s/g,'');const bin=atob(text),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);img.src=URL.createObjectURL(new Blob([bytes],{type:'image/webp'}));await img.decode();};
     Promise.all([...document.querySelectorAll('img[data-parts]')].map(decode)).then(()=>loader.classList.add('done')).catch(()=>{loader.textContent='بارگذاری تصویرها ناموفق بود؛ صفحه را دوباره بارگذاری کنید.'});
+
     let current=-1,raf=0;
-    const setStage=n=>{n=Math.max(0,Math.min(2,n));if(n===current)return;current=n;document.body.dataset.stage=n;slides.forEach((s,i)=>s.classList.toggle('active',i===n));dots.forEach((d,i)=>d.classList.toggle('active',i===n));document.documentElement.style.setProperty('--dot',n===0?'#171717':n===1?'#315cff':'#7b43ff');};
-    const update=()=>{raf=0;const r=story.getBoundingClientRect(),max=story.offsetHeight-innerHeight,y=Math.max(0,Math.min(max,-r.top)),segment=max/3;setStage(Math.min(2,Math.floor(y/segment)));};
-    addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(update)},{passive:true});addEventListener('resize',update);setStage(0);
-    document.addEventListener('click',e=>{const el=e.target.closest('[data-jump]');if(!el)return;e.preventDefault();const n=Number(el.dataset.jump),max=story.offsetHeight-innerHeight,target=story.offsetTop+(max/3)*n+2;scrollTo({top:target,behavior:'smooth'});});
+    const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+    const setStage=n=>{n=clamp(n,0,2);if(n===current)return;current=n;document.body.dataset.stage=n;slides.forEach((s,i)=>s.classList.toggle('active',i===n));dots.forEach((d,i)=>d.classList.toggle('active',i===n));document.documentElement.style.setProperty('--dot',n===0?'#171717':n===1?'#315cff':'#7b43ff');};
+    const render=()=>{
+      raf=0;
+      const rect=story.getBoundingClientRect();
+      const max=Math.max(1,story.offsetHeight-innerHeight);
+      const y=clamp(-rect.top,0,max);
+      const progress=(y/max)*2;
+
+      slides.forEach((slide,index)=>{
+        const reveal=clamp(index-progress,0,1);
+        slide.style.transform=`translate3d(0,${reveal*100}%,0)`;
+        slide.style.zIndex=String(index+1);
+        slide.setAttribute('aria-hidden',Math.abs(index-progress)>.999?'true':'false');
+      });
+
+      setStage(Math.round(progress));
+    };
+
+    const queueRender=()=>{if(!raf)raf=requestAnimationFrame(render)};
+    addEventListener('scroll',queueRender,{passive:true});
+    addEventListener('resize',queueRender);
+    requestAnimationFrame(render);
+
+    document.addEventListener('click',e=>{
+      const el=e.target.closest('[data-jump]');
+      if(!el)return;
+      e.preventDefault();
+      const n=Number(el.dataset.jump),max=Math.max(1,story.offsetHeight-innerHeight);
+      const target=story.offsetTop+(max/2)*n;
+      scrollTo({top:target,behavior:'smooth'});
+    });
   </script>
 </body>
 </html>
