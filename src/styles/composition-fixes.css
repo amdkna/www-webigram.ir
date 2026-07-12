@@ -1,0 +1,26 @@
+.visual-sketch .browser-picture-bg,
+.visual-sketch .browser-picture-sun,
+.visual-sketch .browser-picture-back,
+.visual-sketch .browser-picture-front{
+  stroke:#242424;
+  stroke-width:1.6;
+}
+
+.visual-sketch .phone-picture-bg,
+.visual-sketch .phone-picture-sun,
+.visual-sketch .phone-picture-back,
+.visual-sketch .phone-picture-front{
+  stroke:#242424;
+  stroke-width:1.5;
+}
+
+.visual-color .browser-picture-bg,
+.visual-color .browser-picture-sun,
+.visual-color .browser-picture-back,
+.visual-color .browser-picture-front,
+.visual-color .phone-picture-bg,
+.visual-color .phone-picture-sun,
+.visual-color .phone-picture-back,
+.visual-color .phone-picture-front{
+  stroke:none;
+}
