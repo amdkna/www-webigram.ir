@@ -1,146 +1,95 @@
 ---
-import '../styles/global.css';
-
+import '../styles/scroll-slides.css';
+const base = import.meta.env.BASE_URL;
 const nav = [
-  ['home', 'خانه', '#stage-sketch'],
-  ['services', 'خدمات', '#stage-color'],
-  ['work', 'نمونه‌کارها', '#stage-color'],
-  ['pricing', 'قیمت‌ها', '#stage-color'],
-  ['about', 'درباره‌ما', '#stage-real'],
-  ['contact', 'تماس با ما', '#stage-real'],
+  ['خانه',0,'home'],['خدمات',1,'services'],['نمونه‌کارها',1,'work'],
+  ['قیمت‌ها',1,'pricing'],['درباره‌ما',2,'about'],['تماس با ما',2,'contact']
 ];
-
 const services = [
-  ['طراحی و توسعه وب‌سایت', '◎'],
-  ['طراحی UI/UX', '✎'],
-  ['پنل و ابزارهای اختصاصی', '⚙'],
-  ['خودکارسازی فرآیندها', '⌘'],
-  ['بهینه‌سازی و بهبود عملکرد', '↗'],
-  ['پشتیبانی و توسعه', '◉'],
+  ['طراحی و توسعه وب‌سایت','◎'],['طراحی UI/UX','✎'],['پنل و ابزارهای اختصاصی','⚙'],
+  ['خودکارسازی فرآیندها','⌘'],['بهینه‌سازی و بهبود عملکرد','↗'],['پشتیبانی و توسعه','◉']
 ];
 ---
 <!doctype html>
 <html lang="fa" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="وبیگرام؛ از طرح اولیه تا اجرای واقعی ایده‌های دیجیتال." />
-    <meta name="theme-color" content="#fbfaf7" />
-    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
-    <title>وبیگرام | از ایده تا اجرای واقعی</title>
-  </head>
-  <body data-stage="sketch">
-    <header class="site-header" id="site-header">
-      <div class="shell header-inner">
-        <a class="brand" href="#stage-sketch" aria-label="Webigram">
-          <svg viewBox="0 0 66 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L62 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L59 9"/></svg>
-          <strong>Webigram</strong>
-        </a>
-        <nav aria-label="منوی اصلی">
-          <ul>{nav.map(([key,label,href]) => <li><a href={href} data-nav={key}>{label}</a></li>)}</ul>
-        </nav>
-      </div>
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="وبیگرام؛ از طرح مدادی تا اجرای واقعی ایده‌های دیجیتال." />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <title>وبیگرام | از ایده تا اجرای واقعی</title>
+</head>
+<body data-stage="0">
+  <div class="slide-loader" id="loader"><div>در حال آماده‌سازی طرح‌ها<div class="loader-line"></div></div></div>
+  <main class="story" id="story">
+    <i class="anchor a1" id="sketch"></i><i class="anchor a2" id="color"></i><i class="anchor a3" id="real"></i>
+    <div class="viewport">
+      <div class="frame">
+        <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+          <filter id="pencil-rough"><feTurbulence type="fractalNoise" baseFrequency=".014" numOctaves="2" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale=".65"/></filter>
+        </svg>
 
-    <main class="story">
-      <div class="shell story-grid">
-        <aside class="visual-column">
-          <div class="visual-sticky" aria-label="نمای سه مرحله طراحی وبیگرام">
-            <div class="desk-glow"></div>
-            <div class="draft-grid"></div>
-
-            <svg class="wires" viewBox="0 0 1000 820" fill="none" aria-hidden="true">
-              <path d="M250 138c75 0 91 67 119 112"/><path d="M690 128c-54 26-67 74-72 124"/>
-              <path d="M175 365h132"/><path d="M169 596c82-10 90-76 147-104"/><path d="M508 700c-7-50-5-96 8-137"/>
-              <path class="dash" d="M620 690c93 26 161-12 212-72"/>
-              <circle cx="250" cy="138" r="5"/><circle cx="369" cy="250" r="5"/><circle cx="690" cy="128" r="5"/><circle cx="618" cy="252" r="5"/>
-              <circle cx="175" cy="365" r="5"/><circle cx="307" cy="365" r="5"/><circle cx="169" cy="596" r="5"/><circle cx="316" cy="492" r="5"/>
-            </svg>
-
-            <article class="float-card card-ui">
-              <h3>طراحی UI/UX حرفه‌ای</h3>
-              <div class="mini-picture"><i></i></div>
-              <div class="mini-copy"><b></b><b></b><b></b></div>
-              <div class="swatches"><i></i><i></i><i></i></div>
-            </article>
-
-            <article class="float-card card-form">
-              <h3>فرم تماس هوشمند</h3>
-              <span class="field"></span><span class="field"></span><button type="button">ارسال پیام</button>
-            </article>
-
-            <article class="float-card card-chart">
-              <h3>نمودار رشد</h3><small>٪۴۲ رشد در ۳ ماه</small>
-              <div class="bars"><i></i><i></i><i></i><i></i></div>
-              <svg viewBox="0 0 150 78" aria-hidden="true"><path d="M7 65 40 48 72 42 108 20 141 7"/><path d="M123 7h18v17"/></svg>
-            </article>
-
-            <article class="float-card card-chat">
-              <h3>چت و پشتیبانی آنلاین</h3>
-              <div class="bubble"><b>3</b><i></i><span>آنلاین</span></div>
-            </article>
-
-            <section class="monitor" aria-label="پیش‌نمایش وب‌سایت">
-              <div class="monitor-top"><span class="dots"><i></i><i></i><i></i></span><b>W Webigram</b></div>
-              <div class="monitor-nav"><i></i><i></i><i></i><i></i></div>
-              <div class="mock-hero"><div class="mountain"><i></i></div><div class="hero-lines"><b></b><b></b><span></span><span></span><em></em></div></div>
-              <h4>خدمات ما</h4>
-              <div class="mock-services"><div>🖥<b>طراحی سایت</b></div><div>&lt;/&gt;<b>توسعه اختصاصی</b></div><div>🚀<b>سرعت و عملکرد</b></div></div>
-              <h4>پروژه‌های اخیر</h4>
-              <div class="mock-project"><div></div><span><b>پنل مدیریت فروشگاه</b><i></i><i></i><i></i></span></div>
-            </section>
-
-            <section class="phone" aria-label="پیش‌نمایش موبایل">
-              <div class="notch"></div><b class="phone-brand">W Webigram</b>
-              <div class="phone-picture mountain"><i></i></div>
-              <div class="phone-lines"><i></i><i></i><i></i></div><button type="button"></button>
-              <h4>خدمات ما</h4><div class="phone-services"><i></i><i></i></div>
-              <h4>پروژه‌ها</h4><div class="phone-project"><i></i><i></i><i></i></div>
-            </section>
-
-            <article class="float-card card-panel"><h3>پنل مدیریت پیشرفته</h3><div class="panel-chart"><i></i><span></span></div></article>
-            <div class="cursor" aria-hidden="true"></div>
-            <div class="pencils" aria-hidden="true"><i></i><i></i></div>
-            <div class="ruler" aria-hidden="true">{Array.from({length:10}).map((_,i)=><span>{i+1}</span>)}</div>
-          </div>
-        </aside>
-
-        <div class="copy-column">
-          <section class="stage-panel sketch-panel" id="stage-sketch" data-stage-panel="sketch" data-active-nav="home">
-            <div class="copy-wrap">
+        <section class="slide slide-sketch active" data-slide="0">
+          <div class="visual"><img alt="طرح اولیه سیاه و سفید وبیگرام" data-parts={`${base}slides/s1a.txt|${base}slides/s1b.txt`} /><span class="visual-mask"></span></div>
+          <div class="right">
+            <header class="stage-header">
+              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".42" stroke-width="2"/></svg><span>Webigram</span></a>
+              <nav class="nav" aria-label="منوی مرحله طرح اولیه">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='home'?'current':''}>{label}</a>)}</nav>
+            </header>
+            <div class="copy">
               <h1>راهکار وب<br/>برای کسب‌وکار شما</h1>
               <p>ما وب‌سایت‌هایی مدرن، سریع و هدفمند طراحی می‌کنیم تا برند شما در فضای دیجیتال بدرخشد و رشد کند.<br/>از ایده تا اجرا، همراه مطمئن شما هستیم.</p>
-              <div class="actions"><a class="primary" href="#stage-real">شروع پروژه <span>←</span></a><a href="#stage-color">مشاهده نمونه‌کارها <span>←</span></a></div>
-              <div class="benefits"><span>✎ طراحی اختصاصی</span><i></i><span>🚀 سئو و سرعت بالا</span><i></i><span>◉ پشتیبانی و همراهی</span></div>
+              <div class="actions"><a href="#real" data-jump="2">شروع پروژه <span>←</span></a><a href="#color" data-jump="1">مشاهده نمونه‌کارها <span>←</span></a></div>
+              <div class="benefits"><span><b>✎</b> طراحی اختصاصی</span><i></i><span><b>🚀</b> سئو و سرعت بالا</span><i></i><span><b>◉</b> پشتیبانی و همراهی</span></div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="stage-panel color-panel" id="stage-color" data-stage-panel="color" data-active-nav="services">
-            <div class="copy-wrap">
+        <section class="slide slide-color" data-slide="1">
+          <div class="visual"><img alt="نسخه رنگی طراحی وبیگرام" data-parts={`${base}slides/s2a.txt|${base}slides/s2b.txt`} /><span class="visual-mask"></span></div>
+          <div class="right">
+            <header class="stage-header">
+              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
+              <nav class="nav" aria-label="منوی مرحله طراحی رنگی">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='services'?'current':''}>{label}</a>)}</nav>
+            </header>
+            <div class="copy">
               <h2>آنچه برای<br/><em>کسب‌وکار</em> شما می‌سازیم</h2>
-              <p>خدماتی متناسب با نیاز واقعی کسب‌وکار شما؛<br/>ساده، کاربردی و قابل توسعه</p>
-              <div class="service-list">{services.map(([title,icon]) => <div><span>{title}</span><b>{icon}</b></div>)}</div>
+              <p class="service-intro">خدماتی متناسب با نیاز واقعی کسب‌وکار شما؛<br/>ساده، کاربردی و قابل توسعه</p>
+              <div class="service-list">{services.map(([title,icon])=><div class="service-item"><span>{title}</span><b>{icon}</b></div>)}</div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="stage-panel real-panel" id="stage-real" data-stage-panel="real" data-active-nav="services">
-            <div class="copy-wrap">
-              <span class="stage-badge">✦ ایده را به واقعیت تبدیل می‌کنیم ✦</span>
+        <section class="slide slide-real" data-slide="2">
+          <div class="visual"><img alt="نسخه واقعی و اجراشده وبیگرام" data-parts={`${base}slides/s3a.txt|${base}slides/s3b.txt`} /><span class="visual-mask"></span></div>
+          <div class="right">
+            <header class="stage-header">
+              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
+              <nav class="nav" aria-label="منوی مرحله محصول واقعی">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='services'?'current':''}>{label}</a>)}</nav>
+            </header>
+            <div class="copy">
+              <span class="badge">✦ ایده را به واقعیت تبدیل می‌کنیم ✦</span>
               <h2>برای ایده‌های<br/><em>شما</em> راه می‌سازیم</h2>
               <p>ایده‌های خوب نباید فقط در ذهن باقی بمانند.<br/>ما کمک می‌کنیم مسیر اجرای ایده‌تان روشن شود و قدم‌به‌قدم آن را به یک وب‌سایت، پنل یا ابزار کاربردی تبدیل می‌کنیم.</p>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
-    </main>
+    </div>
+  </main>
 
-    <script is:inline>
-      const body=document.body,header=document.getElementById('site-header');
-      const panels=[...document.querySelectorAll('[data-stage-panel]')],links=[...document.querySelectorAll('[data-nav]')];
-      const setStage=(stage,nav)=>{body.dataset.stage=stage;links.forEach(a=>a.classList.toggle('active',a.dataset.nav===nav));};
-      const io=new IntersectionObserver(entries=>{const hit=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(hit)setStage(hit.target.dataset.stagePanel,hit.target.dataset.activeNav);},{threshold:[.35,.55,.75]});
-      panels.forEach(p=>io.observe(p));setStage('sketch','home');
-      const onScroll=()=>header?.classList.toggle('scrolled',scrollY>16);onScroll();addEventListener('scroll',onScroll,{passive:true});
-    </script>
-  </body>
+  <div class="progress" aria-label="مراحل طراحی"><button class="active" data-jump="0" aria-label="طرح اولیه"></button><button data-jump="1" aria-label="طراحی رنگی"></button><button data-jump="2" aria-label="نسخه واقعی"></button></div>
+
+  <script is:inline>
+    const story=document.getElementById('story'),slides=[...document.querySelectorAll('[data-slide]')],dots=[...document.querySelectorAll('.progress button')],loader=document.getElementById('loader');
+    const decode=async img=>{const parts=img.dataset.parts.split('|');const text=(await Promise.all(parts.map(p=>fetch(p).then(r=>{if(!r.ok)throw Error(p);return r.text()})))).join('').replace(/\s/g,'');const bin=atob(text),bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);img.src=URL.createObjectURL(new Blob([bytes],{type:'image/webp'}));await img.decode();};
+    Promise.all([...document.querySelectorAll('img[data-parts]')].map(decode)).then(()=>loader.classList.add('done')).catch(()=>{loader.textContent='بارگذاری تصویرها ناموفق بود؛ صفحه را دوباره بارگذاری کنید.'});
+    let current=-1,raf=0;
+    const setStage=n=>{n=Math.max(0,Math.min(2,n));if(n===current)return;current=n;document.body.dataset.stage=n;slides.forEach((s,i)=>s.classList.toggle('active',i===n));dots.forEach((d,i)=>d.classList.toggle('active',i===n));document.documentElement.style.setProperty('--dot',n===0?'#171717':n===1?'#315cff':'#7b43ff');};
+    const update=()=>{raf=0;const r=story.getBoundingClientRect(),max=story.offsetHeight-innerHeight,y=Math.max(0,Math.min(max,-r.top)),segment=max/3;setStage(Math.min(2,Math.floor(y/segment)));};
+    addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(update)},{passive:true});addEventListener('resize',update);setStage(0);
+    document.addEventListener('click',e=>{const el=e.target.closest('[data-jump]');if(!el)return;e.preventDefault();const n=Number(el.dataset.jump),max=story.offsetHeight-innerHeight,target=story.offsetTop+(max/3)*n+2;scrollTo({top:target,behavior:'smooth'});});
+  </script>
+</body>
 </html>
