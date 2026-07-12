@@ -3,348 +3,275 @@ import '../styles/global.css';
 
 const base = import.meta.env.BASE_URL;
 const year = new Date().getFullYear();
-
-const services = [
-  {
-    index: '01',
-    title: 'طراحی و توسعه وب‌سایت',
-    description: 'وب‌سایت‌هایی سریع، حرفه‌ای و قابل توسعه که فقط زیبا نیستند؛ برای رسیدن به هدف واقعی کسب‌وکار طراحی می‌شوند.',
-    tags: ['سایت شرکتی', 'فروشگاه آنلاین', 'لندینگ‌پیج', 'پرتال اختصاصی'],
-    color: '#2563eb',
-    bg: '#dbeafe',
-    glow: 'rgba(37, 99, 235, 0.10)',
-    icon: 'browser',
-  },
-  {
-    index: '02',
-    title: 'طراحی UI/UX',
-    description: 'تجربه‌ای ساده، منسجم و قابل فهم برای کاربران شما؛ از معماری اطلاعات و وایرفریم تا طراحی رابط نهایی.',
-    tags: ['تحقیق کاربر', 'وایرفریم', 'رابط کاربری', 'دیزاین سیستم'],
-    color: '#7c3aed',
-    bg: '#ede9fe',
-    glow: 'rgba(124, 58, 237, 0.10)',
-    icon: 'pen',
-  },
-  {
-    index: '03',
-    title: 'ابزارهای اختصاصی کسب‌وکار',
-    description: 'وقتی نرم‌افزارهای آماده با فرایند شما هماهنگ نیستند، ابزار دقیق خودتان را طراحی و پیاده‌سازی می‌کنیم.',
-    tags: ['داشبورد مدیریتی', 'پنل داخلی', 'CRM اختصاصی', 'گزارش‌گیری'],
-    color: '#059669',
-    bg: '#d1fae5',
-    glow: 'rgba(16, 185, 129, 0.10)',
-    icon: 'blocks',
-  },
-  {
-    index: '04',
-    title: 'اتوماسیون دیجیتال',
-    description: 'کارهای تکراری را به گردش‌کارهای هوشمند و قابل اندازه‌گیری تبدیل می‌کنیم تا تیم شما روی کار مهم‌تر تمرکز کند.',
-    tags: ['گردش‌کار شرطی', 'اتصال سرویس‌ها', 'پیام خودکار', 'اعلان و پیگیری'],
-    color: '#d97706',
-    bg: '#fef3c7',
-    glow: 'rgba(245, 158, 11, 0.11)',
-    icon: 'automation',
-  },
-];
-
-const iconPath = (name: string) => {
-  const icons: Record<string, string> = {
-    browser: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/>',
-    pen: '<path d="m15 5 4 4M13 7l4 4M5 19l3.5-.8L18 7.7a2 2 0 0 0-2.8-2.8L4.7 15.5 4 19z"/><path d="M12 20h8"/>',
-    blocks: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><path d="M14 17.5h7M17.5 14v7"/>',
-    automation: '<path d="M4 7h10M14 7l-2.5-2.5M14 7l-2.5 2.5M20 17H10M10 17l2.5-2.5M10 17l2.5 2.5"/><circle cx="5" cy="17" r="2"/><circle cx="19" cy="7" r="2"/>',
-  };
-  return icons[name];
-};
 ---
 
 <!doctype html>
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="theme-color" content="#0f172a" />
-    <meta name="description" content="وبیگرام؛ طراحی وب‌سایت، تجربه کاربری، ابزارهای اختصاصی و اتوماسیون دیجیتال برای کسب‌وکارهای مدرن." />
-    <meta name="keywords" content="طراحی سایت، اتوماسیون کسب و کار، طراحی UI UX، توسعه نرم افزار اختصاصی، وبیگرام" />
-    <meta property="og:title" content="وبیگرام | طراحی می‌کنیم، می‌سازیم، خودکار می‌کنیم" />
-    <meta property="og:description" content="از حضور آنلاین حرفه‌ای تا ابزارهای اختصاصی و اتوماسیون فرایندهای کسب‌وکار." />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#faf9f6" />
+    <meta name="description" content="وبیگرام؛ طراحی و توسعه وب‌سایت، پنل و ابزارهای اختصاصی برای رشد کسب‌وکارها." />
+    <meta property="og:title" content="وبیگرام | راهکار وب برای کسب‌وکار شما" />
+    <meta property="og:description" content="ایده‌های شما را به وب‌سایت، پنل و ابزارهای کاربردی تبدیل می‌کنیم." />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="fa_IR" />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-    <title>وبیگرام | طراحی می‌کنیم، می‌سازیم، خودکار می‌کنیم</title>
+    <title>وبیگرام | راهکار وب برای کسب‌وکار شما</title>
   </head>
   <body>
     <header class="site-header" id="site-header">
-      <div class="container">
-        <nav class="nav-shell" aria-label="منوی اصلی">
-          <a class="brand" href="#home" aria-label="صفحه اصلی وبیگرام">
-            <span class="brand-mark">
-              <svg viewBox="0 0 34 26" fill="none" aria-hidden="true">
-                <path d="M2 3l6.2 20h6.1L17 13.7 19.7 23h6.1L32 3h-6.2l-3.1 12.7L19.5 5.3h-5L11.3 15.7 8.2 3H2z" fill="url(#logoGradient)"/>
-                <defs><linearGradient id="logoGradient" x1="2" y1="3" x2="32" y2="23"><stop stop-color="#60a5fa"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
-              </svg>
-            </span>
-            <span class="brand-name">وبیگرام<small>WEBIGRAM</small></span>
+      <div class="shell">
+        <nav class="navbar" aria-label="منوی اصلی">
+          <a class="brand" href="#home" aria-label="وبیگرام؛ صفحه اصلی">
+            <svg class="brand-mark" viewBox="0 0 64 52" aria-hidden="true">
+              <path d="M4 7 16 45 28 14l8 31L60 7" />
+              <path class="brand-echo" d="M7 9 17 41 28 17l8 25L57 9" />
+            </svg>
+            <span class="brand-word">Webigram</span>
           </a>
 
-          <ul class="nav-links" id="nav-links">
-            <li><a href="#home">خانه</a></li>
-            <li><a href="#services">خدمات</a></li>
-            <li><a href="#automation">راهکارها</a></li>
-            <li><a href="#process">مسیر همکاری</a></li>
-            <li><a href="#about">درباره ما</a></li>
-          </ul>
+          <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="main-menu" aria-label="باز کردن منو">
+            <span></span><span></span><span></span>
+          </button>
 
-          <div class="nav-actions">
-            <a class="btn btn-primary" href="#contact">شروع همکاری</a>
-            <button class="menu-toggle" id="menu-toggle" type="button" aria-label="باز کردن منو" aria-expanded="false">
-              <span></span><span></span><span></span>
-            </button>
-          </div>
+          <ul class="nav-links" id="main-menu">
+            <li><a class="active" href="#home">خانه</a></li>
+            <li><a href="#services">خدمات</a></li>
+            <li><a href="#work">نمونه‌کارها</a></li>
+            <li><a href="#pricing">قیمت‌ها</a></li>
+            <li><a href="#about">درباره ما</a></li>
+            <li><a href="#contact">تماس با ما</a></li>
+          </ul>
         </nav>
       </div>
     </header>
 
     <main>
       <section class="hero" id="home">
-        <span class="hero-orb one"></span>
-        <span class="hero-orb two"></span>
-        <div class="container hero-grid">
+        <div class="paper-grid" aria-hidden="true"></div>
+        <div class="shell hero-layout">
           <div class="hero-copy">
-            <div class="hero-kicker"><span class="dot"></span>استودیوی طراحی و اتوماسیون دیجیتال</div>
-            <h1>کسب‌وکار شما به چیزی بیشتر از یک <span class="gradient-text">وب‌سایت</span> نیاز دارد.</h1>
-            <p>در وبیگرام، حضور آنلاین شما را طراحی می‌کنیم، ابزارهای اختصاصی می‌سازیم و کارهای تکراری را به سیستم‌های هوشمند و خودکار تبدیل می‌کنیم.</p>
+            <span class="eyebrow">طراحی، توسعه و اتوماسیون</span>
+            <h1>راهکار وب<br />برای کسب‌وکار شما</h1>
+            <p>
+              ما وب‌سایت‌هایی مدرن، سریع و هدفمند طراحی می‌کنیم تا برند شما در فضای دیجیتال بدرخشد و رشد کند. از ایده تا اجرا، همراه مطمئن شما هستیم.
+            </p>
+
             <div class="hero-actions">
-              <a class="btn btn-primary" href="#contact">
-                شروع یک پروژه
-                <svg class="icon-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              <a class="sketch-button primary" href="#contact">
+                شروع پروژه
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6" /></svg>
               </a>
-              <a class="btn btn-secondary" href="#automation">ببینید چطور کار می‌کند</a>
+              <a class="sketch-button" href="#work">
+                مشاهده نمونه‌کارها
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6" /></svg>
+              </a>
             </div>
-            <div class="hero-proof">
-              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>طراحی اختصاصی</span>
-              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>توسعه‌پذیر و مستند</span>
-              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>تمرکز بر نتیجه واقعی</span>
+
+            <div class="hero-benefits" aria-label="مزیت‌های وبیگرام">
+              <span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 3-1.7 5.3L17 11l-5.3 1.7L9 17l-1.7-4.3L3 11l4.3-2.7L9 3l2.7 4.7L14 3Z" /></svg>
+                طراحی اختصاصی
+              </span>
+              <i></i>
+              <span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 5 13h6l-1 9 8-12h-6l1-8Z" /></svg>
+                سئو و سرعت بالا
+              </span>
+              <i></i>
+              <span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3M4 14h3v6H5a1 1 0 0 1-1-1v-5Zm16 0h-3v6h2a1 1 0 0 0 1-1v-5ZM17 20c0 1-2 2-5 2" /></svg>
+                پشتیبانی و همراهی
+              </span>
             </div>
           </div>
 
-          <div class="hero-visual" aria-label="نمایش یک گردش‌کار خودکار">
-            <div class="float-chip chip-one">سرنخ جدید ثبت شد</div>
-            <div class="float-chip chip-two">پیام خودکار ارسال شد</div>
-            <div class="dashboard-card">
-              <div class="dashboard-top">
-                <span class="dashboard-label">AUTOMATION WORKFLOW</span>
-                <span class="dots"><i></i><i></i><i></i></span>
+          <div class="hero-art" aria-label="طرح دستی فرایند طراحی یک وب‌سایت واکنش‌گرا">
+            <svg class="wire-layer" viewBox="0 0 780 650" fill="none" aria-hidden="true">
+              <path d="M176 128C226 132 242 166 274 205" />
+              <path d="M578 110C538 129 518 151 493 205" />
+              <path d="M118 326C180 326 199 331 245 339" />
+              <path d="M180 512C208 483 221 460 250 447" />
+              <path d="M438 563C446 535 449 500 440 468" />
+              <path class="dash" d="M476 565C559 598 627 580 691 522" />
+              <circle cx="176" cy="128" r="5" /><circle cx="274" cy="205" r="5" />
+              <circle cx="578" cy="110" r="5" /><circle cx="493" cy="205" r="5" />
+              <circle cx="118" cy="326" r="5" /><circle cx="245" cy="339" r="5" />
+              <circle cx="180" cy="512" r="5" /><circle cx="250" cy="447" r="5" />
+              <circle cx="438" cy="563" r="5" /><circle cx="440" cy="468" r="5" />
+            </svg>
+
+            <article class="float-card ui-card">
+              <strong>طراحی UI / وایرفریم</strong>
+              <div class="mini-wireframe"><b></b><span></span><span></span><span></span></div>
+            </article>
+
+            <article class="float-card form-card">
+              <strong>فرم تماس</strong>
+              <span class="input-line"></span><span class="input-line short"></span><b class="mini-button"></b>
+            </article>
+
+            <article class="float-card chart-card">
+              <strong>نمودار رشد</strong>
+              <div class="chart-bars"><i></i><i></i><i></i><i></i><i></i><svg viewBox="0 0 150 70"><path d="M8 55 38 42 67 48 98 22 139 7" /><path d="m128 8 11-1-3 11" /></svg></div>
+            </article>
+
+            <article class="float-card chat-card">
+              <strong>چت و پیام‌رسانی</strong>
+              <div class="chat-bubble"><i></i><span></span><b>۵</b></div>
+            </article>
+
+            <article class="float-card admin-card">
+              <strong>پنل مدیریت</strong>
+              <div class="admin-mini"><i></i><span></span><span></span><b></b></div>
+            </article>
+
+            <div class="browser-sketch">
+              <div class="browser-top">
+                <div class="window-dots"><i></i><i></i><i></i></div>
+                <span>W Webigram</span>
               </div>
-              <div class="flow-canvas">
-                <div class="flow-line one"></div>
-                <div class="flow-line two"></div>
-                <div class="flow-line three"></div>
-                <span class="pulse"></span>
-
-                <div class="flow-node trigger">
-                  <span class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></span>
-                  <strong>پیام کاربر</strong><small>شروع گردش‌کار</small>
+              <div class="browser-page">
+                <div class="mock-hero">
+                  <div class="image-placeholder"><span></span><i></i></div>
+                  <div class="mock-copy"><b></b><b class="short"></b><span></span><span></span><em></em></div>
                 </div>
-                <div class="flow-node condition">
-                  <span class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M3 6h.01M8 12h13M3 12h.01M8 18h13M3 18h.01"/></svg></span>
-                  <strong>بررسی شرط</strong><small>انتخاب مسیر مناسب</small>
-                </div>
-                <div class="flow-node action">
-                  <span class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg></span>
-                  <strong>ارسال پاسخ</strong><small>عملیات خودکار</small>
-                </div>
-                <div class="flow-node notify">
-                  <span class="node-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21h-3.4"/></svg></span>
-                  <strong>اعلان به مدیر</strong><small>گزارش در لحظه</small>
-                </div>
+                <strong class="mock-title">خدمات ما</strong>
+                <div class="mock-services"><i>▣<span></span></i><i>&lt;/&gt;<span></span></i><i>◈<span></span></i></div>
+                <strong class="mock-title bottom">ارتباط با ما</strong>
+                <div class="mock-contact"><div><span></span><span></span><span></span></div><em></em></div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      <div class="stats-strip">
-        <div class="container stats-shell">
-          <div class="stat-item"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg></span><div><strong>راهکار اختصاصی</strong><small>متناسب با فرایند واقعی شما</small></div></div>
-          <div class="stat-item"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M12 3v18"/><circle cx="12" cy="12" r="9"/></svg></span><div><strong>یکپارچه و متصل</strong><small>سایت، ابزار و اتوماسیون کنار هم</small></div></div>
-          <div class="stat-item"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6l-8-4z"/></svg></span><div><strong>قابل اتکا</strong><small>ساختار فنی تمیز و امن</small></div></div>
-          <div class="stat-item"><span class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span><div><strong>آماده رشد</strong><small>قابل توسعه برای فردای کسب‌وکار</small></div></div>
-        </div>
-      </div>
-
-      <section class="section" id="problems">
-        <div class="container problem-grid">
-          <div class="problem-copy reveal">
-            <span class="eyebrow">مسئله اصلی</span>
-            <h2 class="section-title">فقط داشتن سایت، مشکل کسب‌وکار را حل نمی‌کند.</h2>
-            <p class="section-subtitle">حضور دیجیتال وقتی ارزشمند است که بخش‌های پراکنده کسب‌وکار را به یک مسیر منسجم، قابل مدیریت و قابل اندازه‌گیری تبدیل کند.</p>
-            <div class="problem-quote">وبیگرام این تکه‌های پراکنده را به یک سیستم واقعی تبدیل می‌کند.</div>
-          </div>
-          <div class="pain-list">
-            <article class="pain-card reveal"><span class="number">01</span><h3>اطلاعات پراکنده</h3><p>درخواست‌ها بین سایت، اینستاگرام، پیام‌رسان‌ها و فایل‌های اکسل گم می‌شوند.</p></article>
-            <article class="pain-card reveal"><span class="number">02</span><h3>کارهای تکراری</h3><p>تیم شما زمان ارزشمندش را صرف کپی‌کردن، پیگیری و ارسال پیام‌های مشابه می‌کند.</p></article>
-            <article class="pain-card reveal"><span class="number">03</span><h3>ابزارهای نامتناسب</h3><p>نرم‌افزارهای آماده، کسب‌وکار را مجبور می‌کنند خودش را با محدودیت ابزار هماهنگ کند.</p></article>
-            <article class="pain-card reveal"><span class="number">04</span><h3>تجربه نامنسجم</h3><p>ظاهر و رفتار کانال‌های دیجیتال برند، یکپارچه نیست و اعتماد کاربر را کاهش می‌دهد.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section section-soft" id="services">
-        <div class="container">
-          <div class="section-head reveal">
-            <div><span class="eyebrow">خدمات وبیگرام</span><h2 class="section-title">طراحی تا اجرا، در یک مسیر هماهنگ</h2></div>
-            <p class="section-subtitle">به‌جای تحویل چند قطعه جدا، راهکاری می‌سازیم که طراحی، فناوری و فرایند کسب‌وکار را به هم متصل کند.</p>
-          </div>
-          <div class="services-grid">
-            {services.map((service) => (
-              <article class="service-card reveal" style={`--service-color:${service.color};--service-bg:${service.bg};--service-glow:${service.glow};`}>
-                <div class="service-top">
-                  <span class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" set:html={iconPath(service.icon)}></svg></span>
-                  <span class="card-index">{service.index}</span>
-                </div>
-                <h3>{service.title}</h3>
-                <p>{service.description}</p>
-                <div class="service-tags">{service.tags.map((tag) => <span>{tag}</span>)}</div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section class="automation-section" id="automation">
-        <div class="container automation-layout">
-          <div class="automation-copy reveal">
-            <span class="eyebrow">اتوماسیون در عمل</span>
-            <h2 class="section-title">کارهای تکراری را به سیستم بسپارید.</h2>
-            <p class="section-subtitle">رویداد اتفاق می‌افتد، شرط‌ها بررسی می‌شوند و اقدام مناسب بدون دخالت دستی انجام می‌شود. ساده برای کاربر، دقیق در پشت صحنه.</p>
-            <div class="flow-tabs" role="tablist" aria-label="نمونه‌های اتوماسیون">
-              <button class="flow-tab active" type="button" data-flow="lead"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"/></svg></span><span><strong>مدیریت سرنخ فروش</strong><small>از فرم تا پیگیری</small></span></button>
-              <button class="flow-tab" type="button" data-flow="social"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="currentColor"/></svg></span><span><strong>تعامل شبکه اجتماعی</strong><small>کامنت تا دایرکت</small></span></button>
-              <button class="flow-tab" type="button" data-flow="order"><span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12l2 5H4l2-5zM4 7v15h16V7M9 11h6"/></svg></span><span><strong>پردازش سفارش</strong><small>ثبت تا اطلاع‌رسانی</small></span></button>
+            <div class="phone-sketch">
+              <div class="phone-notch"></div>
+              <div class="phone-brand">W Webigram</div>
+              <div class="phone-image"><span></span></div>
+              <b></b><b class="short"></b><em></em>
+              <strong>خدمات ما</strong>
+              <div class="phone-services"><i></i><i></i></div>
+              <small>ارتباط با ما</small>
+              <div class="phone-input"></div>
             </div>
-          </div>
 
-          <div class="automation-board reveal">
-            <div class="board-bar"><span class="board-title">Webigram Flow Builder</span><span class="board-status">فعال</span></div>
-            <div class="board-canvas">
-              <div class="auto-flow active" data-flow-panel="lead">
-                <div class="auto-node" style="--node-color:#60a5fa;--node-bg:rgba(37,99,235,.18)"><span class="mini-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM4 9h16M9 9v11"/></svg></span><strong>فرم سایت تکمیل شد</strong><small>نام و راه ارتباطی کاربر</small></div><span class="auto-connector"></span>
-                <div class="auto-node" style="--node-color:#a78bfa;--node-bg:rgba(124,58,237,.18)"><span class="mini-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><strong>اعتبارسنجی اطلاعات</strong><small>بررسی شرط‌ها و دسته‌بندی</small></div><span class="auto-connector"></span>
-                <div class="auto-node" style="--node-color:#34d399;--node-bg:rgba(16,185,129,.18)"><span class="mini-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg></span><strong>ثبت و پیگیری خودکار</strong><small>پیام کاربر + اعلان مدیر</small></div>
-              </div>
-              <div class="auto-flow" data-flow-panel="social">
-                <div class="auto-node" style="--node-color:#f472b6;--node-bg:rgba(236,72,153,.17)"><span class="mini-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></span><strong>کامنت با کلمه کلیدی</strong><small>شروع تعامل کاربر</small></div><span class="auto-connector"></span>
-                <div class="auto-node" style="--node-color:#a78bfa;--node-bg:rgba(124,58,237,.18)"><span class="mini-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M3 6h.01M8 12h13M3 12h.01M8 18h13M3 18h.01"/></svg></span><strong>انتخاب مسیر پاسخ</strong><small>بر اساس دکمه انتخاب‌شده</small></div><span class="auto-connector"></span>
-                <div class="auto-node" style="--node-color:#34d399;--node-bg:rgba(16,185,129,.18)"><span class="mini-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v13H7l-3 3V4z"/></svg></span><strong>ارسال محتوای مناسب</strong><small>پاسخ دقیق و شخصی‌سازی‌شده</small></div>
-              </div>
-              <div class="auto-flow" data-flow-panel="order">
-                <div class="auto-node" style="--node-color:#fbbf24;--node-bg:rgba(245,158,11,.18)"><span class="mini-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12l2 5H4l2-5zM4 7v15h16V7"/></svg></span><strong>سفارش جدید</strong><small>ثبت در فروشگاه یا پنل</small></div><span class="auto-connector"></span>
-                <div class="auto-node" style="--node-color:#60a5fa;--node-bg:rgba(37,99,235,.18)"><span class="mini-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><strong>بررسی و تخصیص</strong><small>موجودی، مسئول و وضعیت</small></div><span class="auto-connector"></span>
-                <div class="auto-node" style="--node-color:#34d399;--node-bg:rgba(16,185,129,.18)"><span class="mini-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/></svg></span><strong>اطلاع‌رسانی خودکار</strong><small>مشتری و تیم در جریان می‌مانند</small></div>
-              </div>
-              <span class="board-note">● داده‌ها در هر مرحله قابل پیگیری هستند</span>
-            </div>
+            <svg class="cursor-sketch" viewBox="0 0 84 94" aria-hidden="true">
+              <path d="m7 5 8 68 15-18 15 31 13-7-16-31 25-3L7 5Z" />
+              <path d="M13 5V0M1 17l-7-5M24 15l8-7" />
+            </svg>
+
+            <div class="pencil" aria-hidden="true"><span></span></div>
+            <div class="ruler" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
           </div>
         </div>
       </section>
 
-      <section class="section" id="process">
-        <div class="container">
-          <div class="section-head reveal">
-            <div><span class="eyebrow">مسیر همکاری</span><h2 class="section-title">از مسئله تا راهکار، قدم‌به‌قدم</h2></div>
-            <p class="section-subtitle">قبل از نوشتن اولین خط کد، باید بدانیم چه چیزی را برای چه کسی و با چه نتیجه‌ای می‌سازیم.</p>
+      <section class="idea-section" id="about">
+        <div class="shell idea-layout">
+          <div class="idea-visual reveal">
+            <div class="idea-stage draft"><span>طرح اولیه</span></div>
+            <div class="idea-stage build"><span>ساخت و توسعه</span></div>
+            <div class="idea-stage live"><span>محصول واقعی</span></div>
           </div>
-          <div class="process-grid">
-            <div class="process-step reveal"><span class="process-number">۱</span><h3>شناخت کسب‌وکار</h3><p>هدف‌ها، کاربران، مشکلات و فرایند فعلی را دقیق بررسی می‌کنیم.</p></div>
-            <div class="process-step reveal"><span class="process-number">۲</span><h3>طراحی راهکار</h3><p>ساختار تجربه کاربری، معماری فنی و جریان‌های اتوماسیون مشخص می‌شوند.</p></div>
-            <div class="process-step reveal"><span class="process-number">۳</span><h3>توسعه و اجرا</h3><p>راهکار به‌صورت مرحله‌ای، قابل آزمایش و قابل توسعه پیاده‌سازی می‌شود.</p></div>
-            <div class="process-step reveal"><span class="process-number">۴</span><h3>اندازه‌گیری و بهبود</h3><p>عملکرد سیستم و رفتار کاربران را می‌سنجیم و مسیر را بهتر می‌کنیم.</p></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section section-soft" id="about">
-        <div class="container why-shell reveal">
-          <div class="why-grid">
-            <div><span class="eyebrow">چرا وبیگرام؟</span><h2 class="section-title">فقط ظاهر را طراحی نمی‌کنیم.</h2><p class="section-subtitle">محصولی می‌سازیم که از پشت صحنه هم به‌اندازه ظاهرش دقیق، منظم و قابل توسعه باشد.</p></div>
-            <div class="why-points">
-              <article class="why-point"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><h3>نگاه کسب‌وکاری و فنی</h3><p>تصمیم‌های طراحی را با واقعیت فرایند، هزینه و توسعه آینده هماهنگ می‌کنیم.</p></article>
-              <article class="why-point"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><h3>یک تیم، یک مسیر</h3><p>UI/UX، توسعه و اتوماسیون جدا از هم تصمیم نمی‌گیرند؛ یک راهکار واحد می‌سازند.</p></article>
-              <article class="why-point"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><h3>راهکار متناسب</h3><p>به‌جای تحمیل ابزار آماده، سیستم را با نیاز واقعی کسب‌وکار هماهنگ می‌کنیم.</p></article>
-              <article class="why-point"><span class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg></span><h3>آماده برای رشد</h3><p>ساختار پروژه مستند، تمیز و قابل توسعه می‌ماند؛ نه یک جعبه سیاه ترسناک.</p></article>
-            </div>
+          <div class="idea-copy reveal">
+            <span class="section-label">از فکر تا محصول</span>
+            <h2>برای ایده‌های شما راه می‌سازیم</h2>
+            <p>ایده‌های خوب نباید فقط در ذهن باقی بمانند. مسیر اجرا را روشن می‌کنیم و قدم‌به‌قدم آن را به یک وب‌سایت، پنل یا ابزار کاربردی تبدیل می‌کنیم.</p>
+            <a class="text-link" href="#contact">ایده‌تان را تعریف کنید <span>←</span></a>
           </div>
         </div>
       </section>
 
-      <section class="cta-section" id="contact">
-        <div class="container cta-shell reveal">
-          <div class="cta-copy">
-            <h2>بیایید بخش خسته‌کننده کسب‌وکار شما را به سیستم بسپاریم.</h2>
-            <p>لازم نیست از قبل بدانید دقیقاً به چه فناوری یا ابزاری نیاز دارید. مسئله را توضیح دهید؛ راهکار مناسب را با هم پیدا می‌کنیم.</p>
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="mailto:hello@webigram.ir?subject=شروع همکاری با وبیگرام">شروع گفتگو</a>
-              <a class="btn btn-secondary" href="#services">مرور خدمات</a>
-            </div>
+      <section class="content-section" id="services">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <span class="section-label">خدمات وبیگرام</span>
+            <h2>چیزی می‌سازیم که واقعاً به کارتان بیاید</h2>
           </div>
-          <aside class="cta-card">
-            <ul>
-              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>بررسی نیاز و پیشنهاد مسیر مناسب</li>
-              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>طراحی اختصاصی و متناسب با برند</li>
-              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>توسعه مرحله‌ای و قابل اندازه‌گیری</li>
-              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>پشتیبانی از رشد و توسعه بعدی</li>
-            </ul>
-          </aside>
+          <div class="service-grid">
+            <article class="service-card reveal"><span>01</span><h3>طراحی وب‌سایت</h3><p>سایت شرکتی، فروشگاهی و لندینگ‌پیج سریع، واکنش‌گرا و قابل توسعه.</p></article>
+            <article class="service-card reveal"><span>02</span><h3>طراحی UI/UX</h3><p>از وایرفریم تا رابط نهایی، با تمرکز روی مسیر ساده و قابل فهم کاربر.</p></article>
+            <article class="service-card reveal"><span>03</span><h3>پنل و ابزار اختصاصی</h3><p>داشبورد، CRM، ابزار داخلی و هر چیزی که نرم‌افزار آماده از پسش برنمی‌آید.</p></article>
+            <article class="service-card reveal"><span>04</span><h3>اتوماسیون دیجیتال</h3><p>کارهای تکراری را به گردش‌کارهای هوشمند، دقیق و قابل اندازه‌گیری تبدیل می‌کنیم.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="work-section" id="work">
+        <div class="shell">
+          <div class="section-heading reveal">
+            <span class="section-label">نمونه‌کارها</span>
+            <h2>چند قاب از چیزهایی که می‌توانیم بسازیم</h2>
+          </div>
+          <div class="work-grid">
+            <article class="work-card reveal"><div class="work-preview one"><span>Dashboard</span></div><h3>پنل مدیریت و تحلیل</h3><p>داشبورد اختصاصی برای تصمیم‌گیری سریع‌تر.</p></article>
+            <article class="work-card reveal"><div class="work-preview two"><span>Website</span></div><h3>وب‌سایت برند</h3><p>حضور آنلاین حرفه‌ای با هویت بصری منسجم.</p></article>
+            <article class="work-card reveal"><div class="work-preview three"><span>Automation</span></div><h3>گردش‌کار خودکار</h3><p>اتصال ابزارها و حذف پیگیری‌های دستی.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="pricing-section" id="pricing">
+        <div class="shell pricing-box reveal">
+          <div><span class="section-label">قیمت‌گذاری روشن</span><h2>اول مسئله را می‌فهمیم، بعد قیمت می‌دهیم.</h2></div>
+          <p>قیمت هر پروژه بر اساس محدوده واقعی کار، زمان اجرا و سطح پشتیبانی مشخص می‌شود؛ نه بر اساس یک فهرست مبهم و پر از ستاره و تبصره.</p>
+          <a class="sketch-button primary" href="#contact">درخواست برآورد پروژه</a>
+        </div>
+      </section>
+
+      <section class="contact-section" id="contact">
+        <div class="shell contact-layout">
+          <div class="contact-copy reveal">
+            <span class="section-label">شروع همکاری</span>
+            <h2>ایده‌ای دارید؟ بیایید از روی کاغذ بلندش کنیم.</h2>
+            <p>در چند خط بگویید چه چیزی می‌خواهید بسازید. برای روشن‌کردن مسیر، امکانات و قدم بعدی با شما تماس می‌گیریم.</p>
+          </div>
+          <form class="contact-form reveal" action="mailto:hello@webigram.ir" method="post" enctype="text/plain">
+            <label>نام شما<input type="text" name="name" autocomplete="name" required /></label>
+            <label>راه ارتباطی<input type="text" name="contact" required /></label>
+            <label>درباره پروژه<textarea name="message" rows="5" required></textarea></label>
+            <button class="sketch-button primary" type="submit">ارسال درخواست</button>
+          </form>
         </div>
       </section>
     </main>
 
-    <footer class="site-footer">
-      <div class="container footer-shell">
-        <div class="footer-brand">
-          <a class="brand" href="#home"><span class="brand-mark"><svg viewBox="0 0 34 26" fill="none"><path d="M2 3l6.2 20h6.1L17 13.7 19.7 23h6.1L32 3h-6.2l-3.1 12.7L19.5 5.3h-5L11.3 15.7 8.2 3H2z" fill="url(#footerGradient)"/><defs><linearGradient id="footerGradient" x1="2" y1="3" x2="32" y2="23"><stop stop-color="#60a5fa"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs></svg></span><span class="brand-name">وبیگرام<small>WEBIGRAM</small></span></a>
-          <p>طراحی می‌کنیم، می‌سازیم، خودکار می‌کنیم.</p>
-        </div>
-        <div class="footer-links"><a href="#services">خدمات</a><a href="#automation">راهکارها</a><a href="#process">مسیر همکاری</a><span>© {year} Webigram</span></div>
+    <footer>
+      <div class="shell footer-inner">
+        <a class="brand footer-brand" href="#home"><span class="brand-word">Webigram</span></a>
+        <p>راهکار وب برای کسب‌وکار شما</p>
+        <small>© {year} Webigram</small>
       </div>
     </footer>
 
-    <script>
-      const header = document.querySelector('#site-header');
-      const menuToggle = document.querySelector('#menu-toggle');
-      const navLinks = document.querySelector('#nav-links');
+    <script is:inline>
+      const header = document.getElementById('site-header');
+      const toggle = document.getElementById('menu-toggle');
+      const menu = document.getElementById('main-menu');
 
-      const updateHeader = () => header?.classList.toggle('is-scrolled', window.scrollY > 12);
-      updateHeader();
-      window.addEventListener('scroll', updateHeader, { passive: true });
+      const setHeader = () => header?.classList.toggle('scrolled', window.scrollY > 18);
+      setHeader();
+      window.addEventListener('scroll', setHeader, { passive: true });
 
-      menuToggle?.addEventListener('click', () => {
-        const open = navLinks?.classList.toggle('open') ?? false;
-        menuToggle.setAttribute('aria-expanded', String(open));
+      toggle?.addEventListener('click', () => {
+        const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!isOpen));
+        menu?.classList.toggle('open', !isOpen);
       });
 
-      navLinks?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
-        navLinks.classList.remove('open');
-        menuToggle?.setAttribute('aria-expanded', 'false');
-      }));
-
-      const tabs = document.querySelectorAll('[data-flow]');
-      const panels = document.querySelectorAll('[data-flow-panel]');
-      tabs.forEach((tab) => tab.addEventListener('click', () => {
-        const target = tab.getAttribute('data-flow');
-        tabs.forEach((item) => item.classList.toggle('active', item === tab));
-        panels.forEach((panel) => panel.classList.toggle('active', panel.getAttribute('data-flow-panel') === target));
+      menu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => {
+        toggle?.setAttribute('aria-expanded', 'false');
+        menu.classList.remove('open');
       }));
 
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('in-view');
+            entry.target.classList.add('visible');
             observer.unobserve(entry.target);
           }
         });
-      }, { threshold: 0.12 });
+      }, { threshold: 0.15 });
 
       document.querySelectorAll('.reveal').forEach((element) => observer.observe(element));
     </script>
