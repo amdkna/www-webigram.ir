@@ -89,6 +89,7 @@ const services = [
     let current=-1,raf=0;
     const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
     const setStage=n=>{n=clamp(n,0,2);if(n===current)return;current=n;document.body.dataset.stage=n;slides.forEach((s,i)=>s.classList.toggle('active',i===n));dots.forEach((d,i)=>d.classList.toggle('active',i===n));document.documentElement.style.setProperty('--dot',n===0?'#171717':n===1?'#315cff':'#7b43ff');};
+
     const render=()=>{
       raf=0;
       const rect=story.getBoundingClientRect();
@@ -97,10 +98,13 @@ const services = [
       const progress=(y/max)*2;
 
       slides.forEach((slide,index)=>{
-        const reveal=clamp(index-progress,0,1);
-        slide.style.transform=`translate3d(0,${reveal*100}%,0)`;
-        slide.style.zIndex=String(index+1);
-        slide.setAttribute('aria-hidden',Math.abs(index-progress)>.999?'true':'false');
+        const cover=index<slides.length-1?clamp(progress-index,0,1):0;
+        const inset=`inset(0 0 ${cover*100}% 0)`;
+        slide.style.transform='none';
+        slide.style.clipPath=inset;
+        slide.style.webkitClipPath=inset;
+        slide.style.zIndex=String(slides.length-index);
+        slide.setAttribute('aria-hidden',Math.round(progress)!==index?'true':'false');
       });
 
       setStage(Math.round(progress));
