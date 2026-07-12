@@ -1,0 +1,159 @@
+---
+interface Props {
+  variant: 'sketch' | 'color';
+}
+
+const { variant } = Astro.props;
+const color = variant === 'color';
+const prefix = color ? 'color' : 'sketch';
+---
+
+<div class:list={['sketch-composition', color && 'color-composition']} aria-label={color ? 'اجزای مستقل نسخه رنگی وبیگرام' : 'اجزای مستقل طرح اولیه وبیگرام'}>
+  <div class="sketch-paper" aria-hidden="true"></div>
+  <div class="construction-line line-v1" aria-hidden="true"></div>
+  <div class="construction-line line-v2" aria-hidden="true"></div>
+  <div class="construction-line line-h1" aria-hidden="true"></div>
+  <div class="construction-line line-h2" aria-hidden="true"></div>
+
+  <svg class="sketch-connectors" viewBox="0 0 1000 900" fill="none" aria-hidden="true">
+    <path class="wire wire-1" d="M248 126C310 129 333 173 368 232" />
+    <path class="wire wire-2" d="M675 108C625 123 599 165 575 231" />
+    <path class="wire wire-3" d="M150 350C221 350 258 356 315 370" />
+    <path class="wire wire-4" d="M188 617C243 580 265 540 303 502" />
+    <path class="wire wire-5" d="M517 780C525 728 523 680 512 625" />
+    <path class="wire wire-dash" d="M570 758C675 790 767 755 847 680" />
+    <circle class="node node-1" cx="248" cy="126" r="5"/><circle class="node node-2" cx="368" cy="232" r="5"/>
+    <circle class="node node-3" cx="675" cy="108" r="5"/><circle class="node node-4" cx="575" cy="231" r="5"/>
+    <circle class="node node-5" cx="150" cy="350" r="5"/><circle class="node node-6" cx="315" cy="370" r="5"/>
+    <circle class="node node-7" cx="188" cy="617" r="5"/><circle class="node node-8" cx="303" cy="502" r="5"/>
+    <circle class="node node-9" cx="517" cy="780" r="5"/><circle class="node node-10" cx="512" cy="625" r="5"/>
+  </svg>
+
+  <article class:list={['sketch-element','sketch-card','sketch-ui-card',color && 'color-element']} data-art-element={`${prefix}-ui-wireframe`} style="--delay:.05s">
+    <h3>{color ? 'طراحی UI/UX حرفه‌ای' : 'طراحی UI / وایرفریم'}</h3>
+    <div class="ui-card-body">
+      <svg class="wire-thumb" viewBox="0 0 132 84" aria-hidden="true">
+        <defs>
+          <linearGradient id={`${prefix}-ui-sky`} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b9d5ff"/><stop offset="1" stop-color="#eef3ff"/></linearGradient>
+          <linearGradient id={`${prefix}-ui-mountain`} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#315cff"/><stop offset="1" stop-color="#9a4cff"/></linearGradient>
+        </defs>
+        <rect class="thumb-bg" x="2" y="2" width="128" height="80" rx="7" fill={color ? `url(#${prefix}-ui-sky)` : 'none'}/>
+        <circle class="thumb-sun" cx="101" cy="20" r="9" fill={color ? '#ffd466' : 'none'}/>
+        <path class="thumb-mountain-back" d="M3 79 38 47l25 23 23-31 43 40Z" fill={color ? '#7d8fff' : 'none'}/>
+        <path class="thumb-mountain-front" d="M3 81 49 55l22 18 25-25 34 33Z" fill={color ? `url(#${prefix}-ui-mountain)` : 'none'}/>
+        <path class="thumb-cross" d="M5 78 43 43l25 22 25-34 34 47M7 7l120 70M127 7 7 77" />
+      </svg>
+      <div class="mini-copy-lines"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="wire-swatches"><i></i><i></i><i></i><span></span><span></span></div>
+  </article>
+
+  <article class:list={['sketch-element','sketch-card','sketch-form-card',color && 'color-element']} data-art-element={`${prefix}-contact-form`} style="--delay:.12s">
+    <h3>{color ? 'فرم تماس هوشمند' : 'فرم تماس'}</h3>
+    <label><span>نام شما</span></label>
+    <label><span>ایمیل شما</span></label>
+    <button type="button">{color ? 'ارسال' : 'ارسال پیام'}</button>
+  </article>
+
+  <article class:list={['sketch-element','sketch-card','sketch-chart-card',color && 'color-element']} data-art-element={`${prefix}-growth-chart`} style="--delay:.19s">
+    <h3>نمودار رشد</h3>
+    {color && <small class="growth-caption">٪۴۲ رشد در سه ماه</small>}
+    <svg viewBox="0 0 170 126" aria-hidden="true">
+      <path class="chart-axis" d="M18 104H155M18 104V18"/>
+      <rect class="bar bar-1" x="29" y="80" width="18" height="24"/><rect class="bar bar-2" x="58" y="66" width="18" height="38"/>
+      <rect class="bar bar-3" x="87" y="48" width="18" height="56"/><rect class="bar bar-4" x="116" y="27" width="18" height="77"/>
+      <path class="chart-trend" d="M23 88 55 71 82 74 111 47 148 19"/>
+      <path class="chart-arrow" d="m134 18 14 1-3 14"/>
+    </svg>
+  </article>
+
+  <article class:list={['sketch-element','sketch-card','sketch-chat-card',color && 'color-element']} data-art-element={`${prefix}-chat`} style="--delay:.26s">
+    <h3>{color ? 'چت و پشتیبانی آنلاین' : 'چت و پیام‌رسانی'}</h3>
+    <div class="chat-window">
+      <span class="chat-avatar"></span>
+      <div class="chat-lines"><i></i><i></i></div>
+      {color && <small class="online-label">آنلاین</small>}
+      <b>{color ? '۳' : '۵'}</b>
+    </div>
+  </article>
+
+  <article class:list={['sketch-element','sketch-browser',color && 'color-element']} data-art-element={`${prefix}-desktop-browser`} style="--delay:.33s">
+    <div class="browser-topbar">
+      <span class="browser-dots"><i></i><i></i><i></i></span>
+      <b><span class="mini-w">W</span> Webigram</b>
+    </div>
+    <div class="browser-nav-wire"><i class="active"></i><i></i><i></i><i></i><i></i></div>
+    <div class="browser-content">
+      <div class="browser-hero-wire">
+        <svg class="browser-image-wire" viewBox="0 0 260 150" aria-hidden="true">
+          <defs>
+            <linearGradient id={`${prefix}-browser-sky`} x1="0" y1="0" x2="0" y2="1"><stop stop-color="#bcd7ff"/><stop offset="1" stop-color="#f3f6ff"/></linearGradient>
+            <linearGradient id={`${prefix}-browser-mountain`} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#285cff"/><stop offset=".52" stop-color="#5f59ff"/><stop offset="1" stop-color="#a248f0"/></linearGradient>
+          </defs>
+          <rect class="browser-picture-bg" x="2" y="2" width="256" height="146" rx="10" fill={color ? `url(#${prefix}-browser-sky)` : 'none'}/>
+          <circle class="browser-picture-sun" cx="204" cy="38" r="15" fill={color ? '#ffe18a' : 'none'}/>
+          <path class="browser-picture-back" d="M3 145 65 86l43 40 39-54 49 49 61-70v94Z" fill={color ? '#7e92ff' : 'none'}/>
+          <path class="browser-picture-front" d="M3 147 74 103l35 31 42-45 49 48 57-39v49Z" fill={color ? `url(#${prefix}-browser-mountain)` : 'none'}/>
+          <path class="browser-picture-wire" d="M4 145 65 86l43 40 39-54 49 49 61-70v94"/>
+        </svg>
+        <div class="browser-hero-copy">
+          {color ? <strong class="browser-mini-title">راهکارهای دیجیتال برای رشد</strong> : <Fragment><i></i><i></i></Fragment>}
+          <span></span><span></span><span></span><button type="button">{color ? 'مشاهده خدمات' : ''}</button>
+        </div>
+      </div>
+      <h4>خدمات ما</h4>
+      <div class="browser-services">
+        <div><b>▣</b>{color && <small>طراحی سایت</small>}<i></i><span></span></div>
+        <div><b>&lt;/&gt;</b>{color && <small>توسعه اختصاصی</small>}<i></i><span></span></div>
+        <div><b>◈</b>{color && <small>سرعت و عملکرد</small>}<i></i><span></span></div>
+      </div>
+      <h4 class="contact-title">ارتباط با ما</h4>
+      <div class="browser-contact">
+        <div class="message-wire"><span>پیام شما</span></div>
+        <div class="form-wire"><i></i><i></i><i></i><button type="button">ارسال</button></div>
+      </div>
+    </div>
+  </article>
+
+  <article class:list={['sketch-element','sketch-phone',color && 'color-element']} data-art-element={`${prefix}-mobile-preview`} style="--delay:.40s">
+    <div class="phone-earpiece"></div>
+    <div class="phone-brand-wire"><span class="mini-w">W</span> Webigram</div>
+    <svg class="phone-image-wire" viewBox="0 0 150 94" aria-hidden="true">
+      <defs>
+        <linearGradient id={`${prefix}-phone-sky`} x1="0" y1="0" x2="0" y2="1"><stop stop-color="#bfd9ff"/><stop offset="1" stop-color="#f2f5ff"/></linearGradient>
+        <linearGradient id={`${prefix}-phone-mountain`} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#315cff"/><stop offset="1" stop-color="#9850f4"/></linearGradient>
+      </defs>
+      <rect class="phone-picture-bg" x="2" y="2" width="146" height="90" rx="8" fill={color ? `url(#${prefix}-phone-sky)` : 'none'}/>
+      <circle class="phone-picture-sun" cx="111" cy="24" r="10" fill={color ? '#ffe08a' : 'none'}/>
+      <path class="phone-picture-back" d="M4 90 38 58l27 22 21-31 29 28 33-40v53Z" fill={color ? '#8496ff' : 'none'}/>
+      <path class="phone-picture-front" d="M4 92 44 69l25 18 22-25 29 23 28-20v27Z" fill={color ? `url(#${prefix}-phone-mountain)` : 'none'}/>
+      <path class="phone-picture-wire" d="M4 90 38 58l27 22 21-31 29 28 33-40v53"/>
+    </svg>
+    <div class="phone-text-wire"><i></i><i></i><i></i></div>
+    <button type="button"></button>
+    <h4>خدمات ما</h4>
+    <div class="phone-services-wire"><i></i><i></i></div>
+    <h4>ارتباط با ما</h4>
+    <div class="phone-input-wire"></div>
+  </article>
+
+  <article class:list={['sketch-element','sketch-card','sketch-admin-card',color && 'color-element']} data-art-element={`${prefix}-admin-panel`} style="--delay:.47s">
+    <h3>{color ? 'پنل مدیریت پیشرفته' : 'پنل مدیریت'}</h3>
+    <div class="admin-wire">
+      <div class="admin-sidebar"><i></i><i></i><i></i><i></i></div>
+      <div class="admin-chart-area"><span class="admin-pie"></span><svg viewBox="0 0 96 55"><path d="M5 46 25 32 42 39 63 18 90 7"/></svg></div>
+    </div>
+  </article>
+
+  <svg class:list={['sketch-element','sketch-cursor',color && 'color-element']} data-art-element={`${prefix}-cursor`} style="--delay:.54s" viewBox="0 0 90 102" aria-hidden="true">
+    <path d="m8 5 9 72 16-19 17 34 14-8-18-33 27-4L8 5Z"/>
+    <path class="cursor-rays" d="M15 5V0M2 19l-8-5M27 16l9-8"/>
+  </svg>
+
+  <div class:list={['sketch-element','sketch-pencil','pencil-one',color && 'color-element']} data-art-element={`${prefix}-pencil-primary`} style="--delay:.61s"><i></i></div>
+  <div class:list={['sketch-element','sketch-pencil','pencil-two',color && 'color-element']} data-art-element={`${prefix}-pencil-secondary`} style="--delay:.68s"><i></i></div>
+
+  <div class:list={['sketch-element','sketch-ruler',color && 'color-element']} data-art-element={`${prefix}-ruler`} style="--delay:.75s">
+    {Array.from({length:10}).map((_,i)=><span>{i+1}</span>)}
+  </div>
+</div>
