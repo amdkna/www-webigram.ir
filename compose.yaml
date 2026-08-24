@@ -1,11 +1,7 @@
 services:
   webigram:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      # Use the runner host network for build-time package downloads. This avoids
-      # Docker bridge/DNS timeouts that previously affected registry.npmjs.org.
-      network: host
+    image: ${WEBIGRAM_IMAGE:-ghcr.io/amdkna/www-webigram.ir:latest}
+    pull_policy: always
     container_name: webigram-web
     restart: unless-stopped
     expose:
