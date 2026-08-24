@@ -7,20 +7,56 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: webigram-production
   cancel-in-progress: true
 
+env:
+  IMAGE_NAME: ghcr.io/amdkna/www-webigram.ir
+
 jobs:
+  build-image:
+    name: Build image on GitHub runner
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy:
-    name: Docker Compose deploy
+    name: Deploy on self-hosted runner
+    needs: build-image
     runs-on: [self-hosted, Linux, X64]
     environment: production
     env:
       APP_DIR: /opt/apps/www-webigram.ir
       REPO_URL: https://github.com/amdkna/www-webigram.ir.git
       COMPOSE_FILE: compose.yaml
+      WEBIGRAM_IMAGE: ghcr.io/amdkna/www-webigram.ir:${{ github.sha }}
 
     steps:
       - name: Prepare application directory
@@ -71,6 +107,14 @@ jobs:
           docker version
           docker compose version
 
+      - name: Log in to GHCR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
       - name: Ensure shared proxy network exists
         shell: bash
         run: |
@@ -82,21 +126,21 @@ jobs:
         working-directory: /opt/apps/www-webigram.ir
         run: |
           set -euo pipefail
-          docker compose -f "$COMPOSE_FILE" config
+          WEBIGRAM_IMAGE="$WEBIGRAM_IMAGE" docker compose -f "$COMPOSE_FILE" config
 
-      - name: Build application image
+      - name: Pull production image
         shell: bash
         working-directory: /opt/apps/www-webigram.ir
         run: |
           set -euo pipefail
-          docker compose -f "$COMPOSE_FILE" build
+          docker pull "$WEBIGRAM_IMAGE"
 
       - name: Deploy application
         shell: bash
         working-directory: /opt/apps/www-webigram.ir
         run: |
           set -euo pipefail
-          docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
+          WEBIGRAM_IMAGE="$WEBIGRAM_IMAGE" docker compose -f "$COMPOSE_FILE" up -d --remove-orphans --pull always
 
       - name: Verify container health
         shell: bash
@@ -132,4 +176,5 @@ jobs:
         run: |
           set -euo pipefail
           echo "Commit: $(git rev-parse --short HEAD)"
-          docker compose -f "$COMPOSE_FILE" ps
+          echo "Image: $WEBIGRAM_IMAGE"
+          WEBIGRAM_IMAGE="$WEBIGRAM_IMAGE" docker compose -f "$COMPOSE_FILE" ps
