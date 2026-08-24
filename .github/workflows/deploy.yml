@@ -14,46 +14,26 @@ concurrency:
 
 jobs:
   deploy:
-    name: Build and deploy on server
+    name: Docker Compose deploy
     runs-on: [self-hosted, Linux, X64]
     environment: production
     env:
       APP_DIR: /opt/apps/www-webigram.ir
       REPO_URL: https://github.com/amdkna/www-webigram.ir.git
+      COMPOSE_FILE: compose.yaml
 
     steps:
-      - name: Prepare /opt/apps
+      - name: Prepare application directory
         shell: bash
         run: |
           set -euo pipefail
 
           APP_PARENT="$(dirname "$APP_DIR")"
-
-          if [ ! -d "$APP_PARENT" ]; then
-            if mkdir -p "$APP_PARENT" 2>/dev/null; then
-              true
-            elif sudo -n mkdir -p "$APP_PARENT"; then
-              true
-            else
-              echo "Cannot create $APP_PARENT. Give the GitHub runner user write access to /opt/apps."
-              exit 1
-            fi
-          fi
+          mkdir -p "$APP_PARENT" 2>/dev/null || sudo -n mkdir -p "$APP_PARENT"
 
           if [ ! -w "$APP_PARENT" ]; then
-            if sudo -n chown "$(id -un):$(id -gn)" "$APP_PARENT"; then
-              true
-            else
-              echo "Runner user $(id -un) cannot write to $APP_PARENT and passwordless sudo is unavailable."
-              echo "Run once on the server: sudo chown -R $(id -un):$(id -gn) $APP_PARENT"
-              exit 1
-            fi
+            sudo -n chown "$(id -un):$(id -gn)" "$APP_PARENT"
           fi
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
 
       - name: Clone or update repository
         shell: bash
@@ -79,33 +59,77 @@ jobs:
             fi
 
             rm -rf "$APP_DIR"
-            echo "Cloning repository into $APP_DIR"
             git "${GIT_AUTH[@]}" clone --branch main --single-branch "$REPO_URL" "$APP_DIR"
           fi
 
-          echo "Deployed source commit: $(git -C "$APP_DIR" rev-parse --short HEAD)"
+          echo "Source commit: $(git -C "$APP_DIR" rev-parse --short HEAD)"
 
-      - name: Install dependencies
+      - name: Verify Docker and Compose
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker version
+          docker compose version
+
+      - name: Ensure shared proxy network exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker network inspect public_proxy >/dev/null 2>&1 || docker network create public_proxy
+
+      - name: Validate Compose configuration
         shell: bash
         working-directory: /opt/apps/www-webigram.ir
         run: |
           set -euo pipefail
-          npm ci --no-audit --no-fund
+          docker compose -f "$COMPOSE_FILE" config
 
-      - name: Build production site
+      - name: Build application image
         shell: bash
         working-directory: /opt/apps/www-webigram.ir
         run: |
           set -euo pipefail
-          npm run build
+          docker compose -f "$COMPOSE_FILE" build
 
-      - name: Verify deployment output
+      - name: Deploy application
+        shell: bash
+        working-directory: /opt/apps/www-webigram.ir
+        run: |
+          set -euo pipefail
+          docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
+
+      - name: Verify container health
         shell: bash
         working-directory: /opt/apps/www-webigram.ir
         run: |
           set -euo pipefail
 
-          test -f dist/index.html
-          echo "Production build is ready at: $APP_DIR/dist"
-          du -sh dist
-          ls -lah dist | head -30
+          for i in $(seq 1 30); do
+            STATUS="$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' webigram-web 2>/dev/null || true)"
+            echo "Health attempt $i/30: ${STATUS:-not-found}"
+
+            if [ "$STATUS" = "healthy" ]; then
+              docker exec webigram-web wget -q -O - http://127.0.0.1/healthz
+              docker ps --filter name=webigram-web
+              exit 0
+            fi
+
+            if [ "$STATUS" = "unhealthy" ] || [ "$STATUS" = "exited" ] || [ "$STATUS" = "dead" ]; then
+              docker logs --tail 200 webigram-web || true
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          echo "Container did not become healthy in time."
+          docker logs --tail 200 webigram-web || true
+          exit 1
+
+      - name: Show deployed version
+        shell: bash
+        working-directory: /opt/apps/www-webigram.ir
+        run: |
+          set -euo pipefail
+          echo "Commit: $(git rev-parse --short HEAD)"
+          docker compose -f "$COMPOSE_FILE" ps
