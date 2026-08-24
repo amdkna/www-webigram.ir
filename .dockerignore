@@ -1,0 +1,10 @@
+.git
+.github
+node_modules
+dist
+.DS_Store
+npm-debug.log*
+*.log
+.env
+.env.*
+!*.example
