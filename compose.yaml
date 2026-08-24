@@ -1,0 +1,21 @@
+services:
+  webigram:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: webigram-web
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - public_proxy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  public_proxy:
+    external: true
