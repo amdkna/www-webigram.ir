@@ -1,4 +1,4 @@
-name: Deploy Astro to GitHub Pages
+name: Deploy Webigram to Production Server
 
 on:
   push:
@@ -7,33 +7,105 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: github-pages
+  group: webigram-production
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
+  deploy:
+    name: Build and deploy on server
+    runs-on: [self-hosted, Linux, X64]
+    environment: production
+    env:
+      APP_DIR: /opt/apps/www-webigram.ir
+      REPO_URL: https://github.com/amdkna/www-webigram.ir.git
 
-      - name: Install, build, and upload site
-        uses: withastro/action@v6
+    steps:
+      - name: Prepare /opt/apps
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          APP_PARENT="$(dirname "$APP_DIR")"
+
+          if [ ! -d "$APP_PARENT" ]; then
+            if mkdir -p "$APP_PARENT" 2>/dev/null; then
+              true
+            elif sudo -n mkdir -p "$APP_PARENT"; then
+              true
+            else
+              echo "Cannot create $APP_PARENT. Give the GitHub runner user write access to /opt/apps."
+              exit 1
+            fi
+          fi
+
+          if [ ! -w "$APP_PARENT" ]; then
+            if sudo -n chown "$(id -un):$(id -gn)" "$APP_PARENT"; then
+              true
+            else
+              echo "Runner user $(id -un) cannot write to $APP_PARENT and passwordless sudo is unavailable."
+              echo "Run once on the server: sudo chown -R $(id -un):$(id -gn) $APP_PARENT"
+              exit 1
+            fi
+          fi
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 24
-          package-manager: npm@11.6.2
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Clone or update repository
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          AUTH="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')"
+          GIT_AUTH=(-c "http.extraHeader=Authorization: Basic $AUTH")
+
+          if [ -d "$APP_DIR/.git" ]; then
+            echo "Updating existing clone in $APP_DIR"
+            git -C "$APP_DIR" remote set-url origin "$REPO_URL"
+            git "${GIT_AUTH[@]}" -C "$APP_DIR" fetch --prune origin main
+            git -C "$APP_DIR" checkout -B main origin/main
+            git -C "$APP_DIR" reset --hard origin/main
+            git -C "$APP_DIR" clean -fdx
+          else
+            if [ -d "$APP_DIR" ] && [ -n "$(find "$APP_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]; then
+              echo "$APP_DIR exists and is not an empty Git repository. Refusing to delete it."
+              exit 1
+            fi
+
+            rm -rf "$APP_DIR"
+            echo "Cloning repository into $APP_DIR"
+            git "${GIT_AUTH[@]}" clone --branch main --single-branch "$REPO_URL" "$APP_DIR"
+          fi
+
+          echo "Deployed source commit: $(git -C "$APP_DIR" rev-parse --short HEAD)"
+
+      - name: Install dependencies
+        shell: bash
+        working-directory: /opt/apps/www-webigram.ir
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+
+      - name: Build production site
+        shell: bash
+        working-directory: /opt/apps/www-webigram.ir
+        run: |
+          set -euo pipefail
+          npm run build
+
+      - name: Verify deployment output
+        shell: bash
+        working-directory: /opt/apps/www-webigram.ir
+        run: |
+          set -euo pipefail
+
+          test -f dist/index.html
+          echo "Production build is ready at: $APP_DIR/dist"
+          du -sh dist
+          ls -lah dist | head -30
