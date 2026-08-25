@@ -1,7 +1,7 @@
 services:
   webigram:
-    image: ${WEBIGRAM_IMAGE:-ghcr.io/amdkna/www-webigram.ir:latest}
-    pull_policy: always
+    image: ${WEBIGRAM_IMAGE:-webigram-local:latest}
+    pull_policy: never
     container_name: webigram-web
     restart: unless-stopped
     expose:
