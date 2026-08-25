@@ -14,6 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Build on GitHub-hosted infrastructure; the production runner only pulls the finished image.
   IMAGE_NAME: ghcr.io/amdkna/www-webigram.ir
 
 jobs:
