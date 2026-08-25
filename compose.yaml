@@ -1,11 +1,14 @@
 services:
   webigram:
-    image: ${WEBIGRAM_IMAGE:-webigram-local:latest}
+    image: nginx:1.28-alpine
     pull_policy: never
     container_name: webigram-web
     restart: unless-stopped
     expose:
       - "80"
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - public_proxy
     healthcheck:
