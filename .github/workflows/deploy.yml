@@ -7,15 +7,10 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: webigram-production
   cancel-in-progress: true
-
-env:
-  # Build on GitHub-hosted infrastructure; the production runner only pulls the finished image.
-  IMAGE_NAME: ghcr.io/amdkna/www-webigram.ir
 
 jobs:
   build-image:
@@ -26,27 +21,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Build production Docker image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build --tag "webigram-local:${GITHUB_SHA}" .
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Export Docker image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker save "webigram-local:${GITHUB_SHA}" | gzip -1 > /tmp/webigram-image.tar.gz
+          ls -lh /tmp/webigram-image.tar.gz
 
-      - name: Build and push production image
-        uses: docker/build-push-action@v6
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
         with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
-            ${{ env.IMAGE_NAME }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          name: webigram-image-${{ github.sha }}
+          path: /tmp/webigram-image.tar.gz
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
 
   deploy:
     name: Deploy on self-hosted runner
@@ -57,7 +52,7 @@ jobs:
       APP_DIR: /opt/apps/www-webigram.ir
       REPO_URL: https://github.com/amdkna/www-webigram.ir.git
       COMPOSE_FILE: compose.yaml
-      WEBIGRAM_IMAGE: ghcr.io/amdkna/www-webigram.ir:${{ github.sha }}
+      WEBIGRAM_IMAGE: webigram-local:${{ github.sha }}
 
     steps:
       - name: Prepare application directory
@@ -108,13 +103,21 @@ jobs:
           docker version
           docker compose version
 
-      - name: Log in to GHCR
+      - name: Download production image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: webigram-image-${{ github.sha }}
+          path: ${{ runner.temp }}/webigram-image
+
+      - name: Load production image
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          IMAGE_ARCHIVE="${RUNNER_TEMP}/webigram-image/webigram-image.tar.gz"
+          test -s "$IMAGE_ARCHIVE"
+          gunzip -c "$IMAGE_ARCHIVE" | docker load
+          docker image inspect "$WEBIGRAM_IMAGE" >/dev/null
+          echo "Loaded image: $WEBIGRAM_IMAGE"
 
       - name: Ensure shared proxy network exists
         shell: bash
@@ -129,19 +132,12 @@ jobs:
           set -euo pipefail
           WEBIGRAM_IMAGE="$WEBIGRAM_IMAGE" docker compose -f "$COMPOSE_FILE" config
 
-      - name: Pull production image
-        shell: bash
-        working-directory: /opt/apps/www-webigram.ir
-        run: |
-          set -euo pipefail
-          docker pull "$WEBIGRAM_IMAGE"
-
       - name: Deploy application
         shell: bash
         working-directory: /opt/apps/www-webigram.ir
         run: |
           set -euo pipefail
-          WEBIGRAM_IMAGE="$WEBIGRAM_IMAGE" docker compose -f "$COMPOSE_FILE" up -d --remove-orphans --pull always
+          WEBIGRAM_IMAGE="$WEBIGRAM_IMAGE" docker compose -f "$COMPOSE_FILE" up -d --remove-orphans --pull never
 
       - name: Verify container health
         shell: bash
@@ -179,3 +175,8 @@ jobs:
           echo "Commit: $(git rev-parse --short HEAD)"
           echo "Image: $WEBIGRAM_IMAGE"
           WEBIGRAM_IMAGE="$WEBIGRAM_IMAGE" docker compose -f "$COMPOSE_FILE" ps
+
+      - name: Remove unused images
+        if: success()
+        shell: bash
+        run: docker image prune -f
