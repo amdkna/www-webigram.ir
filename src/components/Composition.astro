@@ -7,7 +7,7 @@ const { variant } = Astro.props;
 const real = variant === 'real';
 const color = variant !== 'sketch';
 const prefix = variant;
-const mountainPhoto = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=86';
+const mountainPhoto = `${import.meta.env.BASE_URL}images/mountain-stage3.jpg`;
 const visualLabel = real ? 'اجزای نسخه واقعی و زنده وبیگرام' : color ? 'اجزای مستقل نسخه رنگی وبیگرام' : 'اجزای مستقل طرح اولیه وبیگرام';
 ---
 
@@ -39,13 +39,14 @@ const visualLabel = real ? 'اجزای نسخه واقعی و زنده وبیگ�
         <defs>
           <linearGradient id={`${prefix}-ui-sky`} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b9d5ff"/><stop offset="1" stop-color="#eef3ff"/></linearGradient>
           <linearGradient id={`${prefix}-ui-mountain`} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#315cff"/><stop offset="1" stop-color="#9a4cff"/></linearGradient>
+          <linearGradient id={`${prefix}-ui-real-sky`} x1="0" y1="0" x2="0" y2="1"><stop stop-color="#dceafb"/><stop offset=".58" stop-color="#f4e6cf"/><stop offset="1" stop-color="#bbc8ce"/></linearGradient>
           <clipPath id={`${prefix}-ui-photo-clip`}><rect x="2" y="2" width="128" height="80" rx="7" /></clipPath>
         </defs>
+        <rect class="thumb-bg" x="2" y="2" width="128" height="80" rx="7" fill={real ? `url(#${prefix}-ui-real-sky)` : color ? `url(#${prefix}-ui-sky)` : 'none'}/>
+        <circle class="thumb-sun" cx="101" cy="20" r="9" fill={real ? '#f7d89a' : color ? '#ffd466' : 'none'}/>
+        <path class="thumb-mountain-back" d="M3 79 38 47l25 23 23-31 43 40Z" fill={real ? '#78899a' : color ? '#7d8fff' : 'none'}/>
+        <path class="thumb-mountain-front" d="M3 81 49 55l22 18 25-25 34 33Z" fill={real ? '#34485b' : color ? `url(#${prefix}-ui-mountain)` : 'none'}/>
         {real && <image class="real-mountain-photo real-mountain-photo-ui" href={mountainPhoto} x="2" y="2" width="128" height="80" preserveAspectRatio="xMidYMid slice" clip-path={`url(#${prefix}-ui-photo-clip)`} />}
-        <rect class="thumb-bg" x="2" y="2" width="128" height="80" rx="7" fill={color && !real ? `url(#${prefix}-ui-sky)` : 'none'}/>
-        <circle class="thumb-sun" cx="101" cy="20" r="9" fill={color && !real ? '#ffd466' : 'none'}/>
-        <path class="thumb-mountain-back" d="M3 79 38 47l25 23 23-31 43 40Z" fill={color && !real ? '#7d8fff' : 'none'}/>
-        <path class="thumb-mountain-front" d="M3 81 49 55l22 18 25-25 34 33Z" fill={color && !real ? `url(#${prefix}-ui-mountain)` : 'none'}/>
         <path class="thumb-cross" d="M5 78 43 43l25 22 25-34 34 47M7 7l120 70M127 7 7 77" />
       </svg>
       <div class="mini-copy-lines"><i></i><i></i><i></i><i></i></div>
@@ -94,13 +95,14 @@ const visualLabel = real ? 'اجزای نسخه واقعی و زنده وبیگ�
           <defs>
             <linearGradient id={`${prefix}-browser-sky`} x1="0" y1="0" x2="0" y2="1"><stop stop-color="#bcd7ff"/><stop offset="1" stop-color="#f3f6ff"/></linearGradient>
             <linearGradient id={`${prefix}-browser-mountain`} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#285cff"/><stop offset=".52" stop-color="#5f59ff"/><stop offset="1" stop-color="#a248f0"/></linearGradient>
+            <linearGradient id={`${prefix}-browser-real-sky`} x1="0" y1="0" x2="0" y2="1"><stop stop-color="#cbdcf0"/><stop offset=".55" stop-color="#f3dfbd"/><stop offset="1" stop-color="#aebdc7"/></linearGradient>
             <clipPath id={`${prefix}-browser-photo-clip`}><rect x="2" y="2" width="256" height="146" rx="10" /></clipPath>
           </defs>
+          <rect class="browser-picture-bg" x="2" y="2" width="256" height="146" rx="10" fill={real ? `url(#${prefix}-browser-real-sky)` : color ? `url(#${prefix}-browser-sky)` : 'none'}/>
+          <circle class="browser-picture-sun" cx="204" cy="38" r="15" fill={real ? '#f8d594' : color ? '#ffe18a' : 'none'}/>
+          <path class="browser-picture-back" d="M3 145 65 86l43 40 39-54 49 49 61-70v94Z" fill={real ? '#748797' : color ? '#7e92ff' : 'none'}/>
+          <path class="browser-picture-front" d="M3 147 74 103l35 31 42-45 49 48 57-39v49Z" fill={real ? '#33495a' : color ? `url(#${prefix}-browser-mountain)` : 'none'}/>
           {real && <image class="real-mountain-photo real-mountain-photo-browser" href={mountainPhoto} x="2" y="2" width="256" height="146" preserveAspectRatio="xMidYMid slice" clip-path={`url(#${prefix}-browser-photo-clip)`} />}
-          <rect class="browser-picture-bg" x="2" y="2" width="256" height="146" rx="10" fill={color && !real ? `url(#${prefix}-browser-sky)` : 'none'}/>
-          <circle class="browser-picture-sun" cx="204" cy="38" r="15" fill={color && !real ? '#ffe18a' : 'none'}/>
-          <path class="browser-picture-back" d="M3 145 65 86l43 40 39-54 49 49 61-70v94Z" fill={color && !real ? '#7e92ff' : 'none'}/>
-          <path class="browser-picture-front" d="M3 147 74 103l35 31 42-45 49 48 57-39v49Z" fill={color && !real ? `url(#${prefix}-browser-mountain)` : 'none'}/>
           <path class="browser-picture-wire" d="M4 145 65 86l43 40 39-54 49 49 61-70v94"/>
         </svg>
         <div class="browser-hero-copy">
@@ -129,13 +131,14 @@ const visualLabel = real ? 'اجزای نسخه واقعی و زنده وبیگ�
       <defs>
         <linearGradient id={`${prefix}-phone-sky`} x1="0" y1="0" x2="0" y2="1"><stop stop-color="#bfd9ff"/><stop offset="1" stop-color="#f2f5ff"/></linearGradient>
         <linearGradient id={`${prefix}-phone-mountain`} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#315cff"/><stop offset="1" stop-color="#9850f4"/></linearGradient>
+        <linearGradient id={`${prefix}-phone-real-sky`} x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d2e0ee"/><stop offset=".55" stop-color="#f4dfbb"/><stop offset="1" stop-color="#afbec6"/></linearGradient>
         <clipPath id={`${prefix}-phone-photo-clip`}><rect x="2" y="2" width="146" height="90" rx="8" /></clipPath>
       </defs>
+      <rect class="phone-picture-bg" x="2" y="2" width="146" height="90" rx="8" fill={real ? `url(#${prefix}-phone-real-sky)` : color ? `url(#${prefix}-phone-sky)` : 'none'}/>
+      <circle class="phone-picture-sun" cx="111" cy="24" r="10" fill={real ? '#f7d38e' : color ? '#ffe08a' : 'none'}/>
+      <path class="phone-picture-back" d="M4 90 38 58l27 22 21-31 29 28 33-40v53Z" fill={real ? '#768998' : color ? '#8496ff' : 'none'}/>
+      <path class="phone-picture-front" d="M4 92 44 69l25 18 22-25 29 23 28-20v27Z" fill={real ? '#33495a' : color ? `url(#${prefix}-phone-mountain)` : 'none'}/>
       {real && <image class="real-mountain-photo real-mountain-photo-phone" href={mountainPhoto} x="2" y="2" width="146" height="90" preserveAspectRatio="xMidYMid slice" clip-path={`url(#${prefix}-phone-photo-clip)`} />}
-      <rect class="phone-picture-bg" x="2" y="2" width="146" height="90" rx="8" fill={color && !real ? `url(#${prefix}-phone-sky)` : 'none'}/>
-      <circle class="phone-picture-sun" cx="111" cy="24" r="10" fill={color && !real ? '#ffe08a' : 'none'}/>
-      <path class="phone-picture-back" d="M4 90 38 58l27 22 21-31 29 28 33-40v53Z" fill={color && !real ? '#8496ff' : 'none'}/>
-      <path class="phone-picture-front" d="M4 92 44 69l25 18 22-25 29 23 28-20v27Z" fill={color && !real ? `url(#${prefix}-phone-mountain)` : 'none'}/>
       <path class="phone-picture-wire" d="M4 90 38 58l27 22 21-31 29 28 33-40v53"/>
     </svg>
     <div class="phone-text-wire"><i></i><i></i><i></i></div>
