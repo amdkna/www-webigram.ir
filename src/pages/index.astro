@@ -2,6 +2,7 @@
 import '../styles/scroll-slides.css';
 import '../styles/composition-fixes.css';
 import '../styles/real-composition.css';
+import '../styles/real-photo.css';
 import Composition from '../components/Composition.astro';
 
 const base = import.meta.env.BASE_URL;
@@ -21,6 +22,7 @@ const services = [
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="description" content="وبیگرام؛ از طرح مدادی تا اجرای واقعی ایده‌های دیجیتال." />
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin="anonymous" />
   <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
   <title>وبیگرام | از ایده تا اجرای واقعی</title>
 </head>
@@ -68,7 +70,7 @@ const services = [
         <section class="slide slide-real" data-slide="2">
           <div class="visual visual-real">
             <div class="real-composition-shell" aria-label="نسخه واقعی همان ترکیب‌بندی طرح اولیه">
-              <Composition variant="color" />
+              <Composition variant="real" />
             </div>
           </div>
           <div class="right">

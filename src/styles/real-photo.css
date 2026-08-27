@@ -1,0 +1,46 @@
+/* Stage 3 is where the flat illustration becomes a living photograph. */
+.real-content-composition .real-mountain-photo{
+  opacity:1;
+  filter:saturate(.94) contrast(1.08) brightness(.98);
+  transform-box:fill-box;
+  transform-origin:center;
+  will-change:transform,filter;
+}
+
+.real-content-composition .thumb-cross,
+.real-content-composition .browser-picture-wire,
+.real-content-composition .phone-picture-wire{
+  display:none;
+}
+
+.real-composition-shell .wire-thumb,
+.real-composition-shell .browser-image-wire,
+.real-composition-shell .phone-image-wire{
+  overflow:hidden;
+}
+
+/* A subtle optical finish keeps the photo integrated with the Webigram palette. */
+.real-content-composition .real-mountain-photo-ui{
+  filter:saturate(.9) contrast(1.08) brightness(1.02);
+}
+.real-content-composition .real-mountain-photo-browser{
+  filter:saturate(.93) contrast(1.1) brightness(.97);
+}
+.real-content-composition .real-mountain-photo-phone{
+  filter:saturate(.98) contrast(1.1) brightness(1.01);
+}
+
+body[data-stage="2"] .real-content-composition .real-mountain-photo{
+  animation:realMountainAlive 14s cubic-bezier(.37,0,.2,1) infinite alternate;
+}
+body[data-stage="2"] .real-content-composition .real-mountain-photo-ui{animation-delay:-2.5s}
+body[data-stage="2"] .real-content-composition .real-mountain-photo-phone{animation-delay:-5s}
+
+@keyframes realMountainAlive{
+  0%{transform:scale(1.015) translate3d(0,0,0);filter:saturate(.92) contrast(1.07) brightness(.98)}
+  100%{transform:scale(1.07) translate3d(-1.2%,-.8%,0);filter:saturate(1.02) contrast(1.11) brightness(1.01)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .real-content-composition .real-mountain-photo{animation:none!important;transform:none!important}
+}
