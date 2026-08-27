@@ -18,7 +18,12 @@ RUN --mount=type=cache,target=/root/.npm \
     npm install --no-audit --no-fund --prefer-offline
 
 COPY . .
-RUN npm run build
+
+# Cache the stage-3 CC0 mountain photograph into public/images at build time.
+# The production browser then loads it from webigram.ir, not a third-party CDN.
+# If the upstream source is temporarily unavailable, the component still has a
+# built-in mountain fallback and the production build continues.
+RUN node scripts/fetch-mountain-asset.mjs && npm run build
 
 FROM nginx:1.28-alpine AS runtime
 
