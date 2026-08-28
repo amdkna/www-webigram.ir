@@ -97,10 +97,26 @@ const services = [
 
     let current=-1,raf=0;
     const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+    const isMobile=()=>matchMedia('(max-width: 820px)').matches;
     const setStage=n=>{n=clamp(n,0,2);if(n===current)return;current=n;document.body.dataset.stage=n;slides.forEach((s,i)=>s.classList.toggle('active',i===n));dots.forEach((d,i)=>d.classList.toggle('active',i===n));document.documentElement.style.setProperty('--dot',n===0?'#171717':n===1?'#315cff':'#7b43ff');};
 
-    const render=()=>{
-      raf=0;
+    const renderMobile=()=>{
+      let best=0,bestDistance=Infinity;
+      const targetY=innerHeight*.28;
+      slides.forEach((slide,index)=>{
+        slide.style.removeProperty('clip-path');
+        slide.style.removeProperty('-webkit-clip-path');
+        slide.style.removeProperty('z-index');
+        slide.style.removeProperty('transform');
+        slide.setAttribute('aria-hidden','false');
+        const rect=slide.getBoundingClientRect();
+        const distance=Math.abs(rect.top-targetY);
+        if(distance<bestDistance){bestDistance=distance;best=index;}
+      });
+      setStage(best);
+    };
+
+    const renderDesktop=()=>{
       const rect=story.getBoundingClientRect();
       const max=Math.max(1,story.offsetHeight-innerHeight);
       const y=clamp(-rect.top,0,max);
@@ -119,6 +135,7 @@ const services = [
       setStage(Math.round(progress));
     };
 
+    const render=()=>{raf=0;isMobile()?renderMobile():renderDesktop();};
     const queueRender=()=>{if(!raf)raf=requestAnimationFrame(render)};
     addEventListener('scroll',queueRender,{passive:true});
     addEventListener('resize',queueRender);
@@ -128,7 +145,14 @@ const services = [
       const el=e.target.closest('[data-jump]');
       if(!el)return;
       e.preventDefault();
-      const n=Number(el.dataset.jump),max=Math.max(1,story.offsetHeight-innerHeight);
+      const n=clamp(Number(el.dataset.jump),0,slides.length-1);
+
+      if(isMobile()){
+        slides[n].scrollIntoView({behavior:'smooth',block:'start'});
+        return;
+      }
+
+      const max=Math.max(1,story.offsetHeight-innerHeight);
       const target=story.offsetTop+(max/2)*n;
       scrollTo({top:target,behavior:'smooth'});
     });
