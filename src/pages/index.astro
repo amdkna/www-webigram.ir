@@ -97,30 +97,27 @@ const services = [
 
     let current=-1,raf=0;
     const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
-    const isMobile=()=>matchMedia('(max-width: 820px)').matches;
-    const setStage=n=>{n=clamp(n,0,2);if(n===current)return;current=n;document.body.dataset.stage=n;slides.forEach((s,i)=>s.classList.toggle('active',i===n));dots.forEach((d,i)=>d.classList.toggle('active',i===n));document.documentElement.style.setProperty('--dot',n===0?'#171717':n===1?'#315cff':'#7b43ff');};
-
-    const renderMobile=()=>{
-      let best=0,bestDistance=Infinity;
-      const targetY=innerHeight*.28;
-      slides.forEach((slide,index)=>{
-        slide.style.removeProperty('clip-path');
-        slide.style.removeProperty('-webkit-clip-path');
-        slide.style.removeProperty('z-index');
-        slide.style.removeProperty('transform');
-        slide.setAttribute('aria-hidden','false');
-        const rect=slide.getBoundingClientRect();
-        const distance=Math.abs(rect.top-targetY);
-        if(distance<bestDistance){bestDistance=distance;best=index;}
-      });
-      setStage(best);
+    const viewportHeight=()=>window.visualViewport?.height||innerHeight;
+    const setStage=n=>{
+      n=clamp(n,0,slides.length-1);
+      if(n===current)return;
+      current=n;
+      document.body.dataset.stage=n;
+      slides.forEach((slide,index)=>slide.classList.toggle('active',index===n));
+      dots.forEach((dot,index)=>dot.classList.toggle('active',index===n));
+      document.documentElement.style.setProperty('--dot',n===0?'#171717':n===1?'#315cff':'#7b43ff');
     };
 
-    const renderDesktop=()=>{
-      const rect=story.getBoundingClientRect();
-      const max=Math.max(1,story.offsetHeight-innerHeight);
-      const y=clamp(-rect.top,0,max);
-      const progress=(y/max)*2;
+    const metrics=()=>{
+      const height=viewportHeight();
+      const max=Math.max(1,story.offsetHeight-height);
+      const y=clamp(-story.getBoundingClientRect().top,0,max);
+      return {max,progress:(y/max)*(slides.length-1)};
+    };
+
+    const render=()=>{
+      raf=0;
+      const {progress}=metrics();
 
       slides.forEach((slide,index)=>{
         const cover=index<slides.length-1?clamp(progress-index,0,1):0;
@@ -135,25 +132,19 @@ const services = [
       setStage(Math.round(progress));
     };
 
-    const render=()=>{raf=0;isMobile()?renderMobile():renderDesktop();};
     const queueRender=()=>{if(!raf)raf=requestAnimationFrame(render)};
     addEventListener('scroll',queueRender,{passive:true});
     addEventListener('resize',queueRender);
+    window.visualViewport?.addEventListener('resize',queueRender);
     requestAnimationFrame(render);
 
-    document.addEventListener('click',e=>{
-      const el=e.target.closest('[data-jump]');
+    document.addEventListener('click',event=>{
+      const el=event.target.closest('[data-jump]');
       if(!el)return;
-      e.preventDefault();
+      event.preventDefault();
       const n=clamp(Number(el.dataset.jump),0,slides.length-1);
-
-      if(isMobile()){
-        slides[n].scrollIntoView({behavior:'smooth',block:'start'});
-        return;
-      }
-
-      const max=Math.max(1,story.offsetHeight-innerHeight);
-      const target=story.offsetTop+(max/2)*n;
+      const {max}=metrics();
+      const target=story.offsetTop+(max/(slides.length-1))*n;
       scrollTo({top:target,behavior:'smooth'});
     });
   </script>
