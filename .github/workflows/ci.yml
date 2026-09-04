@@ -1,0 +1,55 @@
+name: Webigram CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  website-doctor:
+    name: Website Doctor checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JavaScript syntax
+        run: |
+          set -e
+          node --check server/website-doctor-api.mjs
+          node --check public/scripts/website-doctor.js
+          node --check extension/website-doctor/popup.js
+          node -e "JSON.parse(require('fs').readFileSync('extension/website-doctor/manifest.json', 'utf8'))"
+
+      - name: API smoke and SSRF safety test
+        run: |
+          set -e
+          node server/website-doctor-api.mjs >/tmp/website-doctor-api.log 2>&1 &
+          API_PID=$!
+          trap 'kill $API_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:8787/healthz >/dev/null && break
+            sleep 0.25
+          done
+          curl -fsS http://127.0.0.1:8787/healthz
+          RESPONSE=$(curl -sS -X POST http://127.0.0.1:8787/check \
+            -H 'Content-Type: application/json' \
+            --data '{"url":"http://127.0.0.1"}')
+          echo "$RESPONSE" | grep -q '"ok":false'
+          echo "$RESPONSE" | grep -q 'رزروشده'
+
+      - name: Build production image
+        run: docker build --tag webigram-ci:${GITHUB_SHA} .
+
+      - name: Verify generated Website Doctor artifacts
+        run: |
+          set -e
+          CID=$(docker create webigram-ci:${GITHUB_SHA})
+          trap 'docker rm -f "$CID" >/dev/null 2>&1 || true' EXIT
+          docker cp "$CID:/usr/share/nginx/html/tools/website-doctor/index.html" /tmp/website-doctor.html
+          docker cp "$CID:/usr/share/nginx/html/downloads/webigram-website-doctor-chrome.zip" /tmp/website-doctor-extension.zip
+          test -s /tmp/website-doctor.html
+          test -s /tmp/website-doctor-extension.zip
+          unzip -t /tmp/website-doctor-extension.zip
