@@ -29,6 +29,8 @@ jobs:
           docker cp "$CID:/usr/share/nginx/html/." /tmp/webigram-dist/
           docker rm "$CID"
           test -f /tmp/webigram-dist/index.html
+          test -f /tmp/webigram-dist/tools/website-doctor/index.html
+          test -f /tmp/webigram-dist/downloads/webigram-website-doctor-chrome.zip
       - name: Publish production build
         env:
           GH_TOKEN: ${{ github.token }}
@@ -67,7 +69,9 @@ jobs:
         run: |
           set -e
           docker image inspect nginx:1.28-alpine >/dev/null 2>&1 || docker pull nginx:1.28-alpine
+          docker image inspect node:24-alpine >/dev/null 2>&1 || docker pull node:24-alpine
           docker network inspect public_proxy >/dev/null 2>&1 || docker network create public_proxy
+          docker network inspect app-net >/dev/null 2>&1 || docker network create app-net
       - name: Deploy
         working-directory: /opt/apps/www-webigram.ir
         run: |
@@ -76,10 +80,12 @@ jobs:
         run: |
           set -e
           for i in $(seq 1 30); do
-            STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-web 2>/dev/null || true)
-            echo "$STATUS"
-            [ "$STATUS" = "healthy" ] && exit 0
+            WEB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-web 2>/dev/null || true)
+            API_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-website-doctor-api 2>/dev/null || true)
+            echo "web=$WEB_STATUS api=$API_STATUS"
+            [ "$WEB_STATUS" = "healthy" ] && [ "$API_STATUS" = "healthy" ] && exit 0
             sleep 2
           done
-          docker logs webigram-web
+          docker logs webigram-web || true
+          docker logs webigram-website-doctor-api || true
           exit 1
