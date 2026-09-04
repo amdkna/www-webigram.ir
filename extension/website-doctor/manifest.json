@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Webigram Website Doctor",
+  "version": "1.0.0",
+  "description": "سلامت سایت فعلی را به زبان ساده بررسی کن؛ SSL، سرور، سرعت، SEO و مشکلات مهم فنی.",
+  "permissions": ["activeTab"],
+  "host_permissions": ["https://webigram.ir/*"],
+  "action": {
+    "default_title": "سایت دکتر وبیگرام",
+    "default_popup": "popup.html"
+  }
+}
