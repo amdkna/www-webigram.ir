@@ -1,9 +1,34 @@
 services:
+  website-doctor-api:
+    image: node:24-alpine
+    container_name: webigram-website-doctor-api
+    restart: unless-stopped
+    command: ["node", "/app/server/website-doctor-api.mjs"]
+    environment:
+      PORT: "8787"
+      DOCTOR_RATE_LIMIT: "12"
+      DOCTOR_MAX_ACTIVE_SCANS: "20"
+    volumes:
+      - ./server:/app/server:ro
+    expose:
+      - "8787"
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
   webigram:
     image: nginx:1.28-alpine
     pull_policy: never
     container_name: webigram-web
     restart: unless-stopped
+    depends_on:
+      website-doctor-api:
+        condition: service_healthy
     expose:
       - "80"
     volumes:

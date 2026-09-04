@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Website Doctor</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main class="popup-shell">
+    <header>
+      <div class="brand-mark">W</div>
+      <div><strong>Website Doctor</strong><span>by Webigram</span></div>
+    </header>
+
+    <section id="unsupported" class="state-card" hidden>
+      <div class="state-icon">!</div>
+      <h1>این صفحه قابل بررسی نیست</h1>
+      <p>سایت دکتر فقط صفحات عمومی HTTP و HTTPS را بررسی می‌کند.</p>
+    </section>
+
+    <section id="loading" class="state-card">
+      <div class="loader"><span></span><span></span><span></span></div>
+      <h1>در حال معاینه سایت…</h1>
+      <p id="loadingHost">آدرس صفحه فعلی را بررسی می‌کنیم.</p>
+    </section>
+
+    <section id="error" class="state-card" hidden>
+      <div class="state-icon error">×</div>
+      <h1>بررسی انجام نشد</h1>
+      <p id="errorText"></p>
+      <button id="retryButton" class="primary">تلاش دوباره</button>
+    </section>
+
+    <section id="result" hidden>
+      <div class="site-row"><span>سایت فعلی</span><strong id="siteHost" dir="ltr"></strong></div>
+      <div class="score-card">
+        <div class="score-ring" id="scoreRing"><div><strong id="scoreValue">—</strong><span>از ۱۰۰</span></div></div>
+        <div class="score-copy"><span>وضعیت کلی</span><h1 id="gradeText">—</h1><p id="summaryText"></p></div>
+      </div>
+      <div class="quick-stats">
+        <div><strong id="passedCount">—</strong><span>سالم</span></div>
+        <div><strong id="warningCount">—</strong><span>هشدار</span></div>
+        <div><strong id="errorCount">—</strong><span>مشکل</span></div>
+      </div>
+      <div class="issues-block">
+        <div class="section-title"><strong>مهم‌ترین موارد</strong><span id="issuesHint"></span></div>
+        <div id="issuesList" class="issues-list"></div>
+      </div>
+      <a id="fullReport" class="primary link-button" target="_blank" rel="noreferrer">مشاهده گزارش کامل</a>
+      <button id="rescanButton" class="secondary">بررسی مجدد</button>
+    </section>
+
+    <footer>فقط هنگام باز کردن اکستنشن، آدرس صفحه فعلی برای بررسی به Webigram ارسال می‌شود.</footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
