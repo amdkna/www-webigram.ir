@@ -17,13 +17,19 @@ RUN --mount=type=cache,target=/root/.npm \
     npm config set fetch-timeout 120000 && \
     npm install --no-audit --no-fund --prefer-offline
 
+RUN apk add --no-cache zip
+
 COPY . .
 
 # Cache the stage-3 CC0 mountain photograph into public/images at build time.
-# The production browser then loads it from webigram.ir, not a third-party CDN.
 # If the upstream source is temporarily unavailable, the component still has a
 # built-in mountain fallback and the production build continues.
-RUN node scripts/fetch-mountain-asset.mjs && npm run build
+# The Website Doctor Chrome extension is also packaged into dist/downloads.
+RUN node scripts/fetch-mountain-asset.mjs && \
+    npm run build && \
+    mkdir -p /app/dist/downloads && \
+    cd /app/extension/website-doctor && \
+    zip -qr /app/dist/downloads/webigram-website-doctor-chrome.zip .
 
 FROM nginx:1.28-alpine AS runtime
 
