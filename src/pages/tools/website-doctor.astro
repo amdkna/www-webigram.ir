@@ -1,0 +1,113 @@
+---
+import '../../styles/public-tools.css';
+import '../../styles/website-doctor.css';
+const base = import.meta.env.BASE_URL;
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f6f6f8" />
+  <meta name="description" content="سایت دکتر وبیگرام؛ سلامت سایت، SSL، سرعت، SEO، DNS و مشکلات فنی را بدون نیاز به دانش فنی بررسی کنید و گزارش قابل ارسال برای پشتیبانی بگیرید." />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <link rel="canonical" href="https://webigram.ir/tools/website-doctor/" />
+  <title>سایت دکتر | بررسی سلامت سایت بدون دانش فنی</title>
+</head>
+<body>
+  <header class="tools-header">
+    <div class="shell tools-header-inner">
+      <a class="tools-brand" href="/" aria-label="وبیگرام"><svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9"/></svg><strong>Webigram</strong></a>
+      <nav class="tools-nav" aria-label="منوی ابزارها"><a href="/">خانه</a><a class="active" href="/tools/">ابزارها</a></nav>
+    </div>
+  </header>
+
+  <main class="doctor-main">
+    <section class="doctor-hero shell">
+      <div class="breadcrumb"><a href="/tools/">ابزارها</a><span>/</span><span>سایت دکتر</span></div>
+      <div class="doctor-hero-grid">
+        <div class="doctor-hero-copy">
+          <span class="eyebrow">Webigram Website Doctor</span>
+          <h1>سایتت حالش خوبه؟<br/><span>سایت دکتر بهت میگه.</span></h1>
+          <p>آدرس سایتت را بده. بدون اصطلاحات عجیب فنی بررسی می‌کنیم مشکل از دامنه، سرور، SSL، سرعت، SEO یا تنظیمات سایت است و دقیقا می‌گوییم چه کاری انجام بدهی.</p>
+          <div class="doctor-trust-row"><span>✓ بدون نیاز به دانش فنی</span><span>✓ گزارش قابل ارسال به پشتیبانی</span><span>✓ رایگان</span></div>
+        </div>
+        <div class="doctor-visual" aria-hidden="true">
+          <div class="doctor-orb"><span class="doctor-pulse"></span><svg viewBox="0 0 64 64"><path d="M18 11v17a14 14 0 0 0 28 0V11"/><path d="M18 12c-5 0-7 3-7 7s2 7 7 7M46 12c5 0 7 3 7 7s-2 7-7 7"/><circle cx="32" cy="48" r="7"/><path d="M39 48h8a7 7 0 1 0 0-14"/></svg></div>
+          <div class="doctor-float doctor-float--one"><span>SSL</span><strong>✓</strong></div>
+          <div class="doctor-float doctor-float--two"><span>SEO</span><strong>!</strong></div>
+          <div class="doctor-float doctor-float--three"><span>Server</span><strong>✓</strong></div>
+        </div>
+      </div>
+
+      <form class="doctor-form" id="doctorForm" novalidate>
+        <label for="doctorUrl">آدرس سایت</label>
+        <div class="doctor-input-row">
+          <div class="doctor-input-wrap"><span aria-hidden="true">🌐</span><input id="doctorUrl" name="url" dir="ltr" inputmode="url" autocomplete="url" placeholder="example.com" required /></div>
+          <button id="doctorSubmit" type="submit">معاینه سایت <span aria-hidden="true">←</span></button>
+        </div>
+        <div class="doctor-form-foot"><span>فقط سایت‌های عمومی قابل بررسی هستند.</span><span class="doctor-form-error" id="doctorFormError" role="alert"></span></div>
+      </form>
+    </section>
+
+    <section class="doctor-stage shell" id="doctorIntro">
+      <div class="section-heading"><span>چه چیزهایی بررسی می‌شود؟</span><h2>یک چکاپ فنی، با ترجمه انسانی</h2><p>خروجی قرار نیست یک مشت عدد و کد باشد. هر نتیجه می‌گوید «این یعنی چه؟» و «حالا چه کار کنم؟»</p></div>
+      <div class="doctor-feature-grid">
+        <article><div class="feature-icon">01</div><h3>باز شدن سایت و سرور</h3><p>بررسی می‌کنیم دامنه به سرور وصل است، سایت جواب می‌دهد و Redirectها درست هستند.</p></article>
+        <article><div class="feature-icon">02</div><h3>SSL و امنیت پایه</h3><p>اعتبار و تاریخ انقضای SSL و هدرهای مهم امنیتی را بررسی می‌کنیم.</p></article>
+        <article><div class="feature-icon">03</div><h3>سرعت پاسخ</h3><p>می‌سنجیم سرور برای شروع پاسخ چقدر زمان می‌خواهد و فشرده‌سازی فعال است یا نه.</p></article>
+        <article><div class="feature-icon">04</div><h3>SEO فنی</h3><p>Title، Description، Canonical، H1، robots.txt، sitemap و Open Graph بررسی می‌شوند.</p></article>
+        <article><div class="feature-icon">05</div><h3>نمایش موبایل</h3><p>بررسی اولیه Responsive بودن و وجود تنظیمات ضروری viewport انجام می‌شود.</p></article>
+        <article class="feature-highlight"><div class="feature-icon">06</div><h3>نسخه قابل ارسال به پشتیبانی</h3><p>کنار توضیح ساده، یک گزارش فنی آماده می‌گیری تا برای هاست، طراح یا DevOps بفرستی.</p></article>
+      </div>
+    </section>
+
+    <section class="doctor-loading shell" id="doctorLoading" hidden aria-live="polite">
+      <div class="doctor-loading-card"><div class="doctor-loader"><span></span><span></span><span></span></div><h2>سایت دکتر در حال معاینه است</h2><p id="doctorProgressText">دامنه و DNS را بررسی می‌کنیم…</p><div class="doctor-progress"><span id="doctorProgressBar"></span></div><small>بعضی بررسی‌ها نیاز دارند چند بخش مختلف سایت پاسخ بدهند.</small></div>
+    </section>
+
+    <section class="doctor-results shell" id="doctorResults" hidden>
+      <div class="doctor-result-top">
+        <div class="doctor-score-ring" id="doctorScoreRing" data-tone="good"><div><strong id="doctorScore">—</strong><span>از ۱۰۰</span></div></div>
+        <div class="doctor-result-summary"><span class="doctor-result-label">نتیجه معاینه <b id="doctorScannedUrl"></b></span><h2 id="doctorHeadline">گزارش سایت آماده است</h2><p id="doctorSummaryText"></p><div class="doctor-grade">وضعیت کلی: <strong id="doctorGrade">—</strong></div></div>
+        <div class="doctor-result-buttons"><button class="doctor-button secondary" id="doctorCopyLink" type="button">کپی لینک بررسی</button><button class="doctor-button" id="doctorRescan" type="button">بررسی سایت دیگر</button></div>
+      </div>
+      <div class="doctor-summary-stats" id="doctorSummaryStats"></div>
+      <div class="doctor-metrics" id="doctorMetrics"></div>
+
+      <div class="doctor-section-title"><div><span>گزارش کامل</span><h2>چه چیزهایی خوب است و چه چیزهایی نه؟</h2></div></div>
+      <div class="doctor-checks" id="doctorChecks"></div>
+
+      <div class="doctor-section-title"><div><span>نسخه اقدام</span><h2>از کجا شروع کنم؟</h2><p>کارها به ترتیب اهمیت چیده شده‌اند؛ اول قرمزها، بعد زردها.</p></div></div>
+      <div class="doctor-actions" id="doctorActions"></div>
+
+      <section class="doctor-support-card">
+        <div class="doctor-support-copy"><span class="eyebrow">برای پشتیبانی</span><h2>لازم نیست خودت اصطلاحات فنی را توضیح بدهی</h2><p>این گزارش را کپی کن و برای شرکت هاست، طراح سایت یا تیم فنی بفرست. اطلاعات لازم برای شروع عیب‌یابی داخلش هست.</p><button class="doctor-button" id="copyTechnicalReport" type="button">کپی گزارش فنی</button></div>
+        <pre id="doctorTechnicalReport" dir="ltr"></pre>
+      </section>
+
+      <details class="doctor-tech-details"><summary>اطلاعات فنی بیشتر</summary><div class="doctor-tech-grid"><div><span>Final URL</span><code id="doctorFinalUrl"></code></div><div><span>IP</span><code id="doctorIpList"></code></div><div><span>Web Server</span><code id="doctorServer"></code></div><div><span>HTTP</span><code id="doctorHttpVersion"></code></div><div><span>زمان کل بررسی</span><code id="doctorScanDuration"></code></div></div></details>
+    </section>
+
+    <section class="doctor-extension shell">
+      <div class="doctor-extension-card">
+        <div><span class="eyebrow">Chrome Extension</span><h2>سایت دکتر را همیشه کنار مرورگرت داشته باش</h2><p>روی هر سایتی که هستی اکستنشن Webigram Website Doctor را باز کن؛ همان سایت به‌صورت خودکار شناسایی و بررسی می‌شود.</p><div class="doctor-extension-actions"><a class="doctor-button" href="/downloads/webigram-website-doctor-chrome.zip">دانلود اکستنشن کروم</a><a class="doctor-button secondary" href="https://github.com/amdkna/www-webigram.ir/tree/main/extension/website-doctor" target="_blank" rel="noreferrer">مشاهده سورس</a></div></div>
+        <div class="extension-mock" aria-hidden="true"><div class="extension-bar"><i></i><i></i><i></i><b>Website Doctor</b></div><div class="extension-mini-score">86</div><strong>وضعیت سایت: خوب</strong><span>۳ مورد نیاز به توجه دارد</span><button>مشاهده گزارش کامل</button></div>
+      </div>
+    </section>
+
+    <section class="doctor-faq shell">
+      <div class="section-heading"><span>سوالات رایج</span><h2>چند نکته قبل از معاینه</h2></div>
+      <div class="doctor-faq-grid">
+        <details><summary>سایت دکتر دقیقا چه کاری می‌کند؟</summary><p>از بیرون سایت را مثل یک بازدیدکننده بررسی می‌کند: DNS، دسترسی HTTP، HTTPS و SSL، زمان پاسخ، بخشی از تنظیمات امنیتی و چند مورد مهم SEO.</p></details>
+        <details><summary>آیا به سایت یا هاست من دسترسی می‌گیرد؟</summary><p>خیر. هیچ نام کاربری یا رمزی لازم نیست. فقط اطلاعاتی بررسی می‌شود که سایت عمومی شما همین حالا در اینترنت ارائه می‌کند.</p></details>
+        <details><summary>آیا نتیجه جای متخصص را می‌گیرد؟</summary><p>نه. این ابزار برای پیدا کردن سریع نشانه‌های مشکل و آماده‌کردن گزارش اولیه است. مشکلات پیچیده سرور یا برنامه ممکن است بررسی تخصصی بیشتری بخواهند.</p></details>
+        <details><summary>آیا آدرس سایت من ذخیره می‌شود؟</summary><p>موتور Website Doctor تاریخچه‌ای از سایت‌های بررسی‌شده ایجاد نمی‌کند. درخواست فقط برای انجام همان بررسی پردازش می‌شود.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="tools-footer"><div class="shell">Webigram Website Doctor · عیب‌یابی فنی به زبان آدمیزاد</div></footer>
+  <script is:inline src="/scripts/website-doctor.js"></script>
+</body>
+</html>
