@@ -1,0 +1,80 @@
+---
+import '../styles/public-tools.css';
+
+const base = import.meta.env.BASE_URL;
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f6f6f8" />
+  <meta name="description" content="ابزارهای آنلاین و رایگان وبیگرام؛ ابزارهای کاربردی برای وب، دامنه، شبکه و کسب‌وکار دیجیتال." />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <link rel="canonical" href="https://webigram.ir/tools/" />
+  <title>ابزارهای رایگان وبیگرام | Webigram Tools</title>
+</head>
+<body>
+  <header class="tools-header">
+    <div class="shell tools-header-inner">
+      <a class="tools-brand" href="/" aria-label="وبیگرام">
+        <svg viewBox="0 0 64 52" aria-hidden="true">
+          <path d="M4 7 16 45 28 14l8 31L60 7" />
+          <path d="M7 9 17 41 28 17l8 25L57 9" />
+        </svg>
+        <strong>Webigram</strong>
+      </a>
+      <nav class="tools-nav" aria-label="منوی ابزارها">
+        <a href="/">خانه</a>
+        <a class="active" href="/tools/">ابزارها</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="tools-main">
+    <div class="shell">
+      <section class="tools-hero">
+        <span class="eyebrow">Webigram Tools</span>
+        <h1>ابزارهای ساده، سریع و <span>واقعا کاربردی</span></h1>
+        <p>مجموعه‌ای از ابزارهای رایگان برای کارهای روزمره وب، شبکه و برند دیجیتال. بدون نصب نرم‌افزار؛ مستقیم در مرورگر.</p>
+      </section>
+
+      <section class="tools-grid" aria-label="فهرست ابزارهای وبیگرام">
+        <a class="tool-card" href="/myip/">
+          <div class="tool-top">
+            <div class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3.5 9h17M3.5 15h17M12 3c2.2 2.4 3.2 5.4 3.2 9S14.2 18.6 12 21c-2.2-2.4-3.2-5.4-3.2-9S9.8 5.4 12 3Z" />
+              </svg>
+            </div>
+            <span class="tool-status">فعال</span>
+          </div>
+          <h2>نمایش IP اینترنت</h2>
+          <p>IP عمومی اینترنت خودت را سریع ببین؛ با پشتیبانی از IPv4 و IPv6 و امکان کپی با یک کلیک.</p>
+          <span class="tool-link">باز کردن ابزار <span aria-hidden="true">←</span></span>
+        </a>
+
+        <article class="tool-card disabled" aria-label="بررسی دامنه و نام کاربری - به زودی">
+          <div class="tool-top">
+            <div class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 7.5h16M6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11A2.5 2.5 0 0 1 6.5 4Z" />
+                <path d="m8.5 14 2.2 2.2 4.8-5" />
+              </svg>
+            </div>
+            <span class="tool-status soon">به زودی</span>
+          </div>
+          <h2>بررسی دامنه و نام کاربری</h2>
+          <p>بررسی همزمان وضعیت دامنه و نام موردنظر در WHOIS، اینستاگرام، یوتیوب، تلگرام و بله.</p>
+          <span class="tool-link">در حال آماده‌سازی</span>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <footer class="tools-footer">
+    <div class="shell">Webigram Tools · ابزارهای رایگان برای وب و اینترنت</div>
+  </footer>
+</body>
+</html>
