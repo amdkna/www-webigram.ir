@@ -4,7 +4,7 @@ FROM node:24-alpine AS build
 
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json package-lock.json ./
 
 # The production runner has occasionally had slow/flaky access to npm from
 # Docker build networking. Reuse the npm cache between builds and keep npm
@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/root/.npm \
     npm config set fetch-retry-mintimeout 10000 && \
     npm config set fetch-retry-maxtimeout 60000 && \
     npm config set fetch-timeout 120000 && \
-    npm install --no-audit --no-fund --prefer-offline
+    npm ci --no-audit --no-fund --prefer-offline
 
 RUN apk add --no-cache zip
 

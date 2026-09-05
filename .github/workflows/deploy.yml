@@ -31,6 +31,7 @@ jobs:
           docker cp "$CID:/usr/share/nginx/html/." /tmp/webigram-dist/
           docker rm "$CID"
           test -f /tmp/webigram-dist/index.html
+          test -s /tmp/webigram-dist/test6/index.html
           test -f /tmp/webigram-dist/tools/website-doctor/index.html
           test -f /tmp/webigram-dist/downloads/webigram-website-doctor-chrome.zip
       - name: Publish production build
@@ -89,6 +90,7 @@ jobs:
 
           # Do not touch live files unless the candidate build is complete.
           test -s "$APP_DIR/dist.new/index.html"
+          test -s "$APP_DIR/dist.new/test6/index.html"
           test -s "$APP_DIR/dist.new/tools/website-doctor/index.html"
           test -s "$APP_DIR/dist.new/downloads/webigram-website-doctor-chrome.zip"
 
