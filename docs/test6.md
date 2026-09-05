@@ -29,3 +29,5 @@ The experimental page is marked `noindex, follow` while the design is evaluated.
 Run `npm ci`, `npm run check`, and `npm run build` for local validation. Docker
 uses the same dependency lockfile. The existing production workflow checks that
 `dist/test6/index.html` exists before publishing and before applying the release.
+The deployment also checks the public `/test6/` response for the sculpture and
+its controls; a failed check uses the workflow's existing automatic rollback.
