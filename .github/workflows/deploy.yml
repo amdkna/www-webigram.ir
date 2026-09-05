@@ -53,6 +53,7 @@ jobs:
     env:
       APP_DIR: /opt/apps/www-webigram.ir
       PUBLIC_HEALTH_URL: https://webigram.ir/healthz
+      EDGE_CONTAINER: edge-nginx
     steps:
       - name: Snapshot last working production release
         run: |
@@ -86,13 +87,16 @@ jobs:
           mkdir "$APP_DIR/dist.new"
           git -C "$APP_DIR" archive origin/production-build | tar -x -C "$APP_DIR/dist.new"
 
-          # Do not touch the live dist unless the candidate build is complete.
+          # Do not touch live files unless the candidate build is complete.
           test -s "$APP_DIR/dist.new/index.html"
           test -s "$APP_DIR/dist.new/tools/website-doctor/index.html"
           test -s "$APP_DIR/dist.new/downloads/webigram-website-doctor-chrome.zip"
 
-          rm -rf "$APP_DIR/dist"
-          mv "$APP_DIR/dist.new" "$APP_DIR/dist"
+          # Preserve the live dist directory inode because it is bind-mounted into nginx.
+          # Replacing the directory would force a web-container recreate and can create a 502 window.
+          mkdir -p "$APP_DIR/dist"
+          cp -a "$APP_DIR/dist.new/." "$APP_DIR/dist/"
+          rm -rf "$APP_DIR/dist.new"
 
       - name: Prepare docker
         run: |
@@ -101,19 +105,68 @@ jobs:
           docker image inspect node:24-alpine >/dev/null 2>&1 || docker pull node:24-alpine
           docker network inspect public_proxy >/dev/null 2>&1 || docker network create public_proxy
           docker network inspect app-net >/dev/null 2>&1 || docker network create app-net
+          docker inspect "$EDGE_CONTAINER" >/dev/null
 
-      - name: Deploy candidate release
+      - name: Deploy candidate release without dropping the web upstream
         working-directory: /opt/apps/www-webigram.ir
         run: |
           set -euo pipefail
-          docker compose up -d --remove-orphans --force-recreate
+          ROLLBACK_DIR="$APP_DIR/.deploy-rollback"
+          PREVIOUS_SHA=""
+          [ -f "$ROLLBACK_DIR/main.sha" ] && PREVIOUS_SHA=$(cat "$ROLLBACK_DIR/main.sha")
+
+          # Let Compose recreate only services whose Compose definition actually changed.
+          # Do NOT force-recreate the public nginx container on every deployment.
+          docker compose up -d --remove-orphans
+
+          # Server code is bind-mounted. Restarting keeps the API container/IP stable,
+          # avoiding a stale upstream inside the web nginx container.
+          docker compose restart website-doctor-api
+
+          api_healthy=0
+          for i in $(seq 1 30); do
+            API_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-website-doctor-api 2>/dev/null || true)
+            echo "api_restart_attempt=$i api=$API_STATUS"
+            if [ "$API_STATUS" = "healthy" ]; then
+              api_healthy=1
+              break
+            fi
+            sleep 2
+          done
+          [ "$api_healthy" -eq 1 ]
+
+          # A bind-mounted single file can keep the old inode after git checkout.
+          # Recreate web nginx only when its own nginx config changed.
+          if [ -n "$PREVIOUS_SHA" ] && ! git diff --quiet "$PREVIOUS_SHA" HEAD -- docker/nginx.conf; then
+            echo "Web nginx config changed; recreating only webigram."
+            docker compose up -d --no-deps --force-recreate webigram
+          fi
+
+          web_ready=0
+          for i in $(seq 1 30); do
+            WEB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-web 2>/dev/null || true)
+            echo "web_ready_attempt=$i web=$WEB_STATUS"
+            if [ "$WEB_STATUS" = "healthy" ]; then
+              web_ready=1
+              break
+            fi
+            sleep 2
+          done
+          [ "$web_ready" -eq 1 ]
+
+          # Reload both nginx layers. The outer edge nginx resolves Docker hostnames
+          # at config load time, so this refreshes the webigram-web IP after any recreate.
+          docker exec webigram-web nginx -t
+          docker exec webigram-web nginx -s reload
+          docker exec "$EDGE_CONTAINER" nginx -t
+          docker exec "$EDGE_CONTAINER" nginx -s reload
 
       - name: Verify containers and public site
         run: |
           set -euo pipefail
           healthy=0
 
-          for i in $(seq 1 45); do
+          for i in $(seq 1 30); do
             WEB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-web 2>/dev/null || true)
             API_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-website-doctor-api 2>/dev/null || true)
             PUBLIC_CODE=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 5 "${PUBLIC_HEALTH_URL}?deploy=${GITHUB_SHA}&attempt=${i}" || true)
@@ -132,6 +185,7 @@ jobs:
             docker compose -f "$APP_DIR/compose.yaml" ps || true
             docker logs --tail 200 webigram-web || true
             docker logs --tail 200 webigram-website-doctor-api || true
+            docker logs --tail 200 "$EDGE_CONTAINER" || true
             exit 1
           fi
 
@@ -154,14 +208,42 @@ jobs:
           echo "Restoring previous application revision: $PREVIOUS_SHA"
 
           git -C "$APP_DIR" checkout -B main "$PREVIOUS_SHA" || exit 1
-          rm -rf "$APP_DIR/dist"
-          cp -a "$ROLLBACK_DIR/dist" "$APP_DIR/dist" || exit 1
+
+          # Restore static files in-place so the bind mount stays valid.
+          mkdir -p "$APP_DIR/dist"
+          cp -a "$ROLLBACK_DIR/dist/." "$APP_DIR/dist/" || exit 1
 
           cd "$APP_DIR" || exit 1
-          docker compose up -d --remove-orphans --force-recreate || exit 1
+          docker compose up -d --remove-orphans || exit 1
+          docker compose restart website-doctor-api || exit 1
+
+          api_healthy=0
+          for i in $(seq 1 30); do
+            API_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-website-doctor-api 2>/dev/null || true)
+            [ "$API_STATUS" = "healthy" ] && api_healthy=1 && break
+            sleep 2
+          done
+          [ "$api_healthy" -eq 1 ] || exit 1
+
+          # Force web recreation during rollback so any reverted bind-mounted nginx file
+          # is guaranteed to be the one nginx sees.
+          docker compose up -d --no-deps --force-recreate webigram || exit 1
+
+          web_ready=0
+          for i in $(seq 1 30); do
+            WEB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-web 2>/dev/null || true)
+            [ "$WEB_STATUS" = "healthy" ] && web_ready=1 && break
+            sleep 2
+          done
+          [ "$web_ready" -eq 1 ] || exit 1
+
+          docker exec webigram-web nginx -t || exit 1
+          docker exec webigram-web nginx -s reload || exit 1
+          docker exec "$EDGE_CONTAINER" nginx -t || exit 1
+          docker exec "$EDGE_CONTAINER" nginx -s reload || exit 1
 
           rollback_healthy=0
-          for i in $(seq 1 45); do
+          for i in $(seq 1 30); do
             WEB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-web 2>/dev/null || true)
             API_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-website-doctor-api 2>/dev/null || true)
             PUBLIC_CODE=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 5 "${PUBLIC_HEALTH_URL}?rollback=${PREVIOUS_SHA}&attempt=${i}" || true)
@@ -180,6 +262,7 @@ jobs:
             docker compose ps || true
             docker logs --tail 200 webigram-web || true
             docker logs --tail 200 webigram-website-doctor-api || true
+            docker logs --tail 200 "$EDGE_CONTAINER" || true
             exit 1
           fi
 
