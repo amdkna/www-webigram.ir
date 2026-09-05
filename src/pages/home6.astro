@@ -12,10 +12,7 @@ const nav = [
   ['خانه',0,'home'],['خدمات',1,'services'],['نمونه‌کارها',1,'work'],
   ['قیمت‌ها',1,'pricing'],['درباره‌ما',2,'about'],['تماس با ما',2,'contact']
 ];
-const services = [
-  ['طراحی و توسعه وب‌سایت','◎'],['طراحی UI/UX','✎'],['پنل و ابزارهای اختصاصی','⚙'],
-  ['خودکارسازی فرآیندها','⌘'],['بهینه‌سازی و بهبود عملکرد','↗'],['پشتیبانی و توسعه','◉']
-];
+const stageHref = (step:number) => `#${step===0?'sketch':step===1?'color':'real'}`;
 ---
 <!doctype html>
 <html lang="fa" dir="rtl">
@@ -44,7 +41,7 @@ const services = [
           <div class="right">
             <header class="stage-header">
               <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".42" stroke-width="2"/></svg><span>Webigram</span></a>
-              <nav class="nav" aria-label="منوی مرحله طرح اولیه">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='home'?'current':''}>{label}</a>)}</nav>
+              <nav class="nav" aria-label="منوی مرحله طرح اولیه">{nav.map(([label,step,key])=><a href={key==='services'?`${base}services/`:stageHref(step)} data-jump={key==='services'?undefined:step} class={key==='home'?'current':''}>{label}</a>)}</nav>
             </header>
             <div class="copy">
               <h1>راهکار وب<br/>برای کسب‌وکار شما</h1>
@@ -61,12 +58,12 @@ const services = [
           <div class="right">
             <header class="stage-header">
               <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
-              <nav class="nav" aria-label="منوی مرحله طراحی رنگی">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='services'?'current':''}>{label}</a>)}</nav>
+              <nav class="nav" aria-label="منوی مرحله طراحی رنگی">{nav.map(([label,step,key])=><a href={key==='services'?`${base}services/`:stageHref(step)} data-jump={key==='services'?undefined:step} class={key==='home'?'current':''}>{label}</a>)}</nav>
             </header>
             <div class="copy">
-              <h2>آنچه برای<br/><em>کسب‌وکار</em> شما می‌سازیم</h2>
-              <p class="service-intro">خدماتی متناسب با نیاز واقعی کسب‌وکار شما؛<br/>ساده، کاربردی و قابل توسعه</p>
-              <div class="service-list">{services.map(([title,icon])=><div class="service-item"><span>{title}</span><b>{icon}</b></div>)}</div>
+              <h2>ایده حالا<br/><em>شکل گرفته</em></h2>
+              <p class="service-intro">در این مرحله ایده از کاغذ بیرون می‌آید و به طراحی دقیق، رابط کاربری و جریان واقعی محصول تبدیل می‌شود؛ قبل از اینکه وارد اجرای نهایی شویم.</p>
+              <div class="actions"><a href={`${base}services/`}>مشاهده خدمات وبیگرام <span>←</span></a><a href="#real" data-jump="2">دیدن اجرای سه بعدی <span>←</span></a></div>
             </div>
           </div>
         </section>
@@ -86,7 +83,7 @@ const services = [
           <div class="right">
             <header class="stage-header">
               <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
-              <nav class="nav" aria-label="منوی مرحله محصول واقعی">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='services'?'current':''}>{label}</a>)}</nav>
+              <nav class="nav" aria-label="منوی مرحله محصول واقعی">{nav.map(([label,step,key])=><a href={key==='services'?`${base}services/`:stageHref(step)} data-jump={key==='services'?undefined:step} class={key==='home'?'current':''}>{label}</a>)}</nav>
             </header>
             <div class="copy">
               <span class="badge">✦ ایده را به واقعیت تبدیل می‌کنیم ✦</span>
@@ -99,8 +96,6 @@ const services = [
     </div>
   </main>
 
-  <div class="progress" aria-label="مراحل طراحی"><button class="active" data-jump="0" aria-label="روی کاغذ"></button><button data-jump="1" aria-label="اجرای دو بعدی"></button><button data-jump="2" aria-label="اجرای سه بعدی"></button></div>
-
   <div class="home6-tools" id="home6-tools" role="group" aria-label="تنظیمات صحنه سه بعدی" hidden>
     <button id="home6-night" type="button" aria-pressed="false" title="تغییر نورپردازی روز و شب"><span aria-hidden="true">☾</span><span>نور شب</span></button>
     <button id="home6-expand" type="button" aria-pressed="false" title="باز کردن لایه های سه بعدی"><span aria-hidden="true">◇</span><span>باز کردن اجزا</span></button>
@@ -111,6 +106,6 @@ const services = [
   <script>
     import '../scripts/home6-experience';
   </script>
-  <noscript><style>.slide-loader,.home6-status,.progress{display:none}.story{height:auto}.viewport{height:auto;overflow:visible}.frame{position:relative;inset:auto;width:100%;height:auto;transform:none;overflow:visible}.slide{position:relative!important;height:100svh;clip-path:none!important;pointer-events:auto}.home6 .slide .copy{overflow:auto}</style></noscript>
+  <noscript><style>.slide-loader,.home6-status{display:none}.story{height:auto}.viewport{height:auto;overflow:visible}.frame{position:relative;inset:auto;width:100%;height:auto;transform:none;overflow:visible}.slide{position:relative!important;height:100svh;clip-path:none!important;pointer-events:auto}.home6 .slide .copy{overflow:auto}</style></noscript>
 </body>
 </html>
