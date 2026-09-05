@@ -1,0 +1,75 @@
+.home6 .home6-scene { position: absolute; z-index: 9; left: 0; top: 0; width: 60.5%; height: 100%; overflow: hidden; background: #fafaff; opacity: 0; transition: opacity .7s; }
+.home6.scene-ready .home6-scene { opacity: 1; }
+.home6.scene-ready .slide .visual { visibility: hidden; }
+.home6 #home6-canvas { display: block; width: 100%; height: 100%; touch-action: pan-y pinch-zoom; cursor: grab; outline-offset: -6px; }
+.home6 #home6-canvas:active { cursor: grabbing; }
+.home6 a:focus-visible,.home6 button:focus-visible,.home6 canvas:focus-visible { outline: 2px solid #6b47ed; outline-offset: 4px; }
+.home6-scene-caption { position: absolute; top: 5%; left: 6%; z-index: 2; color: #626886; font-size: 13px; font-weight: 600; padding: 8px 13px; border: 1px solid #8799c22b; border-radius: 30px; background: #ffffffb8; backdrop-filter: blur(12px); pointer-events: none; }
+.home6-drag-hint { position: absolute; bottom: 11%; left: 50%; transform: translateX(-50%); color: #626d8a; background: #ffffffbd; padding: 7px 14px; border-radius: 30px; font-size: 13px; white-space: nowrap; pointer-events: none; transition: opacity .3s; }
+.home6-tools { position: fixed; z-index: 45; bottom: 30px; left: 29%; transform: translateX(-50%); display: flex; align-items: center; gap: 5px; padding: 7px; border: 1px solid #ffffffb8; background: #ffffffc9; border-radius: 18px; backdrop-filter: blur(18px); box-shadow: 0 8px 35px #36386c18; direction: rtl; }
+.home6-tools button { display: flex; gap: 7px; align-items: center; justify-content: center; background: transparent; border: 0; border-radius: 12px; color: #43495e; min-height: 43px; padding: 10px 13px; cursor: pointer; font-size: 14px; font-weight: 600; transition: color .25s, background .25s; white-space: nowrap; }
+.home6-tools button > span:first-child { font-size: 20px; line-height: 1; }
+.home6-tools button:hover { background: #7056e80c; color: #6841db; }
+.home6-tools button[aria-pressed=true] { color: #6841db; background: #7056e814; }
+.home6 #home6-night { opacity: .5; }
+.home6[data-stage="2"] #home6-night { opacity: 1; }
+.home6 #home6-night:disabled { cursor: default; }
+.home6 .progress { left: 80%; bottom: 40px; box-shadow: none; border: 1px solid #47578518; gap: 7px; padding: 7px; }
+.home6 .progress button,.home6 .progress button.active { width: auto; height: 40px; min-width: 48px; padding: 0 13px; border-radius: 11px; background: transparent; color: #6d7487; }
+.home6 .progress button::after { content: attr(aria-label); font-size: 13px; font-weight: 700; }
+.home6 .progress button.active { background: #7056e814; color: #6442d6; }
+.home6-status { position: fixed; z-index: 44; bottom: 40px; left: 25%; transform: translateX(-50%); color: #6a7190; font-size: 14px; padding: 10px 18px; background: #fffffff0; border-radius: 15px; box-shadow: 0 7px 30px #121e4e0a; max-width: 48%; text-align: center; }
+.home6 [hidden] { display: none !important; }
+.home6.motion-paused *, .home6.motion-paused *::after,.home6.motion-paused *::before { animation-play-state: paused !important; }
+.home6 .copy { overflow: visible; }
+.home6 .stage-header { flex-wrap: wrap; height: auto; justify-content: flex-start; gap: 12px; }
+.home6 .stage-header .brand { width: 100%; }
+.home6 .nav { flex-wrap: wrap; font-size: 14px; gap: 7px 16px; }
+.home6 .copy p { font-size: clamp(16px, 1.15vw, 19px); }
+.home6 .service-item { font-size: clamp(14px, 1vw, 17px); }
+.home6 .benefits { font-size: 13px; gap: 10px; }
+@media (min-width: 821px) and (max-height: 680px) {
+  .home6 .copy { top: 29%; }
+  .home6 .copy h1,.home6 .copy h2 { font-size: clamp(35px, 3.6vw, 58px); }
+  .home6 .copy p { margin-top: 16px; line-height: 1.8; }
+  .home6 .service-list { margin-top: 14px; gap: 5px; }
+  .home6 .service-item { height: 36px; }
+  .home6 .badge { margin-bottom: 15px; }
+  .home6-tools { bottom: 20px; }
+}
+@media (max-width: 820px) {
+  .home6 .right, .home6 .slide-color .right { height: 60%; overflow-y: auto; overscroll-behavior-y: auto; padding-bottom: 14px; }
+  .home6 .visual, .home6 .slide-color .visual { top: 60%; height: 40%; }
+  .home6 .stage-header { display: grid; grid-template-columns: 1fr; grid-template-areas: 'brand' 'nav'; gap: 7px; }
+  .home6 .brand span { font-size: 18px; }
+  .home6 .stage-header .brand { width: auto; }
+  .home6 .nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+  .home6 .nav a { font-size: 13px; min-height: 31px; padding: 5px; }
+  .home6 .copy, .home6 .slide-color .copy, .home6 .slide-real .copy { flex: 0 0 auto; overflow: visible; padding-top: 4px; }
+  .home6 .copy p,.home6 .slide-color .service-intro,.home6 .slide-real .copy p { font-size: 16px; line-height: 1.8; }
+  .home6 .copy h1,.home6 .copy h2,.home6 .slide-real .copy h2 { font-size: clamp(30px, 8vw, 44px); line-height: 1.2; }
+  .home6 .actions a { font-size: 13px; min-height: 42px; }
+  .home6 .benefits { font-size: 12px; margin-top: 12px; }
+  .home6 .benefits span { font-size: 12px; }
+  .home6 .service-item { font-size: 14px; min-height: 45px; line-height: 1.6; }
+  .home6 .badge { font-size: 13px; padding: 7px 10px; }
+  .home6-tools { left: 50%; bottom: 64px; padding: 4px; width: max-content; max-width: calc(100% - 20px); gap: 0; border-radius: 14px; }
+  .home6-tools button { min-height: 37px; padding: 7px 9px; font-size: 12px; gap: 4px; }
+  .home6-tools button > span:first-child { font-size: 16px; }
+  .home6 #home6-reset > span:last-child { display: none; }
+  .home6 .progress { left: 15px; right: 15px; bottom: max(8px, env(safe-area-inset-bottom)); width: auto; transform: none; display: grid; grid-template-columns: repeat(3,1fr); padding: 4px; gap: 3px; border-radius: 13px; background: #ffffffd9; }
+  .home6 .progress button,.home6 .progress button.active { padding: 0 5px; height: 36px; }
+  .home6 .progress button::after { font-size: 12px; }
+  .home6-scene-caption { top: 8px; left: 12px; padding: 5px 9px; font-size: 12px; }
+  .home6-drag-hint { display: none; }
+  .home6-status { left: 50%; max-width: 90%; width: max-content; bottom: 67px; font-size: 12px; }
+}
+@media (max-width: 820px) and (orientation: landscape) {
+  .home6 .right, .home6 .slide-color .right { width: 50%; height: 100%; padding-bottom: 70px; }
+  .home6 .visual,.home6 .slide-color .visual { top: 0; width: 50%; height: 100%; }
+  .home6 .progress { left: 52%; right: 12px; }
+  .home6-tools { left: 25%; bottom: 12px; }
+  .home6-tools button > span:last-child { display: none; }
+  .home6 .copy h1,.home6 .copy h2 { font-size: 29px; }
+}
+@media (prefers-reduced-motion:reduce) { .home6 *,.home6 *::before,.home6 *::after { animation:none!important; transition:none!important; } }

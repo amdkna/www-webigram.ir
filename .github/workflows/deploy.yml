@@ -32,6 +32,7 @@ jobs:
           docker rm "$CID"
           test -f /tmp/webigram-dist/index.html
           test -s /tmp/webigram-dist/test6/index.html
+          test -s /tmp/webigram-dist/home6/index.html
           test -f /tmp/webigram-dist/tools/website-doctor/index.html
           test -f /tmp/webigram-dist/downloads/webigram-website-doctor-chrome.zip
       - name: Publish production build
@@ -91,6 +92,7 @@ jobs:
           # Do not touch live files unless the candidate build is complete.
           test -s "$APP_DIR/dist.new/index.html"
           test -s "$APP_DIR/dist.new/test6/index.html"
+          test -s "$APP_DIR/dist.new/home6/index.html"
           test -s "$APP_DIR/dist.new/tools/website-doctor/index.html"
           test -s "$APP_DIR/dist.new/downloads/webigram-website-doctor-chrome.zip"
 
@@ -199,6 +201,12 @@ jobs:
           grep -q 'id="orbital-canvas"' "$RUNNER_TEMP/webigram-test6.html"
           grep -q 'id="experience-controls"' "$RUNNER_TEMP/webigram-test6.html"
           echo "Public /test6 route contains the 3D experience."
+          curl -fsS --connect-timeout 5 --max-time 15 --retry 2 --retry-delay 2 \
+            "https://webigram.ir/home6/?deploy=${GITHUB_SHA}" \
+            -o "$RUNNER_TEMP/webigram-home6.html"
+          grep -q 'id="home6-canvas"' "$RUNNER_TEMP/webigram-home6.html"
+          grep -q 'id="home6-tools"' "$RUNNER_TEMP/webigram-home6.html"
+          echo "Public /home6 route contains the animated homepage."
           echo "Production release is healthy through the public endpoint."
 
       - name: Roll back automatically on deployment failure

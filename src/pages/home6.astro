@@ -1,0 +1,113 @@
+---
+import '../styles/scroll-slides.css';
+import '../styles/composition-fixes.css';
+import '../styles/real-composition.css';
+import '../styles/real-photo.css';
+import '../styles/mobile.css';
+import '../styles/home6.css';
+import Composition from '../components/Composition.astro';
+
+const base = import.meta.env.BASE_URL;
+const nav = [
+  ['خانه',0,'home'],['خدمات',1,'services'],['نمونه‌کارها',1,'work'],
+  ['قیمت‌ها',1,'pricing'],['درباره‌ما',2,'about'],['تماس با ما',2,'contact']
+];
+const services = [
+  ['طراحی و توسعه وب‌سایت','◎'],['طراحی UI/UX','✎'],['پنل و ابزارهای اختصاصی','⚙'],
+  ['خودکارسازی فرآیندها','⌘'],['بهینه‌سازی و بهبود عملکرد','↗'],['پشتیبانی و توسعه','◉']
+];
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="وبیگرام؛ از طرح مدادی تا اجرای واقعی ایده‌های دیجیتال." />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <meta name="robots" content="noindex, follow" />
+  <title>وبیگرام | از طرح تا دنیای سه بعدی</title>
+</head>
+<body class="home6" data-stage="0">
+  <div class="slide-loader" id="loader"><div>در حال آماده‌سازی طرح‌ها<div class="loader-line"></div></div></div>
+  <main class="story" id="story">
+    <i class="anchor a1" id="sketch"></i><i class="anchor a2" id="color"></i><i class="anchor a3" id="real"></i>
+    <div class="viewport">
+      <div class="frame">
+        <div class="home6-scene" id="home6-scene" hidden>
+          <canvas id="home6-canvas" tabindex="0" role="img" aria-label="میز کار سه بعدی وبیگرام؛ برای چرخاندن، بکشید یا از کلیدهای جهت استفاده کنید"></canvas>
+          <span class="home6-scene-caption" id="home6-scene-caption">طرح اولیه / ۰۱</span>
+          <span class="home6-drag-hint">بکشید و از زاویه دیگری ببینید</span>
+        </div>
+        <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+          <filter id="pencil-rough"><feTurbulence type="fractalNoise" baseFrequency=".014" numOctaves="2" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale=".65"/></filter>
+        </svg>
+
+        <section class="slide slide-sketch active" data-slide="0">
+          <div class="visual visual-sketch"><Composition variant="sketch" /></div>
+          <div class="right">
+            <header class="stage-header">
+              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".42" stroke-width="2"/></svg><span>Webigram</span></a>
+              <nav class="nav" aria-label="منوی مرحله طرح اولیه">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='home'?'current':''}>{label}</a>)}</nav>
+            </header>
+            <div class="copy">
+              <h1>راهکار وب<br/>برای کسب‌وکار شما</h1>
+              <p>ما وب‌سایت‌هایی مدرن، سریع و هدفمند طراحی می‌کنیم تا برند شما در فضای دیجیتال بدرخشد و رشد کند.<br/>از ایده تا اجرا، همراه مطمئن شما هستیم.</p>
+              <div class="actions"><a href="#real" data-jump="2">شروع پروژه <span>←</span></a><a href="#color" data-jump="1">مشاهده نمونه‌کارها <span>←</span></a></div>
+              <div class="benefits"><span><b>✎</b> طراحی اختصاصی</span><i></i><span><b>🚀</b> سئو و سرعت بالا</span><i></i><span><b>◉</b> پشتیبانی و همراهی</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide slide-color" data-slide="1">
+          <div class="visual visual-color"><Composition variant="color" /></div>
+          <div class="right">
+            <header class="stage-header">
+              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
+              <nav class="nav" aria-label="منوی مرحله طراحی رنگی">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='services'?'current':''}>{label}</a>)}</nav>
+            </header>
+            <div class="copy">
+              <h2>آنچه برای<br/><em>کسب‌وکار</em> شما می‌سازیم</h2>
+              <p class="service-intro">خدماتی متناسب با نیاز واقعی کسب‌وکار شما؛<br/>ساده، کاربردی و قابل توسعه</p>
+              <div class="service-list">{services.map(([title,icon])=><div class="service-item"><span>{title}</span><b>{icon}</b></div>)}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide slide-real" data-slide="2">
+          <div class="visual visual-real">
+            <div class="real-composition-shell" aria-label="نسخه واقعی همان ترکیب‌بندی طرح اولیه">
+              <Composition variant="real" />
+            </div>
+          </div>
+          <div class="right">
+            <header class="stage-header">
+              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
+              <nav class="nav" aria-label="منوی مرحله محصول واقعی">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='services'?'current':''}>{label}</a>)}</nav>
+            </header>
+            <div class="copy">
+              <span class="badge">✦ ایده را به واقعیت تبدیل می‌کنیم ✦</span>
+              <h2>برای ایده‌های<br/><em>شما</em> راه می‌سازیم</h2>
+              <p>ایده‌های خوب نباید فقط در ذهن باقی بمانند.<br/>ما کمک می‌کنیم مسیر اجرای ایده‌تان روشن شود و قدم‌به‌قدم آن را به یک وب‌سایت، پنل یا ابزار کاربردی تبدیل می‌کنیم.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div class="progress" aria-label="مراحل طراحی"><button class="active" data-jump="0" aria-label="طرح اولیه"></button><button data-jump="1" aria-label="طراحی رنگی"></button><button data-jump="2" aria-label="نسخه واقعی"></button></div>
+
+  <div class="home6-tools" id="home6-tools" role="group" aria-label="تنظیمات صحنه سه بعدی" hidden>
+    <button id="home6-night" type="button" aria-pressed="false" title="تغییر نورپردازی روز و شب"><span aria-hidden="true">☾</span><span>نور شب</span></button>
+    <button id="home6-expand" type="button" aria-pressed="false" title="باز کردن لایه های سه بعدی"><span aria-hidden="true">◇</span><span>باز کردن اجزا</span></button>
+    <button id="home6-pause" type="button" aria-pressed="false"><span aria-hidden="true">Ⅱ</span><span>توقف حرکت</span></button>
+    <button id="home6-reset" type="button" title="بازنشانی زاویه دوربین"><span aria-hidden="true">↺</span><span>بازنشانی</span></button>
+  </div>
+  <div class="home6-status" id="home6-status" role="status" aria-live="polite">در حال آماده شدن فضای سه بعدی…</div>
+  <script>
+    import '../scripts/home6-experience';
+  </script>
+  <noscript><style>.slide-loader,.home6-status,.progress{display:none}.story{height:auto}.viewport{height:auto;overflow:visible}.frame{position:relative;inset:auto;width:100%;height:auto;transform:none;overflow:visible}.slide{position:relative!important;height:100svh;clip-path:none!important;pointer-events:auto}.home6 .slide .copy{overflow:auto}</style></noscript>
+</body>
+</html>
