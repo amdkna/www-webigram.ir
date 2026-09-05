@@ -27,7 +27,7 @@ export class HomeScene {
   private clouds = new THREE.Group();
   private daylight = new THREE.DirectionalLight(0xfff3e2, 4.2);
   private fill = new THREE.HemisphereLight(0xe9eeff, 0xc4c4d0, 2.5);
-  private deskLamp = new THREE.PointLight(0xffd5a1, 0, 12, 2);
+  private deskLamp = new THREE.SpotLight(0xffd5a1, 0, 9, Math.PI / 3, .65, 2);
   private screenGlow = new THREE.PointLight(0x8164ff, 1.4, 6, 2);
   private bulb: THREE.Mesh;
   private steam: THREE.Points;
@@ -68,9 +68,10 @@ export class HomeScene {
     this.scene.add(this.world, this.daylight, this.fill);
     this.daylight.position.set(-5, 9, 6);
     this.daylight.castShadow = true;
-    this.daylight.shadow.mapSize.set(1024, 1024);
+    const shadowSize = window.innerWidth > 820 ? 2048 : 1024;
+    this.daylight.shadow.mapSize.set(shadowSize, shadowSize);
     Object.assign(this.daylight.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: .1, far: 30 });
-    this.daylight.shadow.normalBias = .035;
+    this.daylight.shadow.normalBias = .018;
     this.daylight.shadow.bias = -.0002;
     const rim = new THREE.DirectionalLight(0x9c8cff, 1.8);
     rim.position.set(5, 2, -5);
@@ -93,7 +94,9 @@ export class HomeScene {
     this.steam = this.buildCoffeeAndPlant();
     this.scene.add(this.steam);
     this.world.add(this.deskLamp, this.screenGlow);
-    this.deskLamp.position.set(2.85, 1.45, .25);
+    this.deskLamp.position.set(2.70, .92, -.48);
+    this.deskLamp.target.position.set(2.1, -1.9, .15);
+    this.world.add(this.deskLamp.target);
     this.screenGlow.position.set(.1, .4, 1.2);
     this.resize();
     this.canvas.addEventListener('webglcontextlost', this.contextLost);
@@ -102,7 +105,7 @@ export class HomeScene {
   }
 
   private material(color: number, metalness = .1, roughness = .4) {
-    const material = new THREE.MeshPhysicalMaterial({ color, metalness, roughness, clearcoat: .5, clearcoatRoughness: .22 });
+    const material = new THREE.MeshPhysicalMaterial({ color, metalness, roughness, clearcoat: metalness > .5 ? .2 : .08, clearcoatRoughness: .3 });
     this.surfaces.push({ material, color: new THREE.Color(color), metalness, roughness });
     return material;
   }
@@ -111,7 +114,8 @@ export class HomeScene {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...position);
     mesh.castShadow = true; mesh.receiveShadow = true;
-    if (edged) mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geometry, 28), this.outline));
+    // This module renders only the physical stage; avoid invisible edge geometry.
+    void edged;
     parent.add(mesh);
     return mesh;
   }
@@ -120,10 +124,74 @@ export class HomeScene {
 
   private floatingObject(group: THREE.Object3D, phase: number) { this.floating.push({ group, origin: group.position.clone(), phase }); }
 
+  /** Deterministic microstructure: no image requests or per-frame texture work. */
+  private surfaceTexture(kind: 'wood' | 'metal' | 'fabric' | 'ceramic') {
+    const size=256, data=new Uint8Array(size*size*4);
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+      const noise=((Math.imul(x+17,374761393)^Math.imul(y+31,668265263))>>>0)%997/997;
+      const grain=Math.sin(y*.42+Math.sin(x*.027)*2.8+Math.sin(x*.009)*5);
+      const value=kind==='wood'?.53+grain*.16+noise*.12
+        :kind==='metal'?.64+Math.sin(y*2.8)*.065+noise*.08
+        :kind==='fabric'?.45+((x%4<2)===(y%4<2)? .18:0)+noise*.1
+        :.62+noise*.16;
+      const i=(y*size+x)*4,v=Math.round(clamp(value,0,1)*255);
+      data[i]=data[i+1]=data[i+2]=v;data[i+3]=255;
+    }
+    const texture=new THREE.DataTexture(data,size,size,THREE.RGBAFormat);
+    texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
+    texture.magFilter=THREE.LinearFilter;texture.minFilter=THREE.LinearMipmapLinearFilter;
+    texture.generateMipmaps=true;texture.anisotropy=Math.min(4,this.renderer.capabilities.getMaxAnisotropy());
+    texture.repeat.set(kind==='wood'?2:kind==='metal'?1:8,kind==='wood'?5:kind==='metal'?3:8);
+    texture.needsUpdate=true;return texture;
+  }
+
+  private detailedMaterial(color:number,metalness:number,roughness:number,kind:'wood'|'metal'|'fabric'|'ceramic'){
+    const material=this.material(color,metalness,roughness),texture=this.surfaceTexture(kind);
+    material.bumpMap=texture;material.bumpScale=kind==='wood'?.025:kind==='fabric'?.012:.003;
+    material.roughnessMap=texture;
+    if(kind==='wood'){material.map=texture;material.clearcoat=.22;material.clearcoatRoughness=.45;}
+    return material;
+  }
+
+  private cable(parent:THREE.Object3D,points:number[][],material:THREE.Material,radius=.018){
+    const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(p[0],p[1],p[2])));
+    return this.mesh(new THREE.TubeGeometry(curve,40,radius,8,false),material,parent,[0,0,0],false);
+  }
+
+  private screenGlass(parent:THREE.Object3D,width:number,height:number,z:number,y=0){
+    const glass=new THREE.MeshPhysicalMaterial({color:0xdce8ff,metalness:0,roughness:.075,
+      clearcoat:1,clearcoatRoughness:.045,transparent:true,opacity:.13,depthWrite:false,
+      envMapIntensity:1.5,ior:1.5});
+    const pane=this.mesh(new THREE.PlaneGeometry(width,height),glass,parent,[0,y,z],false);
+    pane.castShadow=false;pane.receiveShadow=false;
+  }
+
+  private buildKeyboard(parent:THREE.Object3D,aluminum:THREE.Material){
+    this.mesh(this.box(2.65,.09,.87),aluminum,parent);
+    const keyMaterial=this.detailedMaterial(0xf6f4ef,0,.55,'ceramic');
+    const labels=['ESC 1 2 3 4 5 6 7 8 9 0 − ⌫','TAB Q W E R T Y U I O P [ ]','CAP A S D F G H J K L ; \' ↵','⇧ Z X C V B N M , . / ↑ ⇧'].map(row=>row.split(' '));
+    const keys=new THREE.InstancedMesh(this.box(.145,.05,.125,.018),keyMaterial,52);
+    const dummy=new THREE.Object3D();
+    const canvas=document.createElement('canvas');canvas.width=1560;canvas.height=520;
+    const ctx=canvas.getContext('2d')!;ctx.fillStyle='#505565';ctx.font='500 26px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+    for(let row=0;row<4;row++)for(let col=0;col<13;col++){
+      const x=(col-6)*.185,z=-.30+row*.145;
+      dummy.position.set(x,.07,z);dummy.updateMatrix();keys.setMatrixAt(row*13+col,dummy.matrix);
+      ctx.fillText(labels[row][col]||'',(x/2.65+.5)*1560,(z/.87+.5)*520);
+    }
+    keys.castShadow=keys.receiveShadow=true;parent.add(keys);
+    for(const x of [-1.11,-.925,-.74,.74,.925,1.11])this.mesh(this.box(.145,.05,.125,.018),keyMaterial,parent,[x,.07,.28],false);
+    this.mesh(this.box(1.17,.05,.125,.018),keyMaterial,parent,[0,.07,.28],false);
+    const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+    texture.anisotropy=Math.min(4,this.renderer.capabilities.getMaxAnisotropy());
+    const legends=new THREE.Mesh(new THREE.PlaneGeometry(2.65,.87),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false}));
+    legends.rotation.x=-Math.PI/2;legends.position.y=.096;parent.add(legends);
+  }
+
   private buildDesk() {
-    const white = this.material(0xf0eeea, .15, .36);
-    const aluminum = this.material(0xb8bfce, .85, .23);
-    const desktop = this.mesh(this.box(7.7,.2,3.55,.1), white, this.world, [0,-2.0,.1]);
+    const white = this.detailedMaterial(0xf0eeea, 0, .48, 'ceramic');
+    const aluminum = this.detailedMaterial(0xb8bfce, .88, .3, 'metal');
+    const desktop = this.mesh(this.box(7.7,.2,3.55,.1), this.detailedMaterial(0xdec5a4,0,.5,'wood'), this.world, [0,-2.0,.1]);
     this.mesh(this.box(7.3,.075,3.15), aluminum, desktop, [0,-.13,0]);
     for (const x of [-3.1,3.1]) this.mesh(this.box(.14,1.8,2.3), white, this.world, [x,-3,.05]);
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(200,200), this.material(0xf7f7fa,0,.85));
@@ -131,14 +199,16 @@ export class HomeScene {
     this.world.add(ground);
 
     const keyboard = new THREE.Group(); keyboard.position.set(0,-1.83,1.04); this.world.add(keyboard);
-    this.mesh(this.box(2.65,.09,.87), aluminum, keyboard);
-    const keyMaterial = this.material(0xfdfdfd,.1,.45);
-    const keys = new THREE.InstancedMesh(this.box(.145,.052,.14,.012),keyMaterial,65);
-    const dummy = new THREE.Object3D();
-    for(let i=0;i<65;i++) { dummy.position.set((i%13-6)*.185,.07,(Math.floor(i/13)-2)*.155);dummy.updateMatrix();keys.setMatrixAt(i,dummy.matrix); }
-    keys.castShadow = true; keyboard.add(keys);
+    const mat=this.mesh(this.box(4.35,.025,1.42,.055),this.detailedMaterial(0x525967,0,.85,'fabric'),this.world,[.38,-1.885,.87],false);
+    this.mesh(this.box(4.30,.004,1.37,.05),this.detailedMaterial(0x5d6574,0,.88,'fabric'),mat,[0,.013,0],false);
+    this.buildKeyboard(keyboard,aluminum);
     const mouse = this.mesh(this.box(.38,.16,.63), white, this.world, [1.73,-1.78,1.0]);
     this.mesh(this.box(.02,.025,.13,.005), aluminum, mouse, [0,.08,-.08]);
+
+    const mouseSeam=this.material(0x6b6d72,0,.75);
+    this.cable(mouse,[[0,.08,-.27],[0,.081,-.1],[0,.08,.03]],mouseSeam,.004);
+    for(let i=0;i<7;i++)this.mesh(new THREE.BoxGeometry(.024,.003,.003),mouseSeam,mouse,[0,.095,-.13+i*.015],false);
+    this.cable(this.world,[[0,-1.88,-.38],[.2,-1.89,-.8],[.8,-1.9,-1.3],[1.1,-2.25,-1.65],[1.2,-3.3,-1.65]],this.material(0x3e424c,0,.8));
 
     const graphite = this.material(0x393646,.3,.42);
     const wood = this.material(0xe4be88,0,.7);
@@ -153,13 +223,13 @@ export class HomeScene {
   }
 
   private buildDevices() {
-    const metal = this.material(0x929bac,.9,.24);
-    const bezel = this.material(0x1c263b,.7,.25);
+    const metal = this.detailedMaterial(0xabb2bf,.92,.29,'metal');
+    const bezel = this.material(0x141b29,.12,.38);
     const monitor = new THREE.Group(); monitor.position.set(0,.4,-.2); this.world.add(monitor);
     this.mesh(this.box(3.85,2.5,.18),metal,monitor);
     this.mesh(this.box(3.74,2.38,.09),bezel,monitor,[0,.015,.10]);
     this.mesh(this.box(.19,1.05,.19),metal,monitor,[0,-1.7,-.04]);
-    this.mesh(this.box(1.2,.07,.65),metal,monitor,[0,-2.22,.20]);
+    this.mesh(this.box(1.2,.07,.65),metal,monitor,[0,-2.265,.20]);
     const landscapeMaterial = new THREE.MeshBasicMaterial({ map:this.landscape.texture, transparent:true });
     this.screenSurfaces.push(landscapeMaterial);
     this.mesh(new THREE.PlaneGeometry(3.52,1.98),landscapeMaterial,monitor,[0,.11,.156],false);
@@ -167,9 +237,21 @@ export class HomeScene {
     dots.forEach((color,i)=>this.mesh(new THREE.SphereGeometry(.023,10,8),this.material(color),monitor,[-1.64+i*.095,1.17,.157],false));
     const screenTitle = this.uiTexture('Webigram', 'IDEAS, IN REAL LIFE', 'title');
     this.mesh(new THREE.PlaneGeometry(1.36,.26),new THREE.MeshBasicMaterial({map:screenTitle.texture,transparent:true}),monitor,[0,-1.045,.159],false);
+    this.screenGlass(monitor,3.52,1.98,.16,.11);
+    const lens=this.material(0x123349,.65,.1);
+    this.mesh(new THREE.CylinderGeometry(.037,.037,.014,24),bezel,monitor,[0,1.17,.155],false).rotation.x=Math.PI/2;
+    this.mesh(new THREE.SphereGeometry(.021,16,10),lens,monitor,[0,1.17,.169],false);
+    const led=this.mesh(new THREE.SphereGeometry(.009,10,8),new THREE.MeshBasicMaterial({color:0xaee8d1}),monitor,[1.7,-1.12,.15],false);led.castShadow=false;
+    const vents=new THREE.InstancedMesh(new THREE.BoxGeometry(.026,.12,.012),bezel,32),stamp=new THREE.Object3D();
+    for(let i=0;i<32;i++){stamp.position.set((i-15.5)*.092,-.94,-.096);stamp.updateMatrix();vents.setMatrixAt(i,stamp.matrix);}monitor.add(vents);
+    for(const x of [-1.68,1.68])for(const y of [-1.05,1.05]){
+      this.mesh(new THREE.CylinderGeometry(.025,.025,.013,12),metal,monitor,[x,y,-.10],false).rotation.x=Math.PI/2;
+      this.mesh(new THREE.BoxGeometry(.023,.004,.002),bezel,monitor,[x,y,-.108],false);
+    }
+    for(let i=0;i<3;i++)this.mesh(this.box(.18,.065,.016,.012),bezel,monitor,[-.55+i*.28,-.95,-.11],false);
     this.floatingObject(monitor,0);
 
-    const phone = new THREE.Group(); phone.position.set(2.12,-.48,1.14); phone.rotation.set(-.08,-.23,-.06); this.world.add(phone);
+    const phone = new THREE.Group(); phone.position.set(2.12,-.86,1.14); phone.rotation.set(-.08,-.23,-.06); this.world.add(phone);
     this.mesh(this.box(.92,1.98,.15),metal,phone);
     this.mesh(this.box(.84,1.89,.075),bezel,phone,[0,0,.085]);
     const phoneMaterial = new THREE.MeshBasicMaterial({map:this.landscape.texture,transparent:true});
@@ -178,6 +260,15 @@ export class HomeScene {
     this.mesh(this.box(.28,.055,.01,.015),bezel,phone,[0,.81,.145]);
     this.mesh(this.box(.24,.018,.01,.007),metal,phone,[0,-.84,.145]);
     this.mesh(this.box(.025,.27,.06,.009),metal,phone,[.465,.37,0]);
+    this.screenGlass(phone,.75,1.60,.134);
+    this.mesh(new THREE.SphereGeometry(.025,16,10),lens,phone,[.095,.81,.156],false);
+    this.mesh(this.box(.023,.22,.035,.006),metal,phone,[-.468,.32,0],false);
+    this.mesh(this.box(.023,.16,.035,.006),metal,phone,[-.468,.04,0],false);
+    this.mesh(this.box(.15,.015,.045,.005),bezel,phone,[0,-.993,0],false);
+    for(let i=0;i<5;i++)for(const sign of [-1,1])this.mesh(new THREE.SphereGeometry(.008,8,6),bezel,phone,[sign*(.16+i*.035),-.995,0],false);
+    const cameraIsland=this.mesh(this.box(.36,.43,.035,.055),metal,phone,[-.2,.63,-.095],false);
+    for(const y of [-.095,.095]){this.mesh(new THREE.CylinderGeometry(.075,.075,.025,24),bezel,cameraIsland,[0,y,-.025],false).rotation.x=Math.PI/2;this.mesh(new THREE.SphereGeometry(.052,16,10),lens,cameraIsland,[0,y,-.042],false);}
+    this.mesh(this.box(.79,.045,.65,.08),metal,this.world,[2.12,-1.875,1.08],false);
     this.floatingObject(phone,1.4);
   }
 
@@ -241,43 +332,64 @@ export class HomeScene {
   }
 
   private buildLamp() {
-    const steel = this.material(0x8c94a6,.85,.25);
-    const shell = this.material(0xefeaf9,.1,.3);
+    const steel = this.detailedMaterial(0x8c94a6,.85,.3,'metal');
+    const shell = this.detailedMaterial(0xefeaf9,0,.4,'ceramic');shell.side=THREE.DoubleSide;
     const lamp = new THREE.Group();lamp.position.set(3.0,-1.85,-.6);this.world.add(lamp);
     this.mesh(new THREE.CylinderGeometry(.35,.40,.08,40),steel,lamp);
     const arm = new THREE.CatmullRomCurve3([new THREE.Vector3(0,0,0),new THREE.Vector3(.1,1.2,0),new THREE.Vector3(.0,2.45,0),new THREE.Vector3(-.30,2.9,.12)]);
     this.mesh(new THREE.TubeGeometry(arm,40,.035,10,false),steel,lamp);
     const shade = this.mesh(new THREE.ConeGeometry(.36,.37,40,1,true),shell,lamp,[-.30,2.90,.12]);
     shade.rotation.z=.12;
+    this.mesh(new THREE.TorusGeometry(.355,.012,8,48),steel,lamp,[-.3,2.715,.12],false).rotation.x=Math.PI/2;
+    this.mesh(new THREE.CylinderGeometry(.055,.055,.015,20),steel,lamp,[.18,.048,.1],false);
+    this.cable(lamp,[[0,-.02,-.1],[.2,-.04,-.3],[.38,-.04,-.55],[.48,-.7,-1.05]],this.material(0x484852,0,.8),.012);
     const bulb=this.mesh(new THREE.SphereGeometry(.16,20,14),new THREE.MeshStandardMaterial({color:0xffedcc,emissive:0xffc671,emissiveIntensity:.2}),lamp,[-.3,2.77,.12],false);
     return bulb;
   }
 
   private buildCoffeeAndPlant() {
-    const ceramic=this.material(0xece7ff,.18,.22);
-    const coffee=this.material(0x3b241c,0,.15);
-    const cup = new THREE.Group();cup.position.set(-2.58,-1.5,1.15);this.world.add(cup);
-    this.mesh(new THREE.CylinderGeometry(.23,.18,.47,40,1,true),ceramic,cup);
-    this.mesh(new THREE.TorusGeometry(.225,.022,10,40),ceramic,cup,[0,.237,0]).rotation.x=Math.PI/2;
-    this.mesh(new THREE.CylinderGeometry(.203,.203,.012,32),coffee,cup,[0,.19,0],false);
-    this.mesh(new THREE.TorusGeometry(.17,.035,10,28,Math.PI*1.55),ceramic,cup,[.24,.015,0]).rotation.z=-Math.PI*.77;
-    this.mesh(new THREE.CylinderGeometry(.31,.31,.03,40),ceramic,this.world,[-2.58,-1.87,1.15]);
+    const ceramic=this.detailedMaterial(0xeee8de,0,.24,'ceramic');ceramic.clearcoat=.8;ceramic.clearcoatRoughness=.15;
+    const coffee=this.material(0x3b241c,0,.12);coffee.clearcoat=1;
+    const cup = new THREE.Group();cup.position.set(-2.58,-1.61,1.15);this.world.add(cup);
+    const profile=[[0,-.22],[.16,-.22],[.18,-.19],[.205,.08],[.23,.225],[.224,.24],[.207,.24],[.193,.08],[.16,-.175],[0,-.175]].map(([r,y])=>new THREE.Vector2(r,y));
+    this.mesh(new THREE.LatheGeometry(profile,64),ceramic,cup,[0,0,0],false);
+    this.mesh(new THREE.CylinderGeometry(.203,.203,.008,48),coffee,cup,[0,.19,0],false);
+    this.mesh(new THREE.TorusGeometry(.17,.031,14,40,Math.PI*1.55),ceramic,cup,[.24,.015,0]).rotation.z=-Math.PI*.77;
+    const crema=this.material(0xb88956,0,.4);
+    this.mesh(new THREE.TorusGeometry(.192,.005,8,64),crema,cup,[0,.196,0],false).rotation.x=Math.PI/2;
+    this.mesh(new THREE.CylinderGeometry(.33,.33,.035,48),this.detailedMaterial(0xc4a783,0,.9,'wood'),this.world,[-2.58,-1.879,1.15],false);
+    const spoon=this.mesh(new THREE.SphereGeometry(1,20,12),this.detailedMaterial(0xcbd1d9,.95,.22,'metal'),this.world,[-2.08,-1.865,1.24],false);spoon.scale.set(.075,.018,.115);
+    this.mesh(this.box(.025,.013,.39,.01),spoon.material as THREE.Material,this.world,[-2.08,-1.855,1.47],false);
     const positions=new Float32Array(30*3);
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
     const steam=new THREE.Points(geometry,new THREE.ShaderMaterial({transparent:true,depthWrite:false,
       vertexShader:'void main(){vec4 p=modelViewMatrix*vec4(position,1.0);gl_PointSize=55.0/-p.z;gl_Position=projectionMatrix*p;}',
       fragmentShader:'void main(){float d=length(gl_PointCoord-.5);if(d>.5)discard;gl_FragColor=vec4(.7,.73,.83,(1.0-d*2.0)*.13);}',
     }));
-    const pot=new THREE.Group();pot.position.set(-3.28,-1.58,-.95);this.world.add(pot);
-    this.mesh(new THREE.CylinderGeometry(.30,.22,.56,32),this.material(0xd7d2cd,.1,.8),pot);
+    const pot=new THREE.Group();pot.position.set(-3.28,-1.62,-.95);this.world.add(pot);
+    this.mesh(new THREE.CylinderGeometry(.30,.22,.56,32),this.detailedMaterial(0xd7d2cd,0,.9,'ceramic'),pot);
     this.mesh(new THREE.CylinderGeometry(.275,.275,.018,32),this.material(0x49372a,0,1),pot,[0,.28,0]);
-    const leafMaterial=this.material(0x507c49,.03,.65);
+    const soil=this.detailedMaterial(0x594737,0,1,'ceramic');
+    const grains=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.017,0),soil,65),grain=new THREE.Object3D();
+    for(let i=0;i<65;i++){const a=i*2.4,r=.25*Math.sqrt((i+.5)/65);grain.position.set(Math.cos(a)*r,.297,Math.sin(a)*r);grain.scale.setScalar(.6+(i%5)*.15);grain.updateMatrix();grains.setMatrixAt(i,grain.matrix);}pot.add(grains);
+    this.mesh(new THREE.TorusGeometry(.294,.012,10,48),soil,pot,[0,.278,0],false).rotation.x=Math.PI/2;
+    const leafMaterial=this.material(0x3e7043,0,.54);leafMaterial.side=THREE.DoubleSide;leafMaterial.sheen=.25;leafMaterial.sheenColor.set(0x93ae63);
     for(let i=0;i<9;i++) {
       const leaf=new THREE.Group();leaf.position.y=.26;leaf.rotation.y=i*2.4;leaf.rotation.z=.12+Math.sin(i)*.24;pot.add(leaf);this.leaves.push(leaf);
       const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(),new THREE.Vector3(.05,.50,0),new THREE.Vector3(.22,.84+(i%3)*.14,0)]);
       this.mesh(new THREE.TubeGeometry(curve,15,.011,5,false),leafMaterial,leaf,[0,0,0],false);
-      const geometry=new THREE.SphereGeometry(1,16,12);
-      const blade=this.mesh(geometry,leafMaterial,leaf,[.21,.81+(i%3)*.14,0],false);blade.scale.set(.13,.34,.032);blade.rotation.z=-.45;
+      const geometry=new THREE.PlaneGeometry(.28,.67,10,18),vertices=geometry.attributes.position;
+      for(let v=0;v<vertices.count;v++){
+        const u=vertices.getX(v)/.14,q=clamp((vertices.getY(v)+.335)/.67,0,1);
+        vertices.setX(v,u*.14*Math.pow(Math.max(0,Math.sin(Math.PI*q)),.75));
+        vertices.setZ(v,.05*Math.sin(q*Math.PI)-Math.abs(u)*.033*Math.sin(q*Math.PI));
+      }
+      geometry.computeVertexNormals();
+      const blade=this.mesh(geometry,leafMaterial,leaf,[.21,.81+(i%3)*.14,0],false);blade.rotation.z=-.45;
+      const vein=this.material(0x87a363,0,.7);
+      this.cable(blade,[[0,-.31,.002],[0,0,.052],[0,.31,.012]],vein,.003);
+      for(let j=0;j<4;j++)for(const sign of [-1,1]){const y=-.2+j*.115;this.cable(blade,[[0,y,.045],[sign*.065,y+.038,.038],[sign*.1,y+.07,.015]],vein,.0014);}
+
     }
     return steam;
   }
@@ -301,7 +413,7 @@ export class HomeScene {
       const color=h>2.75?snow:rock.clone().lerp(grass,Math.max(0,1-h/2.4));color.toArray(colors,i*3);
     }
     mesh.setAttribute('color',new THREE.BufferAttribute(colors,3));mesh.computeVertexNormals();
-    this.terrain.add(new THREE.Mesh(mesh,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,flatShading:true})));
+    this.terrain.add(new THREE.Mesh(mesh,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,flatShading:false})));
     const cloudMaterial=new THREE.MeshStandardMaterial({color:0xffffff,roughness:1});
     const cloudGeometry=new THREE.SphereGeometry(1,12,8);
     for(let i=0;i<18;i++) {const cloud=new THREE.Mesh(cloudGeometry,cloudMaterial);cloud.position.set((i%6-3)*2.1,3.7+Math.sin(i)*.2,-3-Math.floor(i/6)*1.1);cloud.scale.set(.9,.15,.35);this.clouds.add(cloud);}
@@ -357,8 +469,8 @@ export class HomeScene {
     this.screenSurfaces.forEach(material=>{material.opacity=color;material.visible=color>.005;});
     this.floating.forEach(({group,origin,phase},i)=>{
       group.position.copy(origin);
-      group.position.y+=Math.sin(t*.75+phase)*(.02+.065*real)*(i===0?.35:1);
-      group.position.z+=Math.sin(t*.5+phase)*.07*real;
+      group.position.y+=i<2?0:Math.sin(t*.75+phase)*(.02+.045*real);
+      group.position.z+=i<2?0:Math.sin(t*.5+phase)*.045*real;
       group.position.x+=origin.x*.14*this.expansion;
       group.position.y+=origin.y*.09*this.expansion;
       group.position.z+=(i%2?1:-.6)*this.expansion;
@@ -368,7 +480,7 @@ export class HomeScene {
     this.leaves.forEach((leaf,i)=>{leaf.rotation.z=.12+Math.sin(i)*.24+Math.sin(t*.85+i*.4)*.06*real;});
     this.packets.forEach((packet,i)=>{packet.position.copy(this.curves[i].getPointAt((t*.14+i*.25)%1));packet.visible=color>.2;});
     const positions=this.steam.geometry.attributes.position;
-    for(let i=0;i<positions.count;i++){const rise=(t*.22+i/positions.count)%1;positions.setXYZ(i,-2.58+Math.sin(rise*7+t+i*.2)*.06,-1.22+rise*.70,1.15+Math.cos(rise*9+i)*.045);}
+    for(let i=0;i<positions.count;i++){const rise=(t*.22+i/positions.count)%1;positions.setXYZ(i,-2.58+Math.sin(rise*7+t+i*.2)*.06,-1.35+rise*.70,1.15+Math.cos(rise*9+i)*.045);}
     positions.needsUpdate=true;this.steam.visible=real>.4;
     this.clouds.position.x=Math.sin(t*.13)*.65;
     this.terrainCamera.position.x=7+Math.sin(t*.14)*1.0*real;this.terrainCamera.lookAt(0,1.1,0);
@@ -389,7 +501,7 @@ export class HomeScene {
     if(this.destroyed)return;this.destroyed=true;if(this.frame)cancelAnimationFrame(this.frame);
     this.canvas.removeEventListener('webglcontextlost',this.contextLost);document.removeEventListener('visibilitychange',this.visibilityChange);
     const geometry=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>(),textures=new Set<THREE.Texture>();
-    [this.scene,this.terrain].forEach(scene=>scene.traverse(object=>{const mesh=object as THREE.Mesh;if(mesh.geometry)geometry.add(mesh.geometry);if(mesh.material)(Array.isArray(mesh.material)?mesh.material:[mesh.material]).forEach(material=>{materials.add(material);const map=(material as THREE.MeshBasicMaterial).map;if(map)textures.add(map);});}));
+    [this.scene,this.terrain].forEach(scene=>scene.traverse(object=>{const mesh=object as THREE.Mesh;if(mesh.geometry)geometry.add(mesh.geometry);if(mesh.material)(Array.isArray(mesh.material)?mesh.material:[mesh.material]).forEach(material=>{materials.add(material);for(const value of Object.values(material))if(value instanceof THREE.Texture)textures.add(value);});}));
     geometry.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());this.landscape.dispose();this.environment.dispose();this.renderer.dispose();
   }
 }
