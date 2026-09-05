@@ -1,0 +1,202 @@
+---
+import '../styles/base.css';
+
+const base = import.meta.env.BASE_URL;
+const services = [
+  {
+    number: '01',
+    title: 'طراحی و توسعه وب‌سایت',
+    icon: '◎',
+    text: 'طراحی و پیاده‌سازی وب‌سایت‌های سریع، مدرن و اختصاصی با تمرکز روی تجربه کاربری، سئو و رشد کسب‌وکار.',
+    tags: ['سایت شرکتی', 'لندینگ پیج', 'فروشگاه', 'وب اپلیکیشن']
+  },
+  {
+    number: '02',
+    title: 'طراحی UI/UX',
+    icon: '✎',
+    text: 'از معماری اطلاعات و وایرفریم تا طراحی رابط نهایی؛ با هدف اینکه محصول ساده‌تر، واضح‌تر و لذت‌بخش‌تر استفاده شود.',
+    tags: ['Wireframe', 'Prototype', 'Design System', 'UX Flow']
+  },
+  {
+    number: '03',
+    title: 'پنل و ابزارهای اختصاصی',
+    icon: '⚙',
+    text: 'ساخت پنل‌های مدیریتی، داشبوردها و ابزارهای تحت وب که دقیقا بر اساس فرآیند واقعی مجموعه شما طراحی می‌شوند.',
+    tags: ['Admin Panel', 'Dashboard', 'Internal Tools', 'API']
+  },
+  {
+    number: '04',
+    title: 'خودکارسازی فرآیندها',
+    icon: '⌘',
+    text: 'حذف کارهای تکراری و اتصال سرویس‌ها به یکدیگر؛ از فرم و CRM تا گزارش‌گیری، اعلان‌ها و گردش کار خودکار.',
+    tags: ['Automation', 'Integration', 'Workflow', 'AI']
+  },
+  {
+    number: '05',
+    title: 'بهینه‌سازی و بهبود عملکرد',
+    icon: '↗',
+    text: 'بررسی فنی محصول موجود و بهبود سرعت، ساختار، امنیت، تجربه کاربری و کیفیت اجرای آن بدون بازسازی بی‌دلیل.',
+    tags: ['Performance', 'SEO', 'Security', 'Audit']
+  },
+  {
+    number: '06',
+    title: 'پشتیبانی و توسعه',
+    icon: '◉',
+    text: 'همراهی پس از انتشار برای رفع مشکل، توسعه قابلیت‌های جدید و نگهداری محصول تا با رشد کسب‌وکار متوقف نشود.',
+    tags: ['Support', 'Maintenance', 'Monitoring', 'Development']
+  }
+];
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#fbfaf7" />
+  <meta name="description" content="خدمات وبیگرام؛ طراحی سایت، UI/UX، پنل اختصاصی، اتوماسیون، بهینه‌سازی و پشتیبانی." />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <meta name="robots" content="noindex, follow" />
+  <title>خدمات وبیگرام</title>
+</head>
+<body class="services-page">
+  <header class="services-header">
+    <div class="services-shell services-nav-wrap">
+      <a class="services-brand" href={`${base}home6/`} aria-label="وبیگرام - خانه">
+        <svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"/></svg>
+        <strong>Webigram</strong>
+      </a>
+      <nav aria-label="منوی اصلی">
+        <a href={`${base}home6/`}>خانه</a>
+        <a class="active" href={`${base}services/`}>خدمات</a>
+        <a href={`${base}home6/#color`}>نمونه‌کارها</a>
+        <a href={`${base}home6/#color`}>قیمت‌ها</a>
+        <a href={`${base}home6/#real`}>درباره‌ما</a>
+        <a href={`${base}home6/#real`}>تماس با ما</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="services-hero services-shell">
+      <div class="hero-kicker"><span></span> خدمات وبیگرام</div>
+      <h1>برای هر مسئله،<br/><em>راه‌حل درست</em> را می‌سازیم.</h1>
+      <p>نه یک لیست بلند از خدمات کلیشه‌ای. اول مسئله را می‌فهمیم، بعد دقیقا همان چیزی را طراحی و اجرا می‌کنیم که کسب‌وکار شما به آن نیاز دارد.</p>
+      <a class="hero-action" href="#services-list">مشاهده خدمات <span>↓</span></a>
+    </section>
+
+    <section class="services-list services-shell" id="services-list" aria-label="لیست خدمات وبیگرام">
+      {services.map((service) => (
+        <article class="service-card">
+          <div class="service-topline">
+            <span class="service-number">{service.number}</span>
+            <span class="service-icon" aria-hidden="true">{service.icon}</span>
+          </div>
+          <h2>{service.title}</h2>
+          <p>{service.text}</p>
+          <div class="service-tags">
+            {service.tags.map((tag) => <span>{tag}</span>)}
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <section class="services-cta services-shell">
+      <div>
+        <span class="cta-label">یک ایده دارید؟</span>
+        <h2>از کاغذ شروع کنیم.<br/>بعد واقعی‌اش می‌کنیم.</h2>
+      </div>
+      <a href={`${base}home6/#real`}>شروع پروژه <span>←</span></a>
+    </section>
+  </main>
+
+  <footer class="services-footer services-shell">
+    <span>Webigram</span>
+    <span>Design · Development · Automation</span>
+  </footer>
+</body>
+</html>
+
+<style>
+  :global(body.services-page){
+    margin:0;
+    min-width:320px;
+    color:#15161a;
+    background:
+      radial-gradient(circle at 12% 16%,rgba(102,74,218,.08),transparent 25%),
+      radial-gradient(circle at 90% 42%,rgba(89,117,255,.06),transparent 26%),
+      #fbfaf7;
+    font-family:'Vazirmatn',Tahoma,sans-serif;
+    overflow-x:hidden;
+  }
+  :global(.services-page *){box-sizing:border-box}
+  :global(.services-page a){color:inherit;text-decoration:none}
+  .services-shell{width:min(1240px,calc(100% - 48px));margin-inline:auto}
+  .services-header{position:sticky;top:0;z-index:30;padding:18px 0;background:linear-gradient(#fbfaf7f5,#fbfaf7d9,transparent);backdrop-filter:blur(14px)}
+  .services-nav-wrap{min-height:72px;padding:0 22px;border:1px solid rgba(20,23,31,.11);border-radius:22px;background:rgba(255,255,255,.72);display:flex;align-items:center;justify-content:space-between;gap:28px;box-shadow:0 18px 55px rgba(28,31,50,.05)}
+  .services-brand{display:flex;align-items:center;gap:11px;direction:ltr;flex:none}
+  .services-brand svg{width:48px;height:39px}
+  .services-brand path{fill:none;stroke:#17181c;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+  .services-brand .echo{stroke:#6b49d9;stroke-width:2;opacity:.7}
+  .services-brand strong{font-size:1.3rem;letter-spacing:-.04em}
+  .services-nav-wrap nav{display:flex;align-items:center;gap:clamp(10px,1.6vw,25px);font-size:.93rem;font-weight:700}
+  .services-nav-wrap nav a{position:relative;padding:11px 1px;color:#555b69;transition:.2s}
+  .services-nav-wrap nav a:hover,.services-nav-wrap nav a.active{color:#17181c}
+  .services-nav-wrap nav a::after{content:'';position:absolute;right:50%;left:50%;bottom:4px;height:2px;border-radius:20px;background:#6d4be2;transition:.25s}
+  .services-nav-wrap nav a:hover::after,.services-nav-wrap nav a.active::after{right:6%;left:6%}
+
+  .services-hero{padding:clamp(72px,10vw,150px) 0 clamp(76px,9vw,128px);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(310px,.8fr);align-items:end;column-gap:60px}
+  .hero-kicker{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:#6c7282;font-weight:700;font-size:.9rem;margin-bottom:26px}
+  .hero-kicker span{display:block;width:38px;height:1px;background:#6d4be2}
+  .services-hero h1{margin:0;color:#101116;font-size:clamp(52px,7.3vw,104px);line-height:1.03;letter-spacing:-.055em;font-weight:800}
+  .services-hero h1 em{font-style:normal;color:#6948dc}
+  .services-hero p{margin:0 0 10px;color:#5e6472;font-size:clamp(16px,1.28vw,19px);line-height:2.05;max-width:510px}
+  .hero-action{grid-column:2;margin-top:27px;justify-self:start;display:inline-flex;align-items:center;gap:32px;padding:13px 18px 13px 13px;border-bottom:1px solid #17181c;font-weight:800}
+  .hero-action span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#17181c;color:white}
+
+  .services-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid rgba(20,23,31,.14);border-right:1px solid rgba(20,23,31,.14)}
+  .service-card{min-height:390px;padding:38px clamp(28px,3.4vw,52px) 42px;border-left:1px solid rgba(20,23,31,.14);border-bottom:1px solid rgba(20,23,31,.14);background:rgba(255,255,255,.32);transition:transform .3s,background .3s,box-shadow .3s;position:relative;overflow:hidden}
+  .service-card::before{content:'';position:absolute;width:190px;height:190px;border-radius:50%;left:-95px;bottom:-115px;background:radial-gradient(circle,rgba(103,74,220,.13),transparent 70%);opacity:0;transition:.3s}
+  .service-card:hover{background:rgba(255,255,255,.78);transform:translateY(-4px);box-shadow:0 22px 60px rgba(29,32,49,.07)}
+  .service-card:hover::before{opacity:1}
+  .service-topline{display:flex;align-items:center;justify-content:space-between;margin-bottom:55px;color:#858b98}
+  .service-number{font-size:.8rem;font-weight:800;letter-spacing:.08em}
+  .service-icon{display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(20,23,31,.13);border-radius:15px;color:#6948dc;font-size:1.35rem;background:#fff}
+  .service-card h2{margin:0 0 15px;color:#17181c;font-size:clamp(27px,2.3vw,37px);line-height:1.3;letter-spacing:-.03em}
+  .service-card p{margin:0;color:#626875;line-height:1.95;font-size:1rem;max-width:540px}
+  .service-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:29px;direction:ltr;justify-content:flex-end}
+  .service-tags span{padding:6px 10px;border:1px solid rgba(20,23,31,.1);border-radius:999px;color:#737987;background:#ffffff9e;font-size:.72rem;font-weight:700}
+
+  .services-cta{margin-top:clamp(80px,10vw,140px);margin-bottom:80px;padding:clamp(42px,6vw,75px);border-radius:34px;background:#14151b;color:white;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;position:relative;overflow:hidden}
+  .services-cta::after{content:'';position:absolute;width:420px;height:420px;border-radius:50%;left:-130px;top:-220px;background:radial-gradient(circle,rgba(117,89,235,.44),transparent 67%);pointer-events:none}
+  .cta-label{display:block;color:#aaaec0;font-size:.88rem;font-weight:700;margin-bottom:18px}
+  .services-cta h2{margin:0;font-size:clamp(36px,4.4vw,66px);line-height:1.22;letter-spacing:-.04em;position:relative;z-index:1}
+  .services-cta a{position:relative;z-index:1;display:flex;align-items:center;gap:34px;padding:16px 19px;border:1px solid rgba(255,255,255,.22);border-radius:16px;font-weight:800;white-space:nowrap;transition:.25s}
+  .services-cta a:hover{background:white;color:#16171c}
+  .services-cta a span{font-size:1.4rem}
+  .services-footer{padding:0 0 38px;display:flex;justify-content:space-between;gap:20px;color:#8a8f9a;font-size:.78rem;direction:ltr}
+
+  @media(max-width:900px){
+    .services-shell{width:min(100% - 28px,1240px)}
+    .services-header{padding:10px 0}
+    .services-nav-wrap{padding:0 15px;min-height:62px;border-radius:17px}
+    .services-brand svg{width:41px;height:34px}.services-brand strong{font-size:1.1rem}
+    .services-nav-wrap nav{overflow-x:auto;white-space:nowrap;max-width:72%;gap:18px;scrollbar-width:none}
+    .services-nav-wrap nav::-webkit-scrollbar{display:none}
+    .services-hero{grid-template-columns:1fr;padding-top:62px;row-gap:28px}
+    .services-hero h1,.services-hero p,.hero-action{grid-column:1}
+    .hero-action{margin-top:0}
+    .services-list{grid-template-columns:1fr}
+    .service-card{min-height:auto;padding:30px 25px 34px}
+    .service-topline{margin-bottom:38px}
+    .services-cta{align-items:flex-start;flex-direction:column;margin-bottom:45px;border-radius:24px;padding:34px 26px}
+  }
+  @media(max-width:560px){
+    .services-nav-wrap{display:block;padding:13px 14px 8px}
+    .services-brand{margin-bottom:5px}
+    .services-nav-wrap nav{max-width:100%;padding-bottom:3px;font-size:.82rem}
+    .services-hero{padding:50px 0 70px}
+    .services-hero h1{font-size:clamp(44px,14vw,68px)}
+    .service-card h2{font-size:28px}
+    .services-footer{flex-direction:column;align-items:center;text-align:center}
+  }
+</style>
