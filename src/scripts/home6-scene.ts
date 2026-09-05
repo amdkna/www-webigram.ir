@@ -37,8 +37,8 @@ export class HomeScene {
   private ticks = 0;
   private previous = 0;
   private elapsed = 0;
-  private progress = 0;
-  private currentProgress = 0;
+  private progress = 2;
+  private currentProgress = 2;
   private expansion = 0;
   private exploded = false;
   private night = false;

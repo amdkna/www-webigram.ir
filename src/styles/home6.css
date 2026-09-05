@@ -1,6 +1,6 @@
-.home6 .home6-scene { position: absolute; z-index: 9; left: 0; top: 0; width: 60.5%; height: 100%; overflow: hidden; background: #fafaff; opacity: 0; transition: opacity .7s; }
+.home6 .home6-scene { position: absolute; z-index: 9; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; background: #fafaff; opacity: 0; transition: opacity .7s; }
 .home6.scene-ready .home6-scene { opacity: 1; }
-.home6.scene-ready .slide .visual { visibility: hidden; }
+.home6.scene-ready .slide-real .real-composition-shell { visibility: hidden; }
 .home6 #home6-canvas { display: block; width: 100%; height: 100%; touch-action: pan-y pinch-zoom; cursor: grab; outline-offset: -6px; }
 .home6 #home6-canvas:active { cursor: grabbing; }
 .home6 a:focus-visible,.home6 button:focus-visible,.home6 canvas:focus-visible { outline: 2px solid #6b47ed; outline-offset: 4px; }
@@ -73,3 +73,51 @@
   .home6 .copy h1,.home6 .copy h2 { font-size: 29px; }
 }
 @media (prefers-reduced-motion:reduce) { .home6 *,.home6 *::before,.home6 *::after { animation:none!important; transition:none!important; } }
+
+/* Three distinct mediums: one paper sheet, a flat interface, then a physical scene. */
+.home6[data-stage="0"], .home6[data-stage="0"] .viewport { background: #f5f2e9; }
+.home6 .slide-sketch {
+  --slide-bg: transparent;
+  --slide-ink: #363530;
+  --copy-muted: #615e55;
+  background-color: #f5f2e9;
+  background-image: linear-gradient(#77705a0b 1px,transparent 1px),linear-gradient(90deg,#77705a0b 1px,transparent 1px);
+  background-size: 28px 28px;
+  box-shadow: inset 0 0 0 1px #6c62412b;
+}
+.home6 .slide-sketch .right, .home6 .slide-sketch .visual,
+.home6 .slide-sketch .sketch-composition { background: transparent; }
+.home6 .slide-sketch .sketch-paper { display: none; }
+.home6 .slide-sketch *, .home6 .slide-sketch *::before, .home6 .slide-sketch *::after {
+  animation: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+.home6 .slide-sketch .sketch-element { opacity: 1; }
+.home6 .slide-sketch .sketch-connectors .wire { stroke-dashoffset: 0 !important; }
+.home6 .slide-sketch .sketch-connectors .wire-dash { stroke-dasharray: 10 11 !important; }
+.home6 .slide-sketch .sketch-card, .home6 .slide-sketch .sketch-browser,
+.home6 .slide-sketch .sketch-phone { background: #f5f2e9; }
+.home6 .slide-sketch .copy { filter: url(#pencil-rough); }
+.home6 .slide-sketch .actions a { background-color: transparent; border-radius: 4px 8px 5px 3px; }
+.home6 .slide-sketch .benefits { filter: grayscale(1); }
+.home6[data-stage="0"] .progress { background: #f5f2e9; border: 1px dashed #787264; backdrop-filter: none; border-radius: 5px; }
+.home6[data-stage="0"] .progress button.active { background: #66604f12; color: #363530; }
+.home6[data-stage="0"] .progress button { color: #696358; }
+.home6-stage-note { position: absolute; left: 3%; bottom: 3%; z-index: 8; display: flex; gap: 12px; align-items: baseline; color: #686153; font-size: 13px; font-weight: 700; pointer-events: none; }
+.home6-stage-note small { font-size: 11px; font-weight: 400; }
+.home6 .slide-color .home6-stage-note { color: #7350c9; }
+.home6 .slide-color .visual, .home6 .slide-color .sketch-composition { background: #fbfcff; }
+.home6 .slide-color *, .home6 .slide-color *::before, .home6 .slide-color *::after {
+  animation: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+.home6 .slide-color .sketch-element { transform: none !important; opacity: 1; }
+.home6 .slide-color .sketch-connectors .wire { stroke-dashoffset: 0 !important; }
+.home6 .slide-color .sketch-card, .home6 .slide-color .sketch-browser,
+.home6 .slide-color .sketch-phone { background: #fff; border: 1px solid #d9ddef; }
+.home6 .slide-color .sketch-pencil, .home6 .slide-color .sketch-ruler,
+.home6 .slide-color .construction-line, .home6 .slide-color .sketch-paper { display: none; }
+@media(max-width:820px) { .home6-stage-note { bottom: 7px; left: 12px; font-size: 11px; } .home6-stage-note small { display: none; } }
