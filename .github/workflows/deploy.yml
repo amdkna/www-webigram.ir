@@ -10,7 +10,9 @@ permissions:
 
 concurrency:
   group: webigram-production
-  cancel-in-progress: true
+  # Never kill a production deployment halfway through a container/file swap.
+  # A newer deployment waits for the current one to finish (or roll back).
+  cancel-in-progress: false
 
 jobs:
   build-site:
@@ -50,42 +52,142 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     env:
       APP_DIR: /opt/apps/www-webigram.ir
+      PUBLIC_HEALTH_URL: https://webigram.ir/healthz
     steps:
-      - name: Update files
+      - name: Snapshot last working production release
         run: |
-          set -e
+          set -euo pipefail
           mkdir -p "$APP_DIR"
+
           if [ ! -d "$APP_DIR/.git" ]; then
             git clone https://github.com/amdkna/www-webigram.ir.git "$APP_DIR"
           fi
+
+          ROLLBACK_DIR="$APP_DIR/.deploy-rollback"
+          rm -rf "$ROLLBACK_DIR"
+          mkdir -p "$ROLLBACK_DIR"
+
+          if git -C "$APP_DIR" rev-parse --verify HEAD >/dev/null 2>&1 && [ -f "$APP_DIR/dist/index.html" ]; then
+            git -C "$APP_DIR" rev-parse HEAD > "$ROLLBACK_DIR/main.sha"
+            cp -a "$APP_DIR/dist" "$ROLLBACK_DIR/dist"
+            touch "$ROLLBACK_DIR/available"
+            echo "Rollback snapshot created for $(cat "$ROLLBACK_DIR/main.sha")"
+          else
+            echo "No previous complete release found; this appears to be the first deployment."
+          fi
+
+      - name: Prepare new release files
+        run: |
+          set -euo pipefail
           git -C "$APP_DIR" fetch origin main production-build
           git -C "$APP_DIR" checkout -B main origin/main
+
           rm -rf "$APP_DIR/dist.new"
           mkdir "$APP_DIR/dist.new"
           git -C "$APP_DIR" archive origin/production-build | tar -x -C "$APP_DIR/dist.new"
+
+          # Do not touch the live dist unless the candidate build is complete.
+          test -s "$APP_DIR/dist.new/index.html"
+          test -s "$APP_DIR/dist.new/tools/website-doctor/index.html"
+          test -s "$APP_DIR/dist.new/downloads/webigram-website-doctor-chrome.zip"
+
           rm -rf "$APP_DIR/dist"
           mv "$APP_DIR/dist.new" "$APP_DIR/dist"
+
       - name: Prepare docker
         run: |
-          set -e
+          set -euo pipefail
           docker image inspect nginx:1.28-alpine >/dev/null 2>&1 || docker pull nginx:1.28-alpine
           docker image inspect node:24-alpine >/dev/null 2>&1 || docker pull node:24-alpine
           docker network inspect public_proxy >/dev/null 2>&1 || docker network create public_proxy
           docker network inspect app-net >/dev/null 2>&1 || docker network create app-net
-      - name: Deploy
+
+      - name: Deploy candidate release
         working-directory: /opt/apps/www-webigram.ir
         run: |
+          set -euo pipefail
           docker compose up -d --remove-orphans --force-recreate
-      - name: Health check
+
+      - name: Verify containers and public site
         run: |
-          set -e
-          for i in $(seq 1 30); do
+          set -euo pipefail
+          healthy=0
+
+          for i in $(seq 1 45); do
             WEB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-web 2>/dev/null || true)
             API_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-website-doctor-api 2>/dev/null || true)
-            echo "web=$WEB_STATUS api=$API_STATUS"
-            [ "$WEB_STATUS" = "healthy" ] && [ "$API_STATUS" = "healthy" ] && exit 0
+            PUBLIC_CODE=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 5 "${PUBLIC_HEALTH_URL}?deploy=${GITHUB_SHA}&attempt=${i}" || true)
+
+            echo "attempt=$i web=$WEB_STATUS api=$API_STATUS public_http=$PUBLIC_CODE"
+
+            if [ "$WEB_STATUS" = "healthy" ] && [ "$API_STATUS" = "healthy" ] && [ "$PUBLIC_CODE" = "200" ]; then
+              healthy=1
+              break
+            fi
             sleep 2
           done
-          docker logs webigram-web || true
-          docker logs webigram-website-doctor-api || true
-          exit 1
+
+          if [ "$healthy" -ne 1 ]; then
+            echo "Candidate release failed production health checks."
+            docker compose -f "$APP_DIR/compose.yaml" ps || true
+            docker logs --tail 200 webigram-web || true
+            docker logs --tail 200 webigram-website-doctor-api || true
+            exit 1
+          fi
+
+          echo "Production release is healthy through the public endpoint."
+
+      - name: Roll back automatically on deployment failure
+        if: ${{ failure() }}
+        run: |
+          set -uo pipefail
+          ROLLBACK_DIR="$APP_DIR/.deploy-rollback"
+
+          echo "Deployment failed. Starting automatic rollback..."
+
+          if [ ! -f "$ROLLBACK_DIR/available" ] || [ ! -f "$ROLLBACK_DIR/main.sha" ] || [ ! -f "$ROLLBACK_DIR/dist/index.html" ]; then
+            echo "ERROR: No valid previous production snapshot is available to restore."
+            exit 1
+          fi
+
+          PREVIOUS_SHA=$(cat "$ROLLBACK_DIR/main.sha")
+          echo "Restoring previous application revision: $PREVIOUS_SHA"
+
+          git -C "$APP_DIR" checkout -B main "$PREVIOUS_SHA" || exit 1
+          rm -rf "$APP_DIR/dist"
+          cp -a "$ROLLBACK_DIR/dist" "$APP_DIR/dist" || exit 1
+
+          cd "$APP_DIR" || exit 1
+          docker compose up -d --remove-orphans --force-recreate || exit 1
+
+          rollback_healthy=0
+          for i in $(seq 1 45); do
+            WEB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-web 2>/dev/null || true)
+            API_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-website-doctor-api 2>/dev/null || true)
+            PUBLIC_CODE=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 3 --max-time 5 "${PUBLIC_HEALTH_URL}?rollback=${PREVIOUS_SHA}&attempt=${i}" || true)
+
+            echo "rollback_attempt=$i web=$WEB_STATUS api=$API_STATUS public_http=$PUBLIC_CODE"
+
+            if [ "$WEB_STATUS" = "healthy" ] && [ "$API_STATUS" = "healthy" ] && [ "$PUBLIC_CODE" = "200" ]; then
+              rollback_healthy=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$rollback_healthy" -ne 1 ]; then
+            echo "ERROR: Rollback completed but the restored release is still unhealthy."
+            docker compose ps || true
+            docker logs --tail 200 webigram-web || true
+            docker logs --tail 200 webigram-website-doctor-api || true
+            exit 1
+          fi
+
+          echo "Rollback successful. Previous production release is healthy again."
+
+      - name: Record successful deployment
+        if: ${{ success() }}
+        run: |
+          set -euo pipefail
+          git -C "$APP_DIR" rev-parse HEAD > "$APP_DIR/.last-successful-deploy"
+          echo "Successful production revision: $(cat "$APP_DIR/.last-successful-deploy")"
