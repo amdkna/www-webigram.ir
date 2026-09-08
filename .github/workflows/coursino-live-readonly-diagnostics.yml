@@ -7,15 +7,25 @@ on:
     paths:
       - '.github/workflows/coursino-live-readonly-diagnostics.yml'
 
+permissions:
+  contents: write
+
 jobs:
   diagnose:
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: diagnostics/coursino-host-repair
+
       - name: Inspect external stream failure
         shell: bash
         run: |
           set +e
+          mkdir -p "$GITHUB_WORKSPACE/.diagnostics"
+          REPORT="$GITHUB_WORKSPACE/.diagnostics/coursino-live-current.txt"
+          exec > >(tee "$REPORT") 2>&1
           DEPLOY_PATH=/opt/apps/live.webigram.ir
           cd "$DEPLOY_PATH" || exit 1
           echo '=== TIME / HOST ==='
@@ -61,12 +71,28 @@ jobs:
             fi
           done < /tmp/coursino_destinations
 
-          echo '=== APP LOGS LAST 20 MIN (REDACTED) ==='
-          docker logs --since 20m coursino-live 2>&1 \
+          echo '=== APP LOGS LAST 30 MIN (REDACTED) ==='
+          docker logs --since 30m coursino-live 2>&1 \
             | sed -E 's#rtmps?://[^[:space:]"\\]+#rtmp://[REDACTED]#g; s#(api[_ -]?(key|secret)|stream[_ -]?key)[=: ]+[^, }]+#\1=[REDACTED]#Ig' \
-            | grep -Ei 'aparat|arvan|egress|rtmp|stream|error|fail|exception' | tail -n 500 || true
+            | grep -Ei 'aparat|arvan|egress|rtmp|stream|error|fail|exception|presenter|camera|publish' | tail -n 650 || true
 
-          echo '=== EGRESS LOGS LAST 20 MIN (REDACTED) ==='
-          docker logs --since 20m coursino-live-egress 2>&1 \
+          echo '=== EGRESS LOGS LAST 30 MIN (REDACTED) ==='
+          docker logs --since 30m coursino-live-egress 2>&1 \
             | sed -E 's#rtmps?://[^[:space:]"\\]+#rtmp://[REDACTED]#g; s#(api[_ -]?(key|secret)|stream[_ -]?key)[=: ]+[^, }]+#\1=[REDACTED]#Ig' \
-            | grep -Ei 'egress|rtmp|stream|error|fail|pipeline|gstreamer|resource|capacity|update' | tail -n 700 || true
+            | grep -Ei 'egress|rtmp|stream|error|fail|pipeline|gstreamer|resource|capacity|update' | tail -n 800 || true
+
+      - name: Commit diagnostics report
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .diagnostics/coursino-live-current.txt
+          if git diff --cached --quiet; then
+            echo 'no_report_change=true'
+            exit 0
+          fi
+          git commit -m 'Capture current Coursino external stream diagnostics'
+          git push origin HEAD:diagnostics/coursino-host-repair
