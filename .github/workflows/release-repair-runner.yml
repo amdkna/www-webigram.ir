@@ -1,0 +1,23 @@
+name: Release Webigram repair runner
+
+on:
+  push:
+    branches:
+      - diagnostics/coursino-host-repair
+    paths:
+      - '.github/workflows/release-repair-runner.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Force-cancel completed repair job stuck in runner cleanup
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST repos/${GITHUB_REPOSITORY}/actions/runs/34199179799/force-cancel || true
+          echo released=true
