@@ -29,6 +29,7 @@ type HomeSceneInternals = {
  * - graceful fallback to the original renderer on slower devices
  */
 export class CinematicHomeScene extends HomeScene {
+  private canvasEl!: HTMLCanvasElement;
   private composer?: EffectComposer;
   private gtao?: GTAOPass;
   private bokeh?: BokehPass;
@@ -50,6 +51,7 @@ export class CinematicHomeScene extends HomeScene {
 
   constructor(canvas: HTMLCanvasElement, paused: boolean, onFailure: () => void) {
     super(canvas, paused, onFailure);
+    this.canvasEl = canvas;
 
     const internal = this as unknown as HomeSceneInternals;
     this.addPhotographicLighting(internal);
@@ -144,7 +146,7 @@ export class CinematicHomeScene extends HomeScene {
 
   private syncComposerSize(internal: HomeSceneInternals) {
     if (!this.composer) return;
-    const box = this.canvas.parentElement?.getBoundingClientRect();
+    const box = this.canvasEl.parentElement?.getBoundingClientRect();
     if (!box || box.width < 1 || box.height < 1) return;
 
     // GTAO + DOF at full Retina resolution is wasteful. A capped post-process
@@ -215,7 +217,7 @@ export class CinematicHomeScene extends HomeScene {
     try {
       this.originalRender(now);
     } finally {
-      renderer.render = currentRender === intercepted ? rawRender : currentRender;
+      renderer.render = currentRender;
     }
   };
 
