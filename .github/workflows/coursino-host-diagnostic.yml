@@ -10,27 +10,28 @@ on:
 jobs:
   diagnose:
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 8
+    timeout-minutes: 4
     steps:
-      - name: Inspect Coursino Live host
+      - name: Inspect Coursino Live host with strict timeouts
         shell: bash
         run: |
           set -u
-          echo '=== host/time ==='
-          hostname || true
-          date -Is || true
+          run() { label="$1"; shift; echo "=== ${label} ==="; timeout 8s "$@" 2>&1 || echo "TIMEOUT_OR_ERROR:${label}:$?"; }
+          run host hostname
+          run time date -Is
+          run docker-version docker version
+          run docker-info docker info
           echo '=== containers ==='
-          docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' | grep -E 'coursino|livekit' || true
-          echo '=== coursino source markers ==='
-          ls -la /opt/apps/live.webigram.ir | sed -n '1,80p' || true
-          echo '=== app logs last 30m ==='
-          docker logs --since 30m coursino-live 2>&1 | sed -E 's#rtmps?://[^ ]+#RTMP_URL_REDACTED#g' | tail -n 320 || true
-          echo '=== egress logs last 30m ==='
-          docker logs --since 30m coursino-live-egress 2>&1 | sed -E 's#rtmps?://[^ ]+#RTMP_URL_REDACTED#g' | tail -n 420 || true
+          timeout 8s docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' 2>&1 | grep -E 'coursino|livekit|NAMES' || echo 'DOCKER_PS_FAILED_OR_TIMED_OUT'
+          run app-health curl --fail --silent --show-error --max-time 6 http://127.0.0.1:18080/healthz
+          echo '=== app logs last 15m ==='
+          timeout 10s docker logs --since 15m coursino-live 2>&1 | sed -E 's#rtmps?://[^ ]+#RTMP_URL_REDACTED#g' | tail -n 220 || echo 'APP_LOGS_FAILED_OR_TIMED_OUT'
+          echo '=== egress logs last 15m ==='
+          timeout 10s docker logs --since 15m coursino-live-egress 2>&1 | sed -E 's#rtmps?://[^ ]+#RTMP_URL_REDACTED#g' | tail -n 320 || echo 'EGRESS_LOGS_FAILED_OR_TIMED_OUT'
           echo '=== state files ==='
           for f in /opt/apps/live.webigram.ir/data/aparat-egress.json /opt/apps/live.webigram.ir/data/arvan-egress.json; do
             echo "--- ${f##*/} ---"
-            if [ -f "$f" ]; then cat "$f"; else echo missing; fi
+            timeout 3s sh -c 'if [ -f "$1" ]; then cat "$1"; else echo missing; fi' sh "$f" || echo STATE_READ_TIMEOUT
           done
-          echo '=== git connectivity test ==='
-          timeout 12s git ls-remote git@github.com:amdkna/www-coursino-live.git HEAD 2>&1 || true
+          echo '=== git connectivity ==='
+          timeout 8s git ls-remote git@github.com:amdkna/www-coursino-live.git HEAD 2>&1 || echo 'GIT_REMOTE_FAILED_OR_TIMED_OUT'
