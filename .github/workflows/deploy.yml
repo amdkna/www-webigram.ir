@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: webigram-production
+  group: webigram-production-v2
   # Never kill a production deployment halfway through a container/file swap.
   # A newer deployment waits for the current one to finish (or roll back).
   cancel-in-progress: false
