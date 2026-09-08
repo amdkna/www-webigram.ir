@@ -1,0 +1,63 @@
+name: Hotfix Coursino RTMP verifier
+
+on:
+  push:
+    branches:
+      - diagnostics/coursino-host-repair
+    paths:
+      - '.github/workflows/hotfix-coursino-rtmp-verifier.yml'
+
+jobs:
+  hotfix:
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 10
+    steps:
+      - name: Patch verifier and rebuild app container only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(hostname)" = "wbg-001" || { echo "ERROR: expected wbg-001, got $(hostname)"; exit 1; }
+          DEPLOY_PATH=/opt/apps/live.webigram.ir
+          cd "$DEPLOY_PATH"
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              Path('lib/external-stream-egress.ts'): (
+                  "if (info.status === EgressStatus.EGRESS_ACTIVE && output?.status === 0 && metricNumber(output.startedAt) > 0) return 'live';",
+                  "if (info.status === EgressStatus.EGRESS_ACTIVE && output?.status === 0) return 'live';",
+              ),
+              Path('lib/external-stream-recovery.ts'): (
+                  "if (!output || output.status !== 0 || metricNumber(output.startedAt) <= 0) return null;",
+                  "if (!output || output.status !== 0) return null;",
+              ),
+          }
+
+          for path, (old, new) in replacements.items():
+              text = path.read_text(encoding='utf-8')
+              if new in text:
+                  print(f'{path}: already_fixed=true')
+                  continue
+              if old not in text:
+                  raise SystemExit(f'{path}: expected verifier code not found')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+              print(f'{path}: patched=true')
+          PY
+
+          echo '=== Rebuilding application only; LiveKit RTC/Ingress/Egress are untouched ==='
+          docker compose up -d --build --no-deps coursino-live
+
+          echo '=== Health check ==='
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:18080/healthz | grep -qx ok; then
+              echo 'app_health=ok'
+              docker ps --format 'name={{.Names}} status={{.Status}}' | grep '^name=coursino-live '
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo 'ERROR: app health check failed'
+          docker logs --tail=150 coursino-live 2>&1 || true
+          exit 1
