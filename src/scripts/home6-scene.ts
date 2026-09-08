@@ -25,15 +25,18 @@ export class HomeScene {
   private terrainCamera = new THREE.PerspectiveCamera(43, 16 / 9, .1, 70);
   private landscape: THREE.WebGLRenderTarget;
   private clouds = new THREE.Group();
-  private daylight = new THREE.DirectionalLight(0xfff3e2, 4.2);
-  private fill = new THREE.HemisphereLight(0xe9eeff, 0xc4c4d0, 2.5);
+  private daylight = new THREE.DirectionalLight(0xfff1df, 2.8);
+  private fill = new THREE.HemisphereLight(0xe8eeff, 0xb4aaa0, 1.0);
+  private rim = new THREE.DirectionalLight(0xb8b1d8, .65);
   private deskLamp = new THREE.SpotLight(0xffd5a1, 0, 9, Math.PI / 3, .65, 2);
-  private screenGlow = new THREE.PointLight(0x8164ff, 1.4, 6, 2);
+  private screenGlow = new THREE.PointLight(0xaeb8ff, .55, 5.5, 2);
   private bulb: THREE.Mesh;
   private steam: THREE.Points;
   private screenTexture: THREE.CanvasTexture;
   private supportCanvas: HTMLCanvasElement;
   private environment: THREE.WebGLRenderTarget;
+  private contactShadowMap?: THREE.CanvasTexture;
+  private glassReflectionMap?: THREE.CanvasTexture;
   private ticks = 0;
   private previous = 0;
   private elapsed = 0;
@@ -57,30 +60,29 @@ export class HomeScene {
   constructor(private canvas: HTMLCanvasElement, paused: boolean, private onFailure: () => void) {
     this.paused = paused;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setClearColor(0xfafaff);
+    this.renderer.setClearColor(0xf5f3ef);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = .96;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.scene.background = new THREE.Color(0xfafaff);
-    this.scene.fog = new THREE.Fog(0xfafaff, 19, 35);
-    this.scene.add(this.world, this.daylight, this.fill);
-    this.daylight.position.set(-5, 9, 6);
+    this.scene.background = new THREE.Color(0xf5f3ef);
+    this.scene.fog = new THREE.Fog(0xf5f3ef, 18, 33);
+    this.scene.add(this.world, this.daylight, this.fill, this.rim);
+    this.daylight.position.set(-4.5, 8.5, 5.5);
     this.daylight.castShadow = true;
     const shadowSize = window.innerWidth > 820 ? 2048 : 1024;
     this.daylight.shadow.mapSize.set(shadowSize, shadowSize);
-    Object.assign(this.daylight.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: .1, far: 30 });
-    this.daylight.shadow.normalBias = .018;
-    this.daylight.shadow.bias = -.0002;
-    const rim = new THREE.DirectionalLight(0x9c8cff, 1.8);
-    rim.position.set(5, 2, -5);
-    this.scene.add(rim);
+    Object.assign(this.daylight.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: .1, far: 28 });
+    this.daylight.shadow.normalBias = .015;
+    this.daylight.shadow.bias = -.00018;
+    this.daylight.shadow.radius = 3;
+    this.rim.position.set(5, 2.5, -5);
     const room = new RoomEnvironment();
     const pmrem = new THREE.PMREMGenerator(this.renderer);
-    this.environment = pmrem.fromScene(room, .06);
+    this.environment = pmrem.fromScene(room, .09);
     this.scene.environment = this.environment.texture;
-    this.scene.environmentIntensity = .6;
+    this.scene.environmentIntensity = .5;
     room.dispose(); pmrem.dispose();
 
     this.landscape = new THREE.WebGLRenderTarget(768, 432, { depthBuffer: true });
@@ -97,7 +99,7 @@ export class HomeScene {
     this.deskLamp.position.set(2.70, .92, -.48);
     this.deskLamp.target.position.set(2.1, -1.9, .15);
     this.world.add(this.deskLamp.target);
-    this.screenGlow.position.set(.1, .4, 1.2);
+    this.screenGlow.position.set(.1, .35, 1.08);
     this.resize();
     this.canvas.addEventListener('webglcontextlost', this.contextLost);
     document.addEventListener('visibilitychange', this.visibilityChange);
@@ -105,7 +107,7 @@ export class HomeScene {
   }
 
   private material(color: number, metalness = .1, roughness = .4) {
-    const material = new THREE.MeshPhysicalMaterial({ color, metalness, roughness, clearcoat: metalness > .5 ? .2 : .08, clearcoatRoughness: .3 });
+    const material = new THREE.MeshPhysicalMaterial({ color, metalness, roughness, clearcoat: metalness > .5 ? .12 : .05, clearcoatRoughness: .34 });
     this.surfaces.push({ material, color: new THREE.Color(color), metalness, roughness });
     return material;
   }
@@ -114,7 +116,6 @@ export class HomeScene {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(...position);
     mesh.castShadow = true; mesh.receiveShadow = true;
-    // This module renders only the physical stage; avoid invisible edge geometry.
     void edged;
     parent.add(mesh);
     return mesh;
@@ -147,9 +148,17 @@ export class HomeScene {
 
   private detailedMaterial(color:number,metalness:number,roughness:number,kind:'wood'|'metal'|'fabric'|'ceramic'){
     const material=this.material(color,metalness,roughness),texture=this.surfaceTexture(kind);
-    material.bumpMap=texture;material.bumpScale=kind==='wood'?.025:kind==='fabric'?.012:.003;
+    material.bumpMap=texture;material.bumpScale=kind==='wood'?.018:kind==='fabric'?.007:.0025;
     material.roughnessMap=texture;
-    if(kind==='wood'){material.map=texture;material.clearcoat=.22;material.clearcoatRoughness=.45;}
+    if(kind==='wood'){
+      material.map=texture;material.clearcoat=.13;material.clearcoatRoughness=.5;
+    }else if(kind==='metal'){
+      material.anisotropy=.52;material.anisotropyRotation=Math.PI/2;material.clearcoat=.08;
+    }else if(kind==='fabric'){
+      material.sheen=.28;material.sheenRoughness=.9;material.sheenColor.set(0xe9edff);
+    }else{
+      material.clearcoat=.5;material.clearcoatRoughness=.24;
+    }
     return material;
   }
 
@@ -158,12 +167,51 @@ export class HomeScene {
     return this.mesh(new THREE.TubeGeometry(curve,40,radius,8,false),material,parent,[0,0,0],false);
   }
 
+  private glassTexture(){
+    if(this.glassReflectionMap)return this.glassReflectionMap;
+    const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;
+    const ctx=canvas.getContext('2d')!;ctx.clearRect(0,0,256,256);
+    const gradient=ctx.createLinearGradient(18,230,238,22);
+    gradient.addColorStop(0,'rgba(255,255,255,0)');
+    gradient.addColorStop(.38,'rgba(255,255,255,.035)');
+    gradient.addColorStop(.49,'rgba(255,255,255,.22)');
+    gradient.addColorStop(.58,'rgba(255,255,255,.04)');
+    gradient.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=gradient;ctx.fillRect(0,0,256,256);
+    const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.needsUpdate=true;
+    this.glassReflectionMap=texture;return texture;
+  }
+
   private screenGlass(parent:THREE.Object3D,width:number,height:number,z:number,y=0){
-    const glass=new THREE.MeshPhysicalMaterial({color:0xdce8ff,metalness:0,roughness:.075,
-      clearcoat:1,clearcoatRoughness:.045,transparent:true,opacity:.13,depthWrite:false,
-      envMapIntensity:1.5,ior:1.5});
+    const glass=new THREE.MeshPhysicalMaterial({color:0xe7efff,metalness:0,roughness:.08,
+      clearcoat:1,clearcoatRoughness:.035,transparent:true,opacity:.16,depthWrite:false,
+      envMapIntensity:1.7,ior:1.48,transmission:.08,thickness:.018});
     const pane=this.mesh(new THREE.PlaneGeometry(width,height),glass,parent,[0,y,z],false);
     pane.castShadow=false;pane.receiveShadow=false;
+    const reflection=new THREE.Mesh(new THREE.PlaneGeometry(width*.985,height*.985),new THREE.MeshBasicMaterial({
+      map:this.glassTexture(),transparent:true,opacity:.22,depthWrite:false,toneMapped:false
+    }));
+    reflection.position.set(0,y,z+.0025);reflection.castShadow=false;reflection.receiveShadow=false;reflection.renderOrder=3;parent.add(reflection);
+  }
+
+  private shadowTexture(){
+    if(this.contactShadowMap)return this.contactShadowMap;
+    const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;
+    const ctx=canvas.getContext('2d')!;
+    const gradient=ctx.createRadialGradient(128,128,6,128,128,128);
+    gradient.addColorStop(0,'rgba(22,20,24,.72)');
+    gradient.addColorStop(.34,'rgba(22,20,24,.42)');
+    gradient.addColorStop(.7,'rgba(22,20,24,.12)');
+    gradient.addColorStop(1,'rgba(22,20,24,0)');
+    ctx.fillStyle=gradient;ctx.fillRect(0,0,256,256);
+    const texture=new THREE.CanvasTexture(canvas);texture.needsUpdate=true;this.contactShadowMap=texture;return texture;
+  }
+
+  private contactShadow(x:number,y:number,z:number,width:number,depth:number,opacity=.18){
+    const material=new THREE.MeshBasicMaterial({map:this.shadowTexture(),transparent:true,opacity,depthWrite:false,toneMapped:false});
+    const shadow=new THREE.Mesh(new THREE.PlaneGeometry(width,depth),material);
+    shadow.rotation.x=-Math.PI/2;shadow.position.set(x,y,z);shadow.castShadow=false;shadow.receiveShadow=false;shadow.renderOrder=2;this.world.add(shadow);
+    return shadow;
   }
 
   private buildKeyboard(parent:THREE.Object3D,aluminum:THREE.Material){
@@ -184,7 +232,7 @@ export class HomeScene {
     this.mesh(this.box(1.17,.05,.125,.018),keyMaterial,parent,[0,.07,.28],false);
     const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
     texture.anisotropy=Math.min(4,this.renderer.capabilities.getMaxAnisotropy());
-    const legends=new THREE.Mesh(new THREE.PlaneGeometry(2.65,.87),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false}));
+    const legends=new THREE.Mesh(new THREE.PlaneGeometry(2.65,.87),new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,toneMapped:false}));
     legends.rotation.x=-Math.PI/2;legends.position.y=.096;parent.add(legends);
   }
 
@@ -194,9 +242,14 @@ export class HomeScene {
     const desktop = this.mesh(this.box(7.7,.2,3.55,.1), this.detailedMaterial(0xdec5a4,0,.5,'wood'), this.world, [0,-2.0,.1]);
     this.mesh(this.box(7.3,.075,3.15), aluminum, desktop, [0,-.13,0]);
     for (const x of [-3.1,3.1]) this.mesh(this.box(.14,1.8,2.3), white, this.world, [x,-3,.05]);
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(200,200), this.material(0xf7f7fa,0,.85));
-    ground.rotation.x = -Math.PI/2; ground.position.y = -3.95; ground.receiveShadow = true;
+
+    const groundMaterial=this.material(0xe9e6e2,0,.94);
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(200,200), groundMaterial);
+    ground.rotation.x = -Math.PI/2; ground.position.y = -3.95; ground.receiveShadow = true;ground.castShadow=false;
     this.world.add(ground);
+    const wallMaterial=this.material(0xeeeae5,0,.92);
+    const wall=new THREE.Mesh(new THREE.PlaneGeometry(30,14),wallMaterial);wall.position.set(0,1.15,-5.3);wall.receiveShadow=true;wall.castShadow=false;this.world.add(wall);
+    this.mesh(this.box(30,.16,.08,.025),white,this.world,[0,-3.84,-5.22],false).castShadow=false;
 
     const keyboard = new THREE.Group(); keyboard.position.set(0,-1.83,1.04); this.world.add(keyboard);
     const mat=this.mesh(this.box(4.35,.025,1.42,.055),this.detailedMaterial(0x525967,0,.85,'fabric'),this.world,[.38,-1.885,.87],false);
@@ -220,6 +273,14 @@ export class HomeScene {
     });
     const ruler = this.mesh(this.box(1.5,.035,.19,.01),this.material(0xc9d6ec,.25,.2),this.world,[-.95,-1.86,1.55]);
     for(let i=0;i<15;i++) this.mesh(new THREE.BoxGeometry(.008,.006,i%5===0?.10:.055),graphite,ruler,[-.67+i*.095,.02,.035],false);
+
+    this.contactShadow(0,-1.894,.02,1.6,.85,.18);
+    this.contactShadow(2.12,-1.894,1.08,1.0,.78,.18);
+    this.contactShadow(1.73,-1.872,1.0,.58,.82,.14);
+    this.contactShadow(-2.58,-1.893,1.15,.72,.72,.18);
+    this.contactShadow(-3.28,-1.893,-.95,.8,.8,.18);
+    this.contactShadow(3.0,-1.893,-.6,1.0,1.0,.18);
+    this.contactShadow(0,-3.944,.05,7.2,3.7,.09);
   }
 
   private buildDevices() {
@@ -230,18 +291,18 @@ export class HomeScene {
     this.mesh(this.box(3.74,2.38,.09),bezel,monitor,[0,.015,.10]);
     this.mesh(this.box(.19,1.05,.19),metal,monitor,[0,-1.7,-.04]);
     this.mesh(this.box(1.2,.07,.65),metal,monitor,[0,-2.265,.20]);
-    const landscapeMaterial = new THREE.MeshBasicMaterial({ map:this.landscape.texture, transparent:true });
+    const landscapeMaterial = new THREE.MeshBasicMaterial({ map:this.landscape.texture, transparent:true, toneMapped:false });
     this.screenSurfaces.push(landscapeMaterial);
     this.mesh(new THREE.PlaneGeometry(3.52,1.98),landscapeMaterial,monitor,[0,.11,.156],false);
     const dots = [0xfd6c66,0xffcd65,0x55ce96];
     dots.forEach((color,i)=>this.mesh(new THREE.SphereGeometry(.023,10,8),this.material(color),monitor,[-1.64+i*.095,1.17,.157],false));
     const screenTitle = this.uiTexture('Webigram', 'IDEAS, IN REAL LIFE', 'title');
-    this.mesh(new THREE.PlaneGeometry(1.36,.26),new THREE.MeshBasicMaterial({map:screenTitle.texture,transparent:true}),monitor,[0,-1.045,.159],false);
+    this.mesh(new THREE.PlaneGeometry(1.36,.26),new THREE.MeshBasicMaterial({map:screenTitle.texture,transparent:true,toneMapped:false}),monitor,[0,-1.045,.159],false);
     this.screenGlass(monitor,3.52,1.98,.16,.11);
     const lens=this.material(0x123349,.65,.1);
     this.mesh(new THREE.CylinderGeometry(.037,.037,.014,24),bezel,monitor,[0,1.17,.155],false).rotation.x=Math.PI/2;
     this.mesh(new THREE.SphereGeometry(.021,16,10),lens,monitor,[0,1.17,.169],false);
-    const led=this.mesh(new THREE.SphereGeometry(.009,10,8),new THREE.MeshBasicMaterial({color:0xaee8d1}),monitor,[1.7,-1.12,.15],false);led.castShadow=false;
+    const led=this.mesh(new THREE.SphereGeometry(.009,10,8),new THREE.MeshBasicMaterial({color:0xaee8d1,toneMapped:false}),monitor,[1.7,-1.12,.15],false);led.castShadow=false;
     const vents=new THREE.InstancedMesh(new THREE.BoxGeometry(.026,.12,.012),bezel,32),stamp=new THREE.Object3D();
     for(let i=0;i<32;i++){stamp.position.set((i-15.5)*.092,-.94,-.096);stamp.updateMatrix();vents.setMatrixAt(i,stamp.matrix);}monitor.add(vents);
     for(const x of [-1.68,1.68])for(const y of [-1.05,1.05]){
@@ -254,7 +315,7 @@ export class HomeScene {
     const phone = new THREE.Group(); phone.position.set(2.12,-.86,1.14); phone.rotation.set(-.08,-.23,-.06); this.world.add(phone);
     this.mesh(this.box(.92,1.98,.15),metal,phone);
     this.mesh(this.box(.84,1.89,.075),bezel,phone,[0,0,.085]);
-    const phoneMaterial = new THREE.MeshBasicMaterial({map:this.landscape.texture,transparent:true});
+    const phoneMaterial = new THREE.MeshBasicMaterial({map:this.landscape.texture,transparent:true,toneMapped:false});
     this.screenSurfaces.push(phoneMaterial);
     this.mesh(new THREE.PlaneGeometry(.75,1.60),phoneMaterial,phone,[0,0,.13],false);
     this.mesh(this.box(.28,.055,.01,.015),bezel,phone,[0,.81,.145]);
@@ -298,8 +359,8 @@ export class HomeScene {
   }
 
   private buildPanels() {
-    const panelMaterial = this.material(0xf6f7ff,.2,.22);
-    const accent = this.material(0x8160ef,.25,.28);
+    const panelMaterial = this.material(0xf6f7ff,.03,.32);
+    const accent = this.material(0x8160ef,.06,.34);
     let support!: {canvas:HTMLCanvasElement;texture:THREE.CanvasTexture};
     const specifications: [string,string,string,number,number,number,number][] = [
       ['UI / UX','A language of your own','design',-2.26,2.34,-.6,1.78],
@@ -311,20 +372,20 @@ export class HomeScene {
       const group = new THREE.Group();group.position.set(x,y,z);group.rotation.y=(i%2?-.08:.1);this.world.add(group);
       this.mesh(this.box(width,width*.625,.075,.06),panelMaterial,group);
       const ui = this.uiTexture(title,subtitle,kind);
-      const material = new THREE.MeshBasicMaterial({map:ui.texture,transparent:true});this.screenSurfaces.push(material);
+      const material = new THREE.MeshBasicMaterial({map:ui.texture,transparent:true,toneMapped:false});this.screenSurfaces.push(material);
       this.mesh(new THREE.PlaneGeometry(width*.94,width*.625*.92),material,group,[0,0,.05],false);
       this.floatingObject(group,i+.5);
       if(kind==='chat')support=ui;
       const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(x,y,z-.1),new THREE.Vector3(x*.72,y*.60,-.65),new THREE.Vector3(0,.35,-.50)]);
       this.curves.push(curve);
-      const materialLine = this.material(0x9478e9,.1,.5);
+      const materialLine = this.material(0x9478e9,.03,.62);
       this.mesh(new THREE.TubeGeometry(curve,40,.011,6,false),materialLine,this.world,[0,0,0],false);
-      const packet = new THREE.Mesh(new THREE.SphereGeometry(.035,10,8),new THREE.MeshBasicMaterial({color:0x9c7bff}));this.world.add(packet);this.packets.push(packet);
+      const packet = new THREE.Mesh(new THREE.SphereGeometry(.035,10,8),new THREE.MeshBasicMaterial({color:0x9c7bff,toneMapped:false}));this.world.add(packet);this.packets.push(packet);
     });
     const chart = new THREE.Group();chart.position.set(-3.0,.64,.1);chart.rotation.y=.16;this.world.add(chart);
     this.mesh(this.box(1.35,1.65,.08),panelMaterial,chart);
     for(let i=0;i<4;i++) {
-      const bar=this.mesh(this.box(.17,.38+i*.2,.11,.025),i%2?accent:this.material(0x56bfd8),chart,[-.42+i*.28,-.45+(i*.2)/2,.15]);
+      const bar=this.mesh(this.box(.17,.38+i*.2,.11,.025),i%2?accent:this.material(0x56bfd8,.03,.46),chart,[-.42+i*.28,-.45+(i*.2)/2,.15]);
       this.bars.push(bar);
     }
     this.floatingObject(chart,2.2);
@@ -363,8 +424,8 @@ export class HomeScene {
     const positions=new Float32Array(30*3);
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
     const steam=new THREE.Points(geometry,new THREE.ShaderMaterial({transparent:true,depthWrite:false,
-      vertexShader:'void main(){vec4 p=modelViewMatrix*vec4(position,1.0);gl_PointSize=55.0/-p.z;gl_Position=projectionMatrix*p;}',
-      fragmentShader:'void main(){float d=length(gl_PointCoord-.5);if(d>.5)discard;gl_FragColor=vec4(.7,.73,.83,(1.0-d*2.0)*.13);}',
+      vertexShader:'void main(){vec4 p=modelViewMatrix*vec4(position,1.0);gl_PointSize=48.0/-p.z;gl_Position=projectionMatrix*p;}',
+      fragmentShader:'void main(){float d=length(gl_PointCoord-.5);if(d>.5)discard;gl_FragColor=vec4(.74,.75,.79,(1.0-d*2.0)*.09);}',
     }));
     const pot=new THREE.Group();pot.position.set(-3.28,-1.62,-.95);this.world.add(pot);
     this.mesh(new THREE.CylinderGeometry(.30,.22,.56,32),this.detailedMaterial(0xd7d2cd,0,.9,'ceramic'),pot);
@@ -389,7 +450,6 @@ export class HomeScene {
       const vein=this.material(0x87a363,0,.7);
       this.cable(blade,[[0,-.31,.002],[0,0,.052],[0,.31,.012]],vein,.003);
       for(let j=0;j<4;j++)for(const sign of [-1,1]){const y=-.2+j*.115;this.cable(blade,[[0,y,.045],[sign*.065,y+.038,.038],[sign*.1,y+.07,.015]],vein,.0014);}
-
     }
     return steam;
   }
@@ -399,7 +459,7 @@ export class HomeScene {
     this.terrain.fog=new THREE.Fog(0xd7e9f4,14,35);
     this.terrain.add(new THREE.HemisphereLight(0xf6f5f1,0x6d7183,3));
     const sunLight=new THREE.DirectionalLight(0xffddac,4);sunLight.position.set(-7,7,5);this.terrain.add(sunLight);
-    const sun=new THREE.Mesh(new THREE.SphereGeometry(.55,24,16),new THREE.MeshBasicMaterial({color:0xffebc0}));sun.position.set(-3,4,-7);this.terrain.add(sun);
+    const sun=new THREE.Mesh(new THREE.SphereGeometry(.55,24,16),new THREE.MeshBasicMaterial({color:0xffebc0,toneMapped:false}));sun.position.set(-3,4,-7);this.terrain.add(sun);
     const mesh=new THREE.PlaneGeometry(19,14,96,72);mesh.rotateX(-Math.PI/2);
     const position=mesh.attributes.position;
     const colors=new Float32Array(position.count*3);
@@ -446,20 +506,20 @@ export class HomeScene {
     const p=this.currentProgress,color=smooth(p/.75),real=smooth((p-1)/.85);
     this.nightMix=mix(this.nightMix,this.night?real:0,damping);
     this.expansion=mix(this.expansion,this.exploded?1:0,damping);
-    this.yaw=mix(this.yaw,this.userYaw+(this.paused?0:this.cursor.x*.08),damping);
-    this.pitch=mix(this.pitch,this.userPitch+(this.paused?0:this.cursor.y*.035),damping);
+    this.yaw=mix(this.yaw,this.userYaw+(this.paused?0:this.cursor.x*.055),damping);
+    this.pitch=mix(this.pitch,this.userPitch+(this.paused?0:this.cursor.y*.024),damping);
     const distance=Math.max(12.5,9.0/(2*Math.tan(THREE.MathUtils.degToRad(38)/2)*this.camera.aspect));
-    const yaw=real*.28+this.yaw+Math.sin(t*.17)*.024*real;
+    const yaw=real*.28+this.yaw+Math.sin(t*.17)*.012*real;
     const pitch=.035+real*.15+this.pitch;
     this.camera.position.set(Math.sin(yaw)*distance,Math.sin(pitch)*distance+.08,Math.cos(yaw)*Math.cos(pitch)*distance);
     this.camera.lookAt(0,-.03,0);
-    const paper=new THREE.Color(0xfbfaf7),night=new THREE.Color(0x13162b);
-    (this.scene.background as THREE.Color).copy(paper).lerp(new THREE.Color(0xf4f5fc),color).lerp(night,this.nightMix);
+    const paper=new THREE.Color(0xfbfaf7),day=new THREE.Color(0xf2efeb),night=new THREE.Color(0x13162b);
+    (this.scene.background as THREE.Color).copy(paper).lerp(day,color).lerp(night,this.nightMix);
     (this.scene.fog as THREE.Fog).color.copy(this.scene.background as THREE.Color);
-    this.daylight.intensity=mix(4.2,.4,this.nightMix);this.fill.intensity=mix(2.5,.42,this.nightMix);
-    this.deskLamp.intensity=real*mix(.7,15,this.nightMix);this.screenGlow.intensity=real*mix(.8,6,this.nightMix);
-    (this.bulb.material as THREE.MeshStandardMaterial).emissiveIntensity=mix(.3,3.5,this.nightMix);
-    this.scene.environmentIntensity=mix(.25,.9,real)*(1-this.nightMix*.72);
+    this.daylight.intensity=mix(2.8,.18,this.nightMix);this.fill.intensity=mix(1.0,.18,this.nightMix);this.rim.intensity=mix(.65,.26,this.nightMix);
+    this.deskLamp.intensity=real*mix(.35,8.5,this.nightMix);this.screenGlow.intensity=real*mix(.18,1.9,this.nightMix);
+    (this.bulb.material as THREE.MeshStandardMaterial).emissiveIntensity=mix(.2,2.4,this.nightMix);
+    this.scene.environmentIntensity=mix(.18,.58,real)*(1-this.nightMix*.66);
     this.outline.opacity=(1-color)*.6;
     this.surfaces.forEach(surface=>{
       surface.material.color.set(0xffffff).lerp(surface.color,color);
@@ -469,21 +529,23 @@ export class HomeScene {
     this.screenSurfaces.forEach(material=>{material.opacity=color;material.visible=color>.005;});
     this.floating.forEach(({group,origin,phase},i)=>{
       group.position.copy(origin);
-      group.position.y+=i<2?0:Math.sin(t*.75+phase)*(.02+.045*real);
-      group.position.z+=i<2?0:Math.sin(t*.5+phase)*.045*real;
+      if(i>1){
+        group.position.y+=Math.sin(t*.48+phase)*(.006+.012*real);
+        group.position.z+=Math.sin(t*.34+phase)*.014*real;
+      }
       group.position.x+=origin.x*.14*this.expansion;
       group.position.y+=origin.y*.09*this.expansion;
       group.position.z+=(i%2?1:-.6)*this.expansion;
-      if(i>1)group.rotation.z=Math.sin(t*.4+phase)*.025*real;
+      if(i>1)group.rotation.z=Math.sin(t*.28+phase)*.008*real;
     });
-    this.bars.forEach((bar,i)=>{bar.scale.y=1+Math.sin(t*1.1+i)*.11*real;});
-    this.leaves.forEach((leaf,i)=>{leaf.rotation.z=.12+Math.sin(i)*.24+Math.sin(t*.85+i*.4)*.06*real;});
-    this.packets.forEach((packet,i)=>{packet.position.copy(this.curves[i].getPointAt((t*.14+i*.25)%1));packet.visible=color>.2;});
+    this.bars.forEach((bar,i)=>{bar.scale.y=1+Math.sin(t*.85+i)*.035*real;});
+    this.leaves.forEach((leaf,i)=>{leaf.rotation.z=.12+Math.sin(i)*.24+Math.sin(t*.62+i*.4)*.025*real;});
+    this.packets.forEach((packet,i)=>{packet.position.copy(this.curves[i].getPointAt((t*.11+i*.25)%1));packet.visible=color>.2;});
     const positions=this.steam.geometry.attributes.position;
-    for(let i=0;i<positions.count;i++){const rise=(t*.22+i/positions.count)%1;positions.setXYZ(i,-2.58+Math.sin(rise*7+t+i*.2)*.06,-1.35+rise*.70,1.15+Math.cos(rise*9+i)*.045);}
+    for(let i=0;i<positions.count;i++){const rise=(t*.18+i/positions.count)%1;positions.setXYZ(i,-2.58+Math.sin(rise*7+t+i*.2)*.045,-1.35+rise*.70,1.15+Math.cos(rise*9+i)*.035);}
     positions.needsUpdate=true;this.steam.visible=real>.4;
-    this.clouds.position.x=Math.sin(t*.13)*.65;
-    this.terrainCamera.position.x=7+Math.sin(t*.14)*1.0*real;this.terrainCamera.lookAt(0,1.1,0);
+    this.clouds.position.x=Math.sin(t*.1)*.45;
+    this.terrainCamera.position.x=7+Math.sin(t*.1)*.55*real;this.terrainCamera.lookAt(0,1.1,0);
     try {
       if(this.ticks++%3===0||this.paused){this.renderer.setRenderTarget(this.landscape);this.renderer.render(this.terrain,this.terrainCamera);this.renderer.setRenderTarget(null);}
       if(this.ticks%18===0&&real>.3){
