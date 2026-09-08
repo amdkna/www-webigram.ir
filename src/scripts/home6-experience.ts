@@ -61,11 +61,10 @@ setPause();update();
 async function start(){
   started=true;status.hidden=false;
   try{
-    const {HomeScene}=await import('./home6-scene');
+    const {CinematicHomeScene}=await import('./home6-cinematic-scene');
     if(disposed)return;
     host.hidden=false;
-    // First render already has physical materials; sketch and flat stages are HTML/SVG.
-    scene=new HomeScene(canvas,paused||!sceneVisible,fallback);
+    scene=new CinematicHomeScene(canvas,paused||!sceneVisible,fallback);
     scene.setProgress(2);
     enginePaused=paused||!sceneVisible;
     document.body.classList.add('scene-ready');
