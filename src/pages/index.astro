@@ -11,10 +11,6 @@ const nav = [
   ['خانه',0,'home'],['خدمات',1,'services'],['نمونه‌کارها',1,'work'],
   ['قیمت‌ها',1,'pricing'],['درباره‌ما',2,'about'],['تماس با ما',2,'contact']
 ];
-const services = [
-  ['طراحی و توسعه وب‌سایت','◎'],['طراحی UI/UX','✎'],['پنل و ابزارهای اختصاصی','⚙'],
-  ['خودکارسازی فرآیندها','⌘'],['بهینه‌سازی و بهبود عملکرد','↗'],['پشتیبانی و توسعه','◉']
-];
 ---
 <!doctype html>
 <html lang="fa" dir="rtl">
@@ -22,7 +18,7 @@ const services = [
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#ffffff" />
-  <meta name="description" content="وبیگرام؛ از طرح مدادی تا اجرای واقعی ایده‌های دیجیتال." />
+  <meta name="description" content="وبیگرام؛ ایده شما را از طرح اولیه تا یک راهکار دیجیتال واقعی همراهی می‌کند." />
   <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
   <title>وبیگرام | از ایده تا اجرای واقعی</title>
 </head>
@@ -44,10 +40,12 @@ const services = [
               <nav class="nav" aria-label="منوی مرحله طرح اولیه">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='home'?'current':''}>{label}</a>)}</nav>
             </header>
             <div class="copy">
-              <h1>راهکار وب<br/>برای کسب‌وکار شما</h1>
-              <p>ما وب‌سایت‌هایی مدرن، سریع و هدفمند طراحی می‌کنیم تا برند شما در فضای دیجیتال بدرخشد و رشد کند.<br/>از ایده تا اجرا، همراه مطمئن شما هستیم.</p>
-              <div class="actions"><a href="#real" data-jump="2">شروع پروژه <span>←</span></a><a href="#color" data-jump="1">مشاهده نمونه‌کارها <span>←</span></a></div>
-              <div class="benefits"><span><b>✎</b> طراحی اختصاصی</span><i></i><span><b>🚀</b> سئو و سرعت بالا</span><i></i><span><b>◉</b> پشتیبانی و همراهی</span></div>
+              <h1>ایده شما،<br/>نقطه آغاز است</h1>
+              <p>هر پروژه از یک نیاز، مسئله یا ایده آغاز می‌شود.<br/>شما ایده را مطرح می‌کنید؛ ما آن را بررسی می‌کنیم تا مسیر تبدیل آن به یک راهکار واقعی مشخص شود.</p>
+              <div class="actions">
+                <a href="#color" data-jump="1">مشاهده مسیر اجرا <span>←</span></a>
+                <a href={`${base}services/`}>آشنایی با خدمات ما <span>←</span></a>
+              </div>
             </div>
           </div>
         </section>
@@ -60,9 +58,12 @@ const services = [
               <nav class="nav" aria-label="منوی مرحله طراحی رنگی">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='services'?'current':''}>{label}</a>)}</nav>
             </header>
             <div class="copy">
-              <h2>آنچه برای<br/><em>کسب‌وکار</em> شما می‌سازیم</h2>
-              <p class="service-intro">خدماتی متناسب با نیاز واقعی کسب‌وکار شما؛<br/>ساده، کاربردی و قابل توسعه</p>
-              <div class="service-list">{services.map(([title,icon])=><div class="service-item"><span>{title}</span><b>{icon}</b></div>)}</div>
+              <h2>ما مسیر اجرای آن را<br/><em>طراحی می‌کنیم</em></h2>
+              <p>نیازها را تحلیل می‌کنیم، ساختار و تجربه کاربری را شکل می‌دهیم و ایده را به یک طرح روشن، منسجم و قابل اجرا تبدیل می‌کنیم.</p>
+              <div class="actions">
+                <a href="#real" data-jump="2">مشاهده نتیجه <span>←</span></a>
+                <a href={`${base}services/`}>آشنایی با خدمات ما <span>←</span></a>
+              </div>
             </div>
           </div>
         </section>
@@ -79,9 +80,12 @@ const services = [
               <nav class="nav" aria-label="منوی مرحله محصول واقعی">{nav.map(([label,step,key])=><a href={`#${step===0?'sketch':step===1?'color':'real'}`} data-jump={step} class={key==='services'?'current':''}>{label}</a>)}</nav>
             </header>
             <div class="copy">
-              <span class="badge">✦ ایده را به واقعیت تبدیل می‌کنیم ✦</span>
-              <h2>برای ایده‌های<br/><em>شما</em> راه می‌سازیم</h2>
-              <p>ایده‌های خوب نباید فقط در ذهن باقی بمانند.<br/>ما کمک می‌کنیم مسیر اجرای ایده‌تان روشن شود و قدم‌به‌قدم آن را به یک وب‌سایت، پنل یا ابزار کاربردی تبدیل می‌کنیم.</p>
+              <h2>ایده شما را به<br/><em>واقعیت تبدیل می‌کنیم</em></h2>
+              <p>از طراحی و توسعه تا استقرار و بهبود، طرح نهایی را به یک وب‌سایت، اپلیکیشن، سامانه یا ابزار اختصاصی واقعی و قابل استفاده تبدیل می‌کنیم.</p>
+              <div class="actions">
+                <a href={`${base}services/`}>شروع همکاری <span>←</span></a>
+                <a href={`${base}services/#services-list`}>مشاهده خدمات <span>←</span></a>
+              </div>
             </div>
           </div>
         </section>
