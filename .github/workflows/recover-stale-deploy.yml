@@ -1,0 +1,32 @@
+name: Recover Stale Production Deployment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/recover-stale-deploy.yml
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+# This workflow is deliberately the only place allowed to cancel a member of
+# the production concurrency group. It is used when a deploy has already passed
+# public health checks but the Actions runner is stuck while finishing bookkeeping.
+concurrency:
+  group: webigram-production
+  cancel-in-progress: true
+
+jobs:
+  recover:
+    name: Clear stale deploy and queue normal deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Queue the normal production workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref main
+          echo "Queued the normal production deployment from main."
