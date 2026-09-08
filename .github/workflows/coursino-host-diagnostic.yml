@@ -1,0 +1,36 @@
+name: Diagnose Coursino host from Webigram runner
+
+on:
+  push:
+    branches:
+      - ops/coursino-host-diagnostic
+    paths:
+      - '.github/workflows/coursino-host-diagnostic.yml'
+
+jobs:
+  diagnose:
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 8
+    steps:
+      - name: Inspect Coursino Live host
+        shell: bash
+        run: |
+          set -u
+          echo '=== host/time ==='
+          hostname || true
+          date -Is || true
+          echo '=== containers ==='
+          docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' | grep -E 'coursino|livekit' || true
+          echo '=== coursino source markers ==='
+          ls -la /opt/apps/live.webigram.ir | sed -n '1,80p' || true
+          echo '=== app logs last 30m ==='
+          docker logs --since 30m coursino-live 2>&1 | sed -E 's#rtmps?://[^ ]+#RTMP_URL_REDACTED#g' | tail -n 320 || true
+          echo '=== egress logs last 30m ==='
+          docker logs --since 30m coursino-live-egress 2>&1 | sed -E 's#rtmps?://[^ ]+#RTMP_URL_REDACTED#g' | tail -n 420 || true
+          echo '=== state files ==='
+          for f in /opt/apps/live.webigram.ir/data/aparat-egress.json /opt/apps/live.webigram.ir/data/arvan-egress.json; do
+            echo "--- ${f##*/} ---"
+            if [ -f "$f" ]; then cat "$f"; else echo missing; fi
+          done
+          echo '=== git connectivity test ==='
+          timeout 12s git ls-remote git@github.com:amdkna/www-coursino-live.git HEAD 2>&1 || true
