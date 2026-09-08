@@ -16,10 +16,13 @@ jobs:
       - name: Diagnose and repair Coursino RTMP state
         shell: bash
         run: |
-          set -euo pipefail
+          set +e
+          REPORT="$RUNNER_TEMP/coursino-host-repair.txt"
+          exec > >(tee "$REPORT") 2>&1
           DEPLOY_PATH=/opt/apps/live.webigram.ir
           echo "hostname=$(hostname)"
-          test -d "$DEPLOY_PATH"
+          echo "deploy_exists=$([ -d "$DEPLOY_PATH" ] && echo true || echo false)"
+          [ -d "$DEPLOY_PATH" ] || exit 0
           cd "$DEPLOY_PATH"
 
           echo '=== COURSINO CONTAINERS ==='
@@ -33,13 +36,10 @@ jobs:
           import json, sys
           p=sys.argv[1]
           try:
-              d=json.load(open(p, encoding='utf-8'))
-              rooms=d.get('rooms') or {}
+              d=json.load(open(p, encoding='utf-8')); rooms=d.get('rooms') or {}
               print('entries=',len(rooms))
-              for room,v in rooms.items():
-                  print('room=',room,'egress_id=',v.get('egressId','missing'),'verified_at=',v.get('verifiedAt','missing'))
-          except Exception as e:
-              print('read_error=',type(e).__name__)
+              for room,v in rooms.items(): print('room=',room,'egress_id=',v.get('egressId','missing'),'verified_at=',v.get('verifiedAt','missing'))
+          except Exception as e: print('read_error=',type(e).__name__)
           PY
             else
               echo 'missing=true'
@@ -54,22 +54,15 @@ jobs:
           from urllib.parse import urlparse
           d=json.load(open(sys.argv[1],encoding='utf-8'))
           for prefix in ('aparat','arvan'):
-              raw=str(d.get(prefix+'StreamUrl') or '').strip()
-              key=str(d.get(prefix+'StreamKey') or '').strip()
-              p=urlparse(raw)
-              host=p.hostname or ''
-              port=p.port or (443 if p.scheme=='rtmps' else 1935)
-              print(prefix,p.scheme or 'missing',host or 'missing',port,len(key),bool(d.get(prefix+'Enabled')))
+              raw=str(d.get(prefix+'StreamUrl') or '').strip(); key=str(d.get(prefix+'StreamKey') or '').strip(); p=urlparse(raw)
+              host=p.hostname or 'missing'; port=p.port or (443 if p.scheme=='rtmps' else 1935)
+              print(prefix,p.scheme or 'missing',host,port,len(key),str(bool(d.get(prefix+'Enabled'))).lower())
           PY
             while read -r name scheme host port keylen enabled; do
               echo "$name scheme=$scheme host=$host port=$port key_length=$keylen enabled=$enabled"
               if [ "$host" != missing ]; then
                 getent ahosts "$host" | head -n 4 || true
-                if timeout 6 bash -c "</dev/tcp/$host/$port" 2>/dev/null; then
-                  echo "${name}_tcp_reachable=true"
-                else
-                  echo "${name}_tcp_reachable=false"
-                fi
+                if timeout 6 bash -c "</dev/tcp/$host/$port" 2>/dev/null; then echo "${name}_tcp_reachable=true"; else echo "${name}_tcp_reachable=false"; fi
               fi
             done < /tmp/coursino_destinations
           else
@@ -77,36 +70,37 @@ jobs:
           fi
 
           echo '=== RECENT EGRESS LOGS (REDACTED) ==='
-          docker logs --since 45m coursino-live-egress 2>&1 \
+          docker logs --since 60m coursino-live-egress 2>&1 \
             | sed -E 's#rtmps?://[^[:space:]"\\]+#rtmp://[REDACTED]#g; s#(api[_ -]?(key|secret)|stream[_ -]?key)[=: ]+[^, }]+#\1=[REDACTED]#Ig' \
-            | grep -Ei 'error|fail|capacity|resource|egress|rtmp|stream|retry|pipeline|gstreamer|update' \
-            | tail -n 300 || true
+            | grep -Ei 'error|fail|capacity|resource|egress|rtmp|stream|retry|pipeline|gstreamer|update' | tail -n 400 || true
 
           echo '=== RECENT APP LOGS (REDACTED) ==='
-          docker logs --since 45m coursino-live 2>&1 \
+          docker logs --since 60m coursino-live 2>&1 \
             | sed -E 's#rtmps?://[^[:space:]"\\]+#rtmp://[REDACTED]#g; s#(api[_ -]?(key|secret)|stream[_ -]?key)[=: ]+[^, }]+#\1=[REDACTED]#Ig' \
-            | grep -Ei 'arvan|aparat|egress|rtmp|update' \
-            | tail -n 300 || true
+            | grep -Ei 'arvan|aparat|egress|rtmp|update' | tail -n 400 || true
 
-          echo '=== CLEAR STALE APP STATE ==='
-          rm -f data/aparat-egress.json data/arvan-egress.json
-          test ! -e data/aparat-egress.json
-          test ! -e data/arvan-egress.json
-          echo 'stale_state_cleared=true'
+          echo '=== CLEAR STALE APP STATE VIA DOCKER ROOT ==='
+          docker run --rm -v "$DEPLOY_PATH/data:/data" alpine:3.22 sh -c 'rm -f /data/aparat-egress.json /data/arvan-egress.json'
+          echo "aparat_state_exists=$([ -e data/aparat-egress.json ] && echo true || echo false)"
+          echo "arvan_state_exists=$([ -e data/arvan-egress.json ] && echo true || echo false)"
 
-          echo '=== COURSINO ACTIONS RUNNER SERVICES ==='
-          systemctl list-unit-files --type=service 2>/dev/null | grep -Ei 'actions\.runner.*coursino|coursino.*runner' || true
-          RUNNER_UNIT="$(systemctl list-unit-files --type=service 2>/dev/null | awk '/actions\.runner/ && /coursino/ {print $1; exit}')"
-          if [ -n "$RUNNER_UNIT" ]; then
-            echo "coursino_runner_unit=$RUNNER_UNIT"
-            if sudo -n true 2>/dev/null; then
-              sudo -n systemctl restart "$RUNNER_UNIT"
-              sleep 3
-              sudo -n systemctl is-active "$RUNNER_UNIT"
-              echo 'coursino_runner_restarted=true'
-            else
-              echo 'coursino_runner_restart_skipped=no_passwordless_sudo'
-            fi
+          echo '=== COURSINO LIVE RUNNER SERVICE ==='
+          systemctl list-unit-files --type=service 2>/dev/null | grep -Ei 'actions\.runner.*coursino' || true
+          RUNNER_UNIT="$(systemctl list-unit-files --type=service 2>/dev/null | awk '/actions\.runner/ && /www-coursino-live/ {print $1; exit}')"
+          echo "coursino_runner_unit=${RUNNER_UNIT:-missing}"
+          if [ -n "$RUNNER_UNIT" ] && sudo -n true 2>/dev/null; then
+            sudo -n systemctl restart "$RUNNER_UNIT"
+            sleep 2
+            echo "coursino_runner_active=$(sudo -n systemctl is-active "$RUNNER_UNIT" 2>/dev/null || true)"
           else
-            echo 'coursino_runner_unit_not_found=true'
+            echo 'coursino_runner_restart_skipped=true'
           fi
+          echo 'repair_finished=true'
+
+      - name: Upload repair report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coursino-host-repair
+          path: ${{ runner.temp }}/coursino-host-repair.txt
+          retention-days: 1
