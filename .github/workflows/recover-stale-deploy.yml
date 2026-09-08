@@ -28,13 +28,26 @@ jobs:
             -H 'Accept: application/vnd.github+json' \
             "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}/cancel" || true
 
-          for i in $(seq 1 20); do
+          for i in $(seq 1 5); do
             STATUS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.status')
             CONCLUSION=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.conclusion // ""')
-            echo "attempt=$i status=$STATUS conclusion=$CONCLUSION"
+            echo "normal_cancel_attempt=$i status=$STATUS conclusion=$CONCLUSION"
             [ "$STATUS" = "completed" ] && exit 0
-            sleep 3
+            sleep 2
           done
 
-          echo 'Stale workflow did not acknowledge cancellation.' >&2
+          echo 'Normal cancellation was not acknowledged; force-cancelling stale run.'
+          gh api --method POST \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}/force-cancel"
+
+          for i in $(seq 1 10); do
+            STATUS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.status')
+            CONCLUSION=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.conclusion // ""')
+            echo "force_cancel_attempt=$i status=$STATUS conclusion=$CONCLUSION"
+            [ "$STATUS" = "completed" ] && exit 0
+            sleep 2
+          done
+
+          echo 'Stale workflow remained active even after force-cancel.' >&2
           exit 1
