@@ -1,0 +1,72 @@
+name: Coursino Live read-only diagnostics
+
+on:
+  push:
+    branches:
+      - diagnostics/coursino-host-repair
+    paths:
+      - '.github/workflows/coursino-live-readonly-diagnostics.yml'
+
+jobs:
+  diagnose:
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 5
+    steps:
+      - name: Inspect external stream failure
+        shell: bash
+        run: |
+          set +e
+          DEPLOY_PATH=/opt/apps/live.webigram.ir
+          cd "$DEPLOY_PATH" || exit 1
+          echo '=== TIME / HOST ==='
+          date -Is
+          hostname
+
+          echo '=== CONTAINERS ==='
+          docker ps --format 'table {{.Names}}\t{{.Status}}' | grep -E 'coursino-live($|-)' || true
+
+          echo '=== PERSISTED STATE ==='
+          for file in data/aparat-egress.json data/arvan-egress.json; do
+            echo "-- $file"
+            if [ -f "$file" ]; then
+              python3 - "$file" <<'PY'
+          import json,sys
+          p=sys.argv[1]
+          try:
+              d=json.load(open(p,encoding='utf-8')); rooms=d.get('rooms') or {}
+              print('entries=',len(rooms))
+              for room,v in rooms.items(): print('room=',room,'egress_id=',v.get('egressId','missing'),'verified_at=',v.get('verifiedAt','missing'))
+          except Exception as e: print('read_error=',type(e).__name__)
+          PY
+            else
+              echo 'missing=true'
+            fi
+          done
+
+          echo '=== DESTINATION SHAPE / TCP ==='
+          SETTINGS_FILE="$DEPLOY_PATH/data/settings.json"
+          python3 - "$SETTINGS_FILE" <<'PY' > /tmp/coursino_destinations 2>/dev/null || true
+          import json,sys
+          from urllib.parse import urlparse
+          d=json.load(open(sys.argv[1],encoding='utf-8'))
+          for prefix in ('aparat','arvan'):
+              raw=str(d.get(prefix+'StreamUrl') or '').strip(); key=str(d.get(prefix+'StreamKey') or '').strip(); p=urlparse(raw)
+              host=p.hostname or 'missing'; port=p.port or (443 if p.scheme=='rtmps' else 1935)
+              print(prefix,p.scheme or 'missing',host,port,len(key),str(bool(d.get(prefix+'Enabled'))).lower())
+          PY
+          while read -r name scheme host port keylen enabled; do
+            echo "$name scheme=$scheme host=$host port=$port key_length=$keylen enabled=$enabled"
+            if [ "$host" != missing ]; then
+              if timeout 5 bash -c "</dev/tcp/$host/$port" 2>/dev/null; then echo "${name}_tcp=true"; else echo "${name}_tcp=false"; fi
+            fi
+          done < /tmp/coursino_destinations
+
+          echo '=== APP LOGS LAST 20 MIN (REDACTED) ==='
+          docker logs --since 20m coursino-live 2>&1 \
+            | sed -E 's#rtmps?://[^[:space:]"\\]+#rtmp://[REDACTED]#g; s#(api[_ -]?(key|secret)|stream[_ -]?key)[=: ]+[^, }]+#\1=[REDACTED]#Ig' \
+            | grep -Ei 'aparat|arvan|egress|rtmp|stream|error|fail|exception' | tail -n 500 || true
+
+          echo '=== EGRESS LOGS LAST 20 MIN (REDACTED) ==='
+          docker logs --since 20m coursino-live-egress 2>&1 \
+            | sed -E 's#rtmps?://[^[:space:]"\\]+#rtmp://[REDACTED]#g; s#(api[_ -]?(key|secret)|stream[_ -]?key)[=: ]+[^, }]+#\1=[REDACTED]#Ig' \
+            | grep -Ei 'egress|rtmp|stream|error|fail|pipeline|gstreamer|resource|capacity|update' | tail -n 700 || true
