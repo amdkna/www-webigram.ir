@@ -1,0 +1,26 @@
+name: Release Coursino diagnostic runner
+
+on:
+  push:
+    branches:
+      - diagnostics/coursino-host-repair
+    paths:
+      - '.github/workflows/release-coursino-diagnostic-runner.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Force cancel completed-but-stuck diagnostic run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          gh api --method POST repos/${GITHUB_REPOSITORY}/actions/runs/34205170364/force-cancel
+          gh api --method POST repos/${GITHUB_REPOSITORY}/actions/runs/34205170364/cancel
+          exit 0
