@@ -11,22 +11,30 @@ permissions:
   actions: write
   contents: read
 
-# This workflow is deliberately the only place allowed to cancel a member of
-# the production concurrency group. It is used when a deploy has already passed
-# public health checks but the Actions runner is stuck while finishing bookkeeping.
-concurrency:
-  group: webigram-production
-  cancel-in-progress: true
-
+# One-shot recovery for a deploy that already passed public health checks but
+# remained stuck in the self-hosted runner's final bookkeeping step.
 jobs:
   recover:
-    name: Clear stale deploy and queue normal deployment
+    name: Cancel stale production run
     runs-on: ubuntu-latest
     steps:
-      - name: Queue the normal production workflow
+      - name: Cancel stale deployment run 73
         env:
           GH_TOKEN: ${{ github.token }}
+          STALE_RUN_ID: '34279175513'
         run: |
           set -euo pipefail
-          gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref main
-          echo "Queued the normal production deployment from main."
+          gh api --method POST \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}/cancel" || true
+
+          for i in $(seq 1 20); do
+            STATUS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.status')
+            CONCLUSION=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STALE_RUN_ID}" --jq '.conclusion // ""')
+            echo "attempt=$i status=$STATUS conclusion=$CONCLUSION"
+            [ "$STATUS" = "completed" ] && exit 0
+            sleep 3
+          done
+
+          echo 'Stale workflow did not acknowledge cancellation.' >&2
+          exit 1
