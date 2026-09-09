@@ -13,24 +13,69 @@ permissions:
 jobs:
   deploy:
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 15
+    timeout-minutes: 10
     env:
       APP_DIR: /opt/apps/mon.webigram.ir
-      DEPLOY_IMAGE: git-monitor-local:webigram-ops
+      DEPLOY_IMAGE: git-monitor-local:webigram-ops-v2
     steps:
       - name: Verify monitor source on server
         run: |
           set -euo pipefail
-          test -f "$APP_DIR/Dockerfile"
           test -f "$APP_DIR/package.json"
-          test -f "$APP_DIR/docker-compose.yml"
           test -f "$APP_DIR/db/init.sql"
           test -f "$APP_DIR/.env"
 
-      - name: Build monitor image locally
+      - name: Apply fixed runtime files from monitor main
         run: |
           set -euo pipefail
-          docker build --tag "$DEPLOY_IMAGE" "$APP_DIR"
+
+          cat > "$APP_DIR/Dockerfile" <<'DOCKERFILE'
+          FROM node:22-alpine AS deps
+          WORKDIR /app
+          COPY package.json ./
+          RUN npm install
+
+          FROM node:22-alpine AS builder
+          WORKDIR /app
+          ENV NEXT_TELEMETRY_DISABLED=1
+          COPY --from=deps /app/node_modules ./node_modules
+          COPY . .
+          RUN npm run build
+
+          FROM node:22-alpine AS runner
+          WORKDIR /app
+          ENV NODE_ENV=production
+          ENV NEXT_TELEMETRY_DISABLED=1
+          ENV HOSTNAME=0.0.0.0
+          ENV PORT=3000
+          COPY --from=builder /app/.next/standalone ./
+          COPY --from=builder /app/.next/static ./.next/static
+          COPY --from=builder /app/public ./public
+          COPY --from=deps /app/node_modules ./node_modules
+          COPY --from=builder /app/package.json ./package.json
+          COPY --from=builder /app/worker ./worker
+          EXPOSE 3000
+          CMD ["node", "server.js"]
+          DOCKERFILE
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('/opt/apps/mon.webigram.ir/docker-compose.yml')
+          s = p.read_text()
+          old = 'test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health"]'
+          new = 'test: ["CMD", "node", "-e", "fetch(\'http://127.0.0.1:3000/api/health\').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]'
+          if old in s:
+              s = s.replace(old, new)
+          p.write_text(s)
+          PY
+
+          grep -q 'CMD \["node", "server.js"\]' "$APP_DIR/Dockerfile"
+          grep -q "fetch('http://127.0.0.1:3000/api/health')" "$APP_DIR/docker-compose.yml"
+
+      - name: Build fixed monitor image locally
+        run: |
+          set -euo pipefail
+          timeout 180s docker build --tag "$DEPLOY_IMAGE" "$APP_DIR"
           docker image inspect "$DEPLOY_IMAGE" >/dev/null
 
       - name: Start monitor stack
@@ -38,31 +83,42 @@ jobs:
           set -euo pipefail
           cd "$APP_DIR"
           docker network inspect public_proxy >/dev/null 2>&1 || docker network create public_proxy
-          APP_IMAGE="$DEPLOY_IMAGE" docker compose up -d --remove-orphans --no-build
+          timeout 120s env APP_IMAGE="$DEPLOY_IMAGE" docker compose up -d --remove-orphans --no-build
           APP_IMAGE="$DEPLOY_IMAGE" docker compose ps
 
-      - name: Verify health
+      - name: Verify health and public endpoint
         run: |
           set -euo pipefail
           healthy=0
-          for i in $(seq 1 40); do
+          for i in $(seq 1 30); do
             STATUS=$(docker inspect --format='{{.State.Health.Status}}' git-monitor-web 2>/dev/null || true)
-            CODE=$(curl -sS -o /tmp/git-monitor-health.json -w '%{http_code}' --connect-timeout 2 --max-time 4 http://127.0.0.1:3085/api/health || true)
-            echo "attempt=$i container=$STATUS local_http=$CODE"
-            if [ "$STATUS" = "healthy" ] && [ "$CODE" = "200" ]; then
+            RUNNING=$(docker inspect --format='{{.State.Running}}' git-monitor-web 2>/dev/null || true)
+            CODE=$(curl -sS -o /tmp/git-monitor-health.json -w '%{http_code}' \
+              --connect-timeout 2 --max-time 4 http://127.0.0.1:3085/api/health || true)
+            echo "attempt=$i running=$RUNNING health=$STATUS local_http=$CODE"
+            if [ "$RUNNING" = "true" ] && [ "$STATUS" = "healthy" ] && [ "$CODE" = "200" ]; then
               healthy=1
               break
             fi
             sleep 2
           done
+
           if [ "$healthy" -ne 1 ]; then
-            docker logs --tail=250 git-monitor-web || true
-            docker logs --tail=250 git-monitor-worker || true
-            docker logs --tail=150 git-monitor-db || true
+            echo '=== web logs ==='
+            docker logs --tail=300 git-monitor-web || true
+            echo '=== worker logs ==='
+            docker logs --tail=200 git-monitor-worker || true
             exit 1
           fi
-          docker exec edge-nginx wget -qO- http://git-monitor-web:3000/api/health
-          CODE=$(curl -ksS -o /tmp/mon-public.out -w '%{http_code}' --resolve mon.webigram.ir:443:127.0.0.1 https://mon.webigram.ir/api/health || true)
-          echo "public_http=$CODE"
+
+          timeout 10s docker exec edge-nginx wget -qO- http://git-monitor-web:3000/api/health
+          echo
+
+          PUBLIC_CODE=$(curl -ksS -o /tmp/mon-public.out -w '%{http_code}' \
+            --connect-timeout 3 --max-time 8 \
+            --resolve mon.webigram.ir:443:127.0.0.1 \
+            https://mon.webigram.ir/api/health || true)
+          echo "public_http=$PUBLIC_CODE"
           cat /tmp/mon-public.out || true
-          test "$CODE" = "200"
+          echo
+          test "$PUBLIC_CODE" = "200"
