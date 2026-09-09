@@ -1,0 +1,67 @@
+timestamp=2026-09-09T19:38:51+00:00 host=wbg-001 user=arna
+cached_image=ghcr.io/amdkna/www-git-monitor:3d4218a316872054bce0096756c5fc5a7c0af492
+=== image ===
+id=sha256:a34acc26bba2813063a9f5e16ab6c69a110d98e80a8b3d228678213fd8a3f016 cmd=["npm","run","start"] workdir=/app
+build_id=yes
+next_binary=yes
+worker=yes
+=== before ===
+NAMES                IMAGE                                                                     STATUS                       PORTS
+git-monitor-web      ghcr.io/amdkna/www-git-monitor:a319b7673916fea20918d2a6c13c5fb4c51832ed   Up 2 minutes (healthy)       127.0.0.1:3085->3000/tcp
+git-monitor-worker   ghcr.io/amdkna/www-git-monitor:a319b7673916fea20918d2a6c13c5fb4c51832ed   Up 16 minutes                3000/tcp
+git-monitor-db       postgres:17-alpine                                                        Up About an hour (healthy)   5432/tcp
+git-monitor-redis    redis:7.4-alpine                                                          Up About an hour (healthy)   6379/tcp
+=== compose up, offline ===
+ Container git-monitor-redis Running 
+ Container git-monitor-db Running 
+ Container git-monitor-worker Recreate 
+ Container git-monitor-web Recreate 
+ Container git-monitor-web Recreated 
+ Container git-monitor-worker Recreated 
+ Container git-monitor-db Waiting 
+ Container git-monitor-db Waiting 
+ Container git-monitor-redis Waiting 
+ Container git-monitor-redis Waiting 
+ Container git-monitor-db Healthy 
+ Container git-monitor-redis Healthy 
+ Container git-monitor-web Starting 
+ Container git-monitor-redis Healthy 
+ Container git-monitor-db Healthy 
+ Container git-monitor-worker Starting 
+ Container git-monitor-worker Started 
+ Container git-monitor-web Started 
+NAME                 IMAGE                                                                     COMMAND                  SERVICE   CREATED             STATUS                           PORTS
+git-monitor-db       postgres:17-alpine                                                        "docker-entrypoint.s…"   db        About an hour ago   Up About an hour (healthy)       5432/tcp
+git-monitor-redis    redis:7.4-alpine                                                          "docker-entrypoint.s…"   redis     About an hour ago   Up About an hour (healthy)       6379/tcp
+git-monitor-web      ghcr.io/amdkna/www-git-monitor:3d4218a316872054bce0096756c5fc5a7c0af492   "docker-entrypoint.s…"   app       7 seconds ago       Up 1 second (health: starting)   127.0.0.1:3085->3000/tcp
+git-monitor-worker   ghcr.io/amdkna/www-git-monitor:3d4218a316872054bce0096756c5fc5a7c0af492   "docker-entrypoint.s…"   worker    7 seconds ago       Up 1 second                      3000/tcp
+attempt=1 running=true health=starting http=000
+attempt=2 running=true health=starting http=200
+=== web logs ===
+
+> webigram-monitor@0.1.0 start
+> next start
+
+▲ Next.js 16.3.0
+- Local:         http://localhost:3000
+- Network:       http://172.26.0.4:3000
+✓ Ready in 214ms
+✓ Running next.config.ts took 46ms
+⚠ "next start" does not work with "output: standalone" configuration. Use "node .next/standalone/server.js" instead.
+=== worker logs ===
+
+> webigram-monitor@0.1.0 worker
+> node worker/worker.mjs
+
+[2026-09-09T19:39:03.630Z] worker starting poll=15s concurrency=6 backfill=24h
+Sync cycle failed: GITLAB_URL and GITLAB_TOKEN must be configured in .env
+public_http=502
+<html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx/1.30.4</center>
+</body>
+</html>
+
+recovery_rc=2
