@@ -7,16 +7,22 @@ on:
       - .github/workflows/deploy-git-monitor-ops.yml
   workflow_dispatch:
 
+concurrency:
+  group: git-monitor-ops-recovery
+  cancel-in-progress: true
+
 permissions:
   contents: read
+  packages: read
 
 jobs:
   deploy:
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 10
+    timeout-minutes: 8
     env:
       APP_DIR: /opt/apps/mon.webigram.ir
-      DEPLOY_IMAGE: git-monitor-local:webigram-ops-v2
+      DEPLOY_IMAGE: ghcr.io/amdkna/www-git-monitor:fc373ad28452e1ee32f43a755890432b306d5745
+      FALLBACK_IMAGE: git-monitor-local:webigram-ops-v3
     steps:
       - name: Verify monitor source on server
         run: |
@@ -69,22 +75,31 @@ jobs:
           p.write_text(s)
           PY
 
-          grep -q 'CMD \["node", "server.js"\]' "$APP_DIR/Dockerfile"
-          grep -q "fetch('http://127.0.0.1:3000/api/health')" "$APP_DIR/docker-compose.yml"
-
-      - name: Build fixed monitor image locally
+      - name: Acquire fixed monitor image
+        id: image
         run: |
           set -euo pipefail
-          timeout 180s docker build --tag "$DEPLOY_IMAGE" "$APP_DIR"
-          docker image inspect "$DEPLOY_IMAGE" >/dev/null
+
+          if timeout 90s docker pull "$DEPLOY_IMAGE"; then
+            echo "image=$DEPLOY_IMAGE" >> "$GITHUB_OUTPUT"
+            echo "Using published GHCR image $DEPLOY_IMAGE"
+            exit 0
+          fi
+
+          echo 'GHCR pull unavailable from this runner; building local fallback.'
+          timeout 180s docker build --tag "$FALLBACK_IMAGE" "$APP_DIR"
+          docker image inspect "$FALLBACK_IMAGE" >/dev/null
+          echo "image=$FALLBACK_IMAGE" >> "$GITHUB_OUTPUT"
 
       - name: Start monitor stack
+        env:
+          RESOLVED_IMAGE: ${{ steps.image.outputs.image }}
         run: |
           set -euo pipefail
           cd "$APP_DIR"
           docker network inspect public_proxy >/dev/null 2>&1 || docker network create public_proxy
-          timeout 120s env APP_IMAGE="$DEPLOY_IMAGE" docker compose up -d --remove-orphans --no-build
-          APP_IMAGE="$DEPLOY_IMAGE" docker compose ps
+          timeout 120s env APP_IMAGE="$RESOLVED_IMAGE" docker compose up -d --remove-orphans --no-build
+          APP_IMAGE="$RESOLVED_IMAGE" docker compose ps
 
       - name: Verify health and public endpoint
         run: |
