@@ -1,4 +1,4 @@
-name: Deploy Git Monitor Ops
+name: Recover Git Monitor from Known Cached Image
 
 on:
   push:
@@ -8,132 +8,107 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: git-monitor-ops-recovery
+  group: git-monitor-known-cache-webigram-v1
   cancel-in-progress: true
 
 permissions:
-  contents: read
-  packages: read
+  contents: write
 
 jobs:
-  deploy:
+  recover:
     runs-on: [self-hosted, Linux, X64]
-    timeout-minutes: 8
+    timeout-minutes: 5
     env:
       APP_DIR: /opt/apps/mon.webigram.ir
-      DEPLOY_IMAGE: ghcr.io/amdkna/www-git-monitor:fc373ad28452e1ee32f43a755890432b306d5745
-      FALLBACK_IMAGE: git-monitor-local:webigram-ops-v3
+      CACHED_IMAGE: ghcr.io/amdkna/www-git-monitor:3d4218a316872054bce0096756c5fc5a7c0af492
     steps:
-      - name: Verify monitor source on server
-        run: |
-          set -euo pipefail
-          test -f "$APP_DIR/package.json"
-          test -f "$APP_DIR/db/init.sql"
-          test -f "$APP_DIR/.env"
-
-      - name: Apply fixed runtime files from monitor main
-        run: |
-          set -euo pipefail
-
-          cat > "$APP_DIR/Dockerfile" <<'DOCKERFILE'
-          FROM node:22-alpine AS deps
-          WORKDIR /app
-          COPY package.json ./
-          RUN npm install
-
-          FROM node:22-alpine AS builder
-          WORKDIR /app
-          ENV NEXT_TELEMETRY_DISABLED=1
-          COPY --from=deps /app/node_modules ./node_modules
-          COPY . .
-          RUN npm run build
-
-          FROM node:22-alpine AS runner
-          WORKDIR /app
-          ENV NODE_ENV=production
-          ENV NEXT_TELEMETRY_DISABLED=1
-          ENV HOSTNAME=0.0.0.0
-          ENV PORT=3000
-          COPY --from=builder /app/.next/standalone ./
-          COPY --from=builder /app/.next/static ./.next/static
-          COPY --from=builder /app/public ./public
-          COPY --from=deps /app/node_modules ./node_modules
-          COPY --from=builder /app/package.json ./package.json
-          COPY --from=builder /app/worker ./worker
-          EXPOSE 3000
-          CMD ["node", "server.js"]
-          DOCKERFILE
-
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('/opt/apps/mon.webigram.ir/docker-compose.yml')
-          s = p.read_text()
-          old = 'test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health"]'
-          new = 'test: ["CMD", "node", "-e", "fetch(\'http://127.0.0.1:3000/api/health\').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]'
-          if old in s:
-              s = s.replace(old, new)
-          p.write_text(s)
-          PY
-
-      - name: Acquire fixed monitor image
-        id: image
-        run: |
-          set -euo pipefail
-
-          if timeout 90s docker pull "$DEPLOY_IMAGE"; then
-            echo "image=$DEPLOY_IMAGE" >> "$GITHUB_OUTPUT"
-            echo "Using published GHCR image $DEPLOY_IMAGE"
-            exit 0
-          fi
-
-          echo 'GHCR pull unavailable from this runner; building local fallback.'
-          timeout 180s docker build --tag "$FALLBACK_IMAGE" "$APP_DIR"
-          docker image inspect "$FALLBACK_IMAGE" >/dev/null
-          echo "image=$FALLBACK_IMAGE" >> "$GITHUB_OUTPUT"
-
-      - name: Start monitor stack
+      - name: Start cached monitor image without network
+        shell: bash
         env:
-          RESOLVED_IMAGE: ${{ steps.image.outputs.image }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          cd "$APP_DIR"
-          docker network inspect public_proxy >/dev/null 2>&1 || docker network create public_proxy
-          timeout 120s env APP_IMAGE="$RESOLVED_IMAGE" docker compose up -d --remove-orphans --no-build
-          APP_IMAGE="$RESOLVED_IMAGE" docker compose ps
+          set -uo pipefail
+          DIAG="$RUNNER_TEMP/monitor-known-cache.txt"
+          : > "$DIAG"
+          exec > >(tee -a "$DIAG") 2>&1
+          rc=1
 
-      - name: Verify health and public endpoint
-        run: |
-          set -euo pipefail
-          healthy=0
-          for i in $(seq 1 30); do
-            STATUS=$(docker inspect --format='{{.State.Health.Status}}' git-monitor-web 2>/dev/null || true)
-            RUNNING=$(docker inspect --format='{{.State.Running}}' git-monitor-web 2>/dev/null || true)
-            CODE=$(curl -sS -o /tmp/git-monitor-health.json -w '%{http_code}' \
-              --connect-timeout 2 --max-time 4 http://127.0.0.1:3085/api/health || true)
-            echo "attempt=$i running=$RUNNING health=$STATUS local_http=$CODE"
-            if [ "$RUNNING" = "true" ] && [ "$STATUS" = "healthy" ] && [ "$CODE" = "200" ]; then
-              healthy=1
-              break
-            fi
-            sleep 2
-          done
-
-          if [ "$healthy" -ne 1 ]; then
-            echo '=== web logs ==='
-            docker logs --tail=300 git-monitor-web || true
-            echo '=== worker logs ==='
-            docker logs --tail=200 git-monitor-worker || true
-            exit 1
+          echo "timestamp=$(date -Is) host=$(hostname) user=$(id -un)"
+          echo "cached_image=$CACHED_IMAGE"
+          echo '=== image ==='
+          if ! docker image inspect "$CACHED_IMAGE" >/dev/null 2>&1; then
+            echo 'cached image missing'
+            rc=30
+          else
+            docker image inspect --format 'id={{.Id}} cmd={{json .Config.Cmd}} workdir={{.Config.WorkingDir}}' "$CACHED_IMAGE" || true
+            timeout 10s docker run --rm --entrypoint sh "$CACHED_IMAGE" -lc '
+              test -f /app/.next/BUILD_ID && echo build_id=yes || echo build_id=no
+              test -x /app/node_modules/.bin/next && echo next_binary=yes || echo next_binary=no
+              test -f /app/worker/worker.mjs && echo worker=yes || echo worker=no
+            ' || true
           fi
 
-          timeout 10s docker exec edge-nginx wget -qO- http://git-monitor-web:3000/api/health
-          echo
+          if [ "$rc" -eq 1 ]; then
+            cd "$APP_DIR"
+            test -f docker-compose.yml || { echo 'docker-compose.yml missing'; rc=31; }
+            test -f .env || { echo '.env missing'; rc=32; }
+            docker network inspect public_proxy >/dev/null 2>&1 || { echo 'public_proxy missing'; rc=33; }
+          fi
 
-          PUBLIC_CODE=$(curl -ksS -o /tmp/mon-public.out -w '%{http_code}' \
-            --connect-timeout 3 --max-time 8 \
-            --resolve mon.webigram.ir:443:127.0.0.1 \
-            https://mon.webigram.ir/api/health || true)
-          echo "public_http=$PUBLIC_CODE"
-          cat /tmp/mon-public.out || true
-          echo
-          test "$PUBLIC_CODE" = "200"
+          if [ "$rc" -eq 1 ]; then
+            cat > /tmp/git-monitor-known.override.yml <<YAML
+          services:
+            app:
+              image: $CACHED_IMAGE
+              command: ["npm", "run", "start"]
+              healthcheck:
+                test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+                interval: 5s
+                timeout: 4s
+                retries: 20
+                start_period: 5s
+            worker:
+              image: $CACHED_IMAGE
+              command: ["npm", "run", "worker"]
+          YAML
+
+            echo '=== before ==='
+            docker ps -a --filter name='git-monitor-' --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}' || true
+
+            echo '=== compose up, offline ==='
+            timeout 70s env APP_IMAGE="$CACHED_IMAGE" docker compose -f docker-compose.yml -f /tmp/git-monitor-known.override.yml up -d --remove-orphans --no-build --pull never || true
+            APP_IMAGE="$CACHED_IMAGE" docker compose -f docker-compose.yml -f /tmp/git-monitor-known.override.yml ps || true
+
+            for i in $(seq 1 25); do
+              code=$(curl -sS -o /tmp/health.out -w '%{http_code}' --connect-timeout 2 --max-time 4 http://127.0.0.1:3085/api/health 2>/dev/null || true)
+              running=$(docker inspect --format='{{.State.Running}}' git-monitor-web 2>/dev/null || true)
+              health=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{end}}' git-monitor-web 2>/dev/null || true)
+              echo "attempt=$i running=$running health=$health http=$code"
+              if [ "$running" = true ] && [ "$code" = 200 ]; then rc=0; break; fi
+              sleep 2
+            done
+
+            echo '=== web logs ==='
+            docker logs --tail=180 git-monitor-web 2>&1 || true
+            echo '=== worker logs ==='
+            docker logs --tail=100 git-monitor-worker 2>&1 || true
+
+            if [ "$rc" -eq 0 ]; then
+              public=$(curl -ksS -o /tmp/public.out -w '%{http_code}' --connect-timeout 3 --max-time 8 --resolve mon.webigram.ir:443:127.0.0.1 https://mon.webigram.ir/api/health 2>/dev/null || true)
+              echo "public_http=$public"
+              cat /tmp/public.out || true
+              echo
+              [ "$public" = 200 ] || rc=2
+            fi
+          fi
+
+          echo "recovery_rc=$rc"
+          content=$(base64 -w0 "$DIAG")
+          api="/repos/${GITHUB_REPOSITORY}/contents/ops/monitor-known-cache.txt"
+          sha=$(gh api "$api?ref=${GITHUB_REF_NAME}" --jq '.sha' 2>/dev/null || true)
+          if [ -n "$sha" ]; then
+            gh api --method PUT "$api" -f message='ops: update monitor recovery result' -f content="$content" -f sha="$sha" -f branch="$GITHUB_REF_NAME" >/dev/null || true
+          else
+            gh api --method PUT "$api" -f message='ops: add monitor recovery result' -f content="$content" -f branch="$GITHUB_REF_NAME" >/dev/null || true
+          fi
+          exit "$rc"
