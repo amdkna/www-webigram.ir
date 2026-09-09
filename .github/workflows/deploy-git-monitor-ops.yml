@@ -1,0 +1,68 @@
+name: Deploy Git Monitor Ops
+
+on:
+  push:
+    branches: [ops-git-monitor-recovery]
+    paths:
+      - .github/workflows/deploy-git-monitor-ops.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    env:
+      APP_DIR: /opt/apps/mon.webigram.ir
+      DEPLOY_IMAGE: git-monitor-local:webigram-ops
+    steps:
+      - name: Verify monitor source on server
+        run: |
+          set -euo pipefail
+          test -f "$APP_DIR/Dockerfile"
+          test -f "$APP_DIR/package.json"
+          test -f "$APP_DIR/docker-compose.yml"
+          test -f "$APP_DIR/db/init.sql"
+          test -f "$APP_DIR/.env"
+
+      - name: Build monitor image locally
+        run: |
+          set -euo pipefail
+          docker build --tag "$DEPLOY_IMAGE" "$APP_DIR"
+          docker image inspect "$DEPLOY_IMAGE" >/dev/null
+
+      - name: Start monitor stack
+        run: |
+          set -euo pipefail
+          cd "$APP_DIR"
+          docker network inspect public_proxy >/dev/null 2>&1 || docker network create public_proxy
+          APP_IMAGE="$DEPLOY_IMAGE" docker compose up -d --remove-orphans --no-build
+          APP_IMAGE="$DEPLOY_IMAGE" docker compose ps
+
+      - name: Verify health
+        run: |
+          set -euo pipefail
+          healthy=0
+          for i in $(seq 1 40); do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' git-monitor-web 2>/dev/null || true)
+            CODE=$(curl -sS -o /tmp/git-monitor-health.json -w '%{http_code}' --connect-timeout 2 --max-time 4 http://127.0.0.1:3085/api/health || true)
+            echo "attempt=$i container=$STATUS local_http=$CODE"
+            if [ "$STATUS" = "healthy" ] && [ "$CODE" = "200" ]; then
+              healthy=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$healthy" -ne 1 ]; then
+            docker logs --tail=250 git-monitor-web || true
+            docker logs --tail=250 git-monitor-worker || true
+            docker logs --tail=150 git-monitor-db || true
+            exit 1
+          fi
+          docker exec edge-nginx wget -qO- http://git-monitor-web:3000/api/health
+          CODE=$(curl -ksS -o /tmp/mon-public.out -w '%{http_code}' --resolve mon.webigram.ir:443:127.0.0.1 https://mon.webigram.ir/api/health || true)
+          echo "public_http=$CODE"
+          cat /tmp/mon-public.out || true
+          test "$CODE" = "200"
