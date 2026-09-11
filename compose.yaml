@@ -44,8 +44,100 @@ services:
       retries: 3
       start_period: 10s
 
+  directus-secrets-init:
+    image: alpine:3.22
+    container_name: webigram-directus-secrets-init
+    restart: "no"
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        umask 077
+        if [ ! -s /secrets/directus_secret ]; then
+          head -c 48 /dev/urandom | base64 | tr -d '\n' > /secrets/directus_secret
+        fi
+        if [ ! -s /secrets/db_password ]; then
+          head -c 36 /dev/urandom | base64 | tr -d '\n' > /secrets/db_password
+        fi
+        chmod 0444 /secrets/directus_secret /secrets/db_password
+    volumes:
+      - directus-secrets:/secrets
+    networks:
+      - cms-net
+
+  directus-db:
+    image: postgres:16-alpine
+    container_name: webigram-directus-db
+    restart: unless-stopped
+    depends_on:
+      directus-secrets-init:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_DB: directus
+      POSTGRES_USER: directus
+      POSTGRES_PASSWORD_FILE: /run/directus-secrets/db_password
+    volumes:
+      - directus-db:/var/lib/postgresql/data
+      - directus-secrets:/run/directus-secrets:ro
+    networks:
+      - cms-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U directus -d directus"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  directus:
+    image: directus/directus:12.3.1
+    container_name: webigram-directus
+    restart: unless-stopped
+    depends_on:
+      directus-secrets-init:
+        condition: service_completed_successfully
+      directus-db:
+        condition: service_healthy
+    environment:
+      SECRET_FILE: /run/directus-secrets/directus_secret
+      PUBLIC_URL: https://cms.webigram.ir
+      DB_CLIENT: pg
+      DB_HOST: directus-db
+      DB_PORT: "5432"
+      DB_DATABASE: directus
+      DB_USER: directus
+      DB_PASSWORD_FILE: /run/directus-secrets/db_password
+      WEBSOCKETS_ENABLED: "true"
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: https://webigram.ir,https://www.webigram.ir
+      MAX_PAYLOAD_SIZE: 100mb
+      FILES_MAX_UPLOAD_SIZE: 100mb
+      TELEMETRY: "false"
+    expose:
+      - "8055"
+    volumes:
+      - directus-uploads:/directus/uploads
+      - directus-extensions:/directus/extensions
+      - directus-secrets:/run/directus-secrets:ro
+    networks:
+      - app-net
+      - cms-net
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8055/server/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
 networks:
   public_proxy:
     external: true
   app-net:
     external: true
+  cms-net:
+    driver: bridge
+
+volumes:
+  directus-db:
+  directus-uploads:
+  directus-extensions:
+  directus-secrets:
