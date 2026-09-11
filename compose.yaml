@@ -118,6 +118,7 @@ services:
       - directus-uploads:/directus/uploads
       - directus-extensions:/directus/extensions
       - directus-secrets:/run/directus-secrets:ro
+      - ./directus/migrations:/directus/migrations:ro
     networks:
       - app-net
       - cms-net

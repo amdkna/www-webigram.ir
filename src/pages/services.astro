@@ -2,50 +2,91 @@
 import '../styles/base.css';
 
 const base = import.meta.env.BASE_URL;
-const services = [
+const cmsUrl = 'https://cms.webigram.ir';
+
+const fallbackServices = [
   {
-    number: '01',
-    title: 'طراحی و توسعه وب‌سایت',
+    slug: 'devops-infrastructure',
+    title: 'DevOps و زیرساخت',
+    icon: '⌁',
+    featured: true,
+    summary: 'از CI/CD و Docker تا مانیتورینگ، امنیت و معماری استقرار؛ زیرساختی می سازیم که قابل اتکا، قابل توسعه و قابل نگهداری باشد.',
+    details: 'طراحی Pipeline، کانتینرسازی، استقرار روی سرور و Cloud، Reverse Proxy، SSL، مانیتورینگ، Backup و مدیریت محیط های توسعه و Production.',
+    tags: ['CI/CD', 'Docker', 'Linux', 'Nginx', 'Monitoring'],
+    cta_label: 'مشاوره DevOps',
+    cta_url: '/#real',
+  },
+  {
+    slug: 'automation',
+    title: 'اتوماسیون و یکپارچه سازی',
+    icon: '⚡',
+    featured: true,
+    summary: 'کارهای تکراری را حذف می کنیم و سیستم ها را به هم وصل می کنیم تا فرآیندهای واقعی مجموعه با دخالت انسانی کمتر و خطای پایین تر اجرا شوند.',
+    details: 'طراحی Workflow، اتصال APIها، فرم ها و CRM، اعلان ها، گزارش گیری، Botها، پردازش فایل و داده و ساخت اتوماسیون های اختصاصی.',
+    tags: ['Automation', 'API', 'Workflow', 'Integration', 'Bots'],
+    cta_label: 'بررسی فرآیند',
+    cta_url: '/#real',
+  },
+  {
+    slug: 'platform-development',
+    title: 'طراحی و ساخت پلتفرم',
+    icon: '◈',
+    featured: true,
+    summary: 'از یک مسئله یا ایده اولیه تا محصول قابل استفاده؛ معماری، تجربه کاربری، Backend، Frontend و استقرار را به صورت یک مسیر یکپارچه جلو می بریم.',
+    details: 'برای پلتفرم های اختصاصی، MVP، SaaS و محصولات داخلی، ابتدا مسئله و جریان کار را مدل می کنیم و بعد راهکار را مرحله به مرحله می سازیم.',
+    tags: ['Platform', 'MVP', 'SaaS', 'Backend', 'Frontend'],
+    cta_label: 'شروع طراحی پلتفرم',
+    cta_url: '/#real',
+  },
+  {
+    slug: 'enterprise-panels',
+    title: 'پنل های سازمانی و داشبورد',
+    icon: '▦',
+    featured: false,
+    summary: 'پنل مدیریتی و ابزار داخلی را دقیقا مطابق فرآیند سازمان می سازیم؛ نه اینکه سازمان را مجبور کنیم خودش را با یک نرم افزار عمومی تطبیق دهد.',
+    details: 'پنل های مدیریت، داشبوردهای عملیاتی، سیستم های ثبت و پیگیری، گزارش ها، نقش ها و سطح دسترسی، گردش تایید و ابزارهای داخلی تحت وب.',
+    tags: ['Admin Panel', 'Dashboard', 'RBAC', 'Reporting', 'Internal Tools'],
+    cta_label: 'طراحی پنل سازمانی',
+    cta_url: '/#real',
+  },
+  {
+    slug: 'web-development',
+    title: 'وب سایت و وب اپلیکیشن',
     icon: '◎',
-    text: 'طراحی و پیاده‌سازی وب‌سایت‌های سریع، مدرن و اختصاصی با تمرکز روی تجربه کاربری، سئو و رشد کسب‌وکار.',
-    tags: ['سایت شرکتی', 'لندینگ پیج', 'فروشگاه', 'وب اپلیکیشن']
+    featured: false,
+    summary: 'سایت شرکتی، لندینگ، ابزار آنلاین یا Web App را با تمرکز روی سرعت، تجربه کاربری، سئو و قابلیت توسعه در آینده طراحی و پیاده سازی می کنیم.',
+    details: 'طراحی رابط، توسعه Frontend و Backend، اتصال CMS، فرم ها، سئو فنی، Analytics، بهینه سازی سرعت و استقرار کامل پروژه.',
+    tags: ['Website', 'Web App', 'SEO', 'CMS', 'Performance'],
+    cta_label: 'ساخت وب سایت',
+    cta_url: '/#real',
   },
   {
-    number: '02',
-    title: 'طراحی UI/UX',
-    icon: '✎',
-    text: 'از معماری اطلاعات و وایرفریم تا طراحی رابط نهایی؛ با هدف اینکه محصول ساده‌تر، واضح‌تر و لذت‌بخش‌تر استفاده شود.',
-    tags: ['Wireframe', 'Prototype', 'Design System', 'UX Flow']
+    slug: 'ai-solutions',
+    title: 'راهکارهای هوش مصنوعی',
+    icon: '✦',
+    featured: false,
+    summary: 'هوش مصنوعی را جایی وارد محصول و فرآیند می کنیم که واقعا ارزش ایجاد کند؛ از دستیار داخلی تا پردازش متن، جستجو و Agentهای متصل به ابزارها.',
+    details: 'اتصال مدل های زبانی به داده و ابزارهای سازمان، RAG، دستیارهای داخلی، طبقه بندی و استخراج اطلاعات و Agentهای کنترل شده برای وظایف مشخص.',
+    tags: ['AI', 'LLM', 'RAG', 'Agents', 'Knowledge Base'],
+    cta_label: 'بررسی کاربرد AI',
+    cta_url: '/#real',
   },
-  {
-    number: '03',
-    title: 'پنل و ابزارهای اختصاصی',
-    icon: '⚙',
-    text: 'ساخت پنل‌های مدیریتی، داشبوردها و ابزارهای تحت وب که دقیقا بر اساس فرآیند واقعی مجموعه شما طراحی می‌شوند.',
-    tags: ['Admin Panel', 'Dashboard', 'Internal Tools', 'API']
-  },
-  {
-    number: '04',
-    title: 'خودکارسازی فرآیندها',
-    icon: '⌘',
-    text: 'حذف کارهای تکراری و اتصال سرویس‌ها به یکدیگر؛ از فرم و CRM تا گزارش‌گیری، اعلان‌ها و گردش کار خودکار.',
-    tags: ['Automation', 'Integration', 'Workflow', 'AI']
-  },
-  {
-    number: '05',
-    title: 'بهینه‌سازی و بهبود عملکرد',
-    icon: '↗',
-    text: 'بررسی فنی محصول موجود و بهبود سرعت، ساختار، امنیت، تجربه کاربری و کیفیت اجرای آن بدون بازسازی بی‌دلیل.',
-    tags: ['Performance', 'SEO', 'Security', 'Audit']
-  },
-  {
-    number: '06',
-    title: 'پشتیبانی و توسعه',
-    icon: '◉',
-    text: 'همراهی پس از انتشار برای رفع مشکل، توسعه قابلیت‌های جدید و نگهداری محصول تا با رشد کسب‌وکار متوقف نشود.',
-    tags: ['Support', 'Maintenance', 'Monitoring', 'Development']
-  }
 ];
+
+const fallbackPage = {
+  hero_kicker: 'خدمات وبیگرام',
+  hero_title_before: 'برای هر مسئله،',
+  hero_title_highlight: 'راه حل درست',
+  hero_title_after: 'را می سازیم.',
+  hero_description: 'از زیرساخت و DevOps تا اتوماسیون، پلتفرم، پنل سازمانی و وب سایت؛ اول مسئله را می فهمیم و بعد دقیقا همان چیزی را طراحی و اجرا می کنیم که لازم است.',
+  cta_kicker: 'یک مسئله یا ایده دارید؟',
+  cta_title: 'از مسئله شروع کنیم.\nراه حل را با هم می سازیم.',
+  cta_description: 'لازم نیست از قبل بدانید چه تکنولوژی یا چه نوع نرم افزاری می خواهید. مسئله و نتیجه مورد انتظار را بگویید؛ مسیر فنی را ما طراحی می کنیم.',
+  cta_button_label: 'شروع گفتگو',
+  cta_button_url: '/#real',
+  seo_title: 'خدمات وبیگرام | DevOps، اتوماسیون، پلتفرم و طراحی سایت',
+  seo_description: 'خدمات وبیگرام شامل DevOps و زیرساخت، اتوماسیون، طراحی پلتفرم، پنل های سازمانی، وب سایت و راهکارهای هوش مصنوعی است.',
+};
 ---
 <!doctype html>
 <html lang="fa" dir="rtl">
@@ -53,66 +94,234 @@ const services = [
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#fbfaf7" />
-  <meta name="description" content="خدمات وبیگرام؛ طراحی سایت، UI/UX، پنل اختصاصی، اتوماسیون، بهینه‌سازی و پشتیبانی." />
+  <meta name="description" content={fallbackPage.seo_description} data-cms-meta="description" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://webigram.ir/services/" />
   <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  <meta name="robots" content="noindex, follow" />
-  <title>خدمات وبیگرام</title>
+  <title>{fallbackPage.seo_title}</title>
 </head>
-<body class="services-page">
+<body class="services-page" data-cms-collection="services">
   <header class="services-header">
     <div class="services-shell services-nav-wrap">
-      <a class="services-brand" href={`${base}home6/`} aria-label="وبیگرام - خانه">
+      <a class="services-brand" href={`${base}`} aria-label="وبیگرام - خانه">
         <svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"/></svg>
         <strong>Webigram</strong>
       </a>
       <nav aria-label="منوی اصلی">
-        <a href={`${base}home6/`}>خانه</a>
+        <a href={`${base}`}>خانه</a>
         <a class="active" href={`${base}services/`}>خدمات</a>
-        <a href={`${base}home6/#color`}>نمونه‌کارها</a>
-        <a href={`${base}home6/#color`}>قیمت‌ها</a>
-        <a href={`${base}home6/#real`}>درباره‌ما</a>
-        <a href={`${base}home6/#real`}>تماس با ما</a>
+        <a href={`${base}#color`}>نمونه کارها</a>
+        <a href={`${base}#real`}>درباره ما</a>
+        <a href={`${base}#real`}>تماس با ما</a>
       </nav>
     </div>
   </header>
 
   <main>
     <section class="services-hero services-shell">
-      <div class="hero-kicker"><span></span> خدمات وبیگرام</div>
-      <h1>برای هر مسئله،<br/><em>راه‌حل درست</em> را می‌سازیم.</h1>
-      <p>نه یک لیست بلند از خدمات کلیشه‌ای. اول مسئله را می‌فهمیم، بعد دقیقا همان چیزی را طراحی و اجرا می‌کنیم که کسب‌وکار شما به آن نیاز دارد.</p>
-      <a class="hero-action" href="#services-list">مشاهده خدمات <span>↓</span></a>
+      <div class="hero-kicker"><span></span><b data-cms-field="hero_kicker">{fallbackPage.hero_kicker}</b></div>
+      <h1>
+        <span data-cms-field="hero_title_before">{fallbackPage.hero_title_before}</span><br/>
+        <em data-cms-field="hero_title_highlight">{fallbackPage.hero_title_highlight}</em>
+        <span data-cms-field="hero_title_after"> {fallbackPage.hero_title_after}</span>
+      </h1>
+      <div class="hero-copy">
+        <p data-cms-field="hero_description">{fallbackPage.hero_description}</p>
+        <a class="hero-action" href="#services-list">مشاهده خدمات <span>↓</span></a>
+      </div>
     </section>
 
-    <section class="services-list services-shell" id="services-list" aria-label="لیست خدمات وبیگرام">
-      {services.map((service) => (
-        <article class="service-card">
+    <section class="services-intro services-shell">
+      <span>WHAT WE DO</span>
+      <p>خدمت برای ما یک عنوان روی بروشور نیست. هر پروژه با شناخت مسئله شروع می شود و ترکیب خدمات بر اساس همان مسئله شکل می گیرد.</p>
+    </section>
+
+    <section class="services-list services-shell" id="services-list" aria-label="لیست خدمات وبیگرام" data-services-grid>
+      {fallbackServices.map((service, index) => (
+        <article class:list={['service-card', service.featured && 'featured']} data-service-slug={service.slug}>
           <div class="service-topline">
-            <span class="service-number">{service.number}</span>
+            <span class="service-number">{String(index + 1).padStart(2, '0')}</span>
             <span class="service-icon" aria-hidden="true">{service.icon}</span>
           </div>
           <h2>{service.title}</h2>
-          <p>{service.text}</p>
-          <div class="service-tags">
-            {service.tags.map((tag) => <span>{tag}</span>)}
+          <p class="service-summary">{service.summary}</p>
+          <p class="service-details">{service.details}</p>
+          <div class="service-bottom">
+            <div class="service-tags" aria-label={`تکنولوژی ها و حوزه های ${service.title}`}>
+              {service.tags.map((tag) => <span>{tag}</span>)}
+            </div>
+            {service.cta_label && service.cta_url && (
+              <a class="service-link" href={service.cta_url}>{service.cta_label}<span>←</span></a>
+            )}
           </div>
         </article>
       ))}
     </section>
 
     <section class="services-cta services-shell">
-      <div>
-        <span class="cta-label">یک ایده دارید؟</span>
-        <h2>از کاغذ شروع کنیم.<br/>بعد واقعی‌اش می‌کنیم.</h2>
+      <div class="cta-copy">
+        <span class="cta-label" data-cms-field="cta_kicker">{fallbackPage.cta_kicker}</span>
+        <h2 data-cms-field="cta_title">{fallbackPage.cta_title}</h2>
+        <p data-cms-field="cta_description">{fallbackPage.cta_description}</p>
       </div>
-      <a href={`${base}home6/#real`}>شروع پروژه <span>←</span></a>
+      <a class="cta-button" href={fallbackPage.cta_button_url} data-cms-link="cta_button_url">
+        <span data-cms-field="cta_button_label">{fallbackPage.cta_button_label}</span><b>←</b>
+      </a>
     </section>
   </main>
 
   <footer class="services-footer services-shell">
     <span>Webigram</span>
-    <span>Design · Development · Automation</span>
+    <span>DevOps · Automation · Platforms · Web</span>
   </footer>
+
+  <script define:vars={{ cmsUrl }} is:inline>
+    (() => {
+      const timeout = 5000;
+
+      const fetchJson = async (path) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeout);
+        try {
+          const response = await fetch(`${cmsUrl}${path}`, {
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+            signal: controller.signal,
+          });
+          if (!response.ok) throw new Error(`CMS HTTP ${response.status}`);
+          return await response.json();
+        } finally {
+          clearTimeout(timer);
+        }
+      };
+
+      const normalizeTags = (value) => {
+        if (Array.isArray(value)) return value.filter(Boolean).map(String);
+        if (typeof value !== 'string' || !value.trim()) return [];
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed.filter(Boolean).map(String) : [];
+        } catch {
+          return value.split(',').map((item) => item.trim()).filter(Boolean);
+        }
+      };
+
+      const setText = (field, value) => {
+        if (typeof value !== 'string' || !value.trim()) return;
+        const element = document.querySelector(`[data-cms-field="${field}"]`);
+        if (element) element.textContent = value;
+      };
+
+      const applyPageContent = (page) => {
+        if (!page) return;
+        [
+          'hero_kicker',
+          'hero_title_before',
+          'hero_title_highlight',
+          'hero_title_after',
+          'hero_description',
+          'cta_kicker',
+          'cta_title',
+          'cta_description',
+          'cta_button_label',
+        ].forEach((field) => setText(field, page[field]));
+
+        const cta = document.querySelector('[data-cms-link="cta_button_url"]');
+        if (cta && typeof page.cta_button_url === 'string' && page.cta_button_url.trim()) {
+          cta.setAttribute('href', page.cta_button_url);
+        }
+
+        if (typeof page.seo_title === 'string' && page.seo_title.trim()) {
+          document.title = page.seo_title;
+        }
+
+        const description = document.querySelector('[data-cms-meta="description"]');
+        if (description && typeof page.seo_description === 'string' && page.seo_description.trim()) {
+          description.setAttribute('content', page.seo_description);
+        }
+      };
+
+      const createServiceCard = (service, index) => {
+        const article = document.createElement('article');
+        article.className = `service-card${service.featured ? ' featured' : ''}`;
+        if (service.slug) article.dataset.serviceSlug = service.slug;
+
+        const topLine = document.createElement('div');
+        topLine.className = 'service-topline';
+
+        const number = document.createElement('span');
+        number.className = 'service-number';
+        number.textContent = String(index + 1).padStart(2, '0');
+
+        const icon = document.createElement('span');
+        icon.className = 'service-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.textContent = service.icon || '◈';
+
+        topLine.append(number, icon);
+
+        const title = document.createElement('h2');
+        title.textContent = service.title || '';
+
+        const summary = document.createElement('p');
+        summary.className = 'service-summary';
+        summary.textContent = service.summary || '';
+
+        const details = document.createElement('p');
+        details.className = 'service-details';
+        details.textContent = service.details || '';
+
+        const bottom = document.createElement('div');
+        bottom.className = 'service-bottom';
+
+        const tags = document.createElement('div');
+        tags.className = 'service-tags';
+        tags.setAttribute('aria-label', `حوزه های ${service.title || 'خدمت'}`);
+        normalizeTags(service.tags).forEach((tag) => {
+          const chip = document.createElement('span');
+          chip.textContent = tag;
+          tags.appendChild(chip);
+        });
+        bottom.appendChild(tags);
+
+        if (service.cta_label && service.cta_url) {
+          const link = document.createElement('a');
+          link.className = 'service-link';
+          link.href = service.cta_url;
+          link.append(document.createTextNode(service.cta_label));
+          const arrow = document.createElement('span');
+          arrow.textContent = '←';
+          link.appendChild(arrow);
+          bottom.appendChild(link);
+        }
+
+        article.append(topLine, title, summary);
+        if (service.details) article.appendChild(details);
+        article.appendChild(bottom);
+        return article;
+      };
+
+      const applyServices = (services) => {
+        if (!Array.isArray(services) || services.length === 0) return;
+        const grid = document.querySelector('[data-services-grid]');
+        if (!grid) return;
+        const fragment = document.createDocumentFragment();
+        services.forEach((service, index) => fragment.appendChild(createServiceCard(service, index)));
+        grid.replaceChildren(fragment);
+      };
+
+      Promise.allSettled([
+        fetchJson('/items/services?fields=id,sort,slug,title,summary,details,icon,tags,featured,cta_label,cta_url&filter[status][_eq]=published&sort=sort'),
+        fetchJson('/items/services_page?fields=id,hero_kicker,hero_title_before,hero_title_highlight,hero_title_after,hero_description,cta_kicker,cta_title,cta_description,cta_button_label,cta_button_url,seo_title,seo_description&limit=1'),
+      ]).then(([servicesResult, pageResult]) => {
+        if (servicesResult.status === 'fulfilled') applyServices(servicesResult.value?.data);
+        if (pageResult.status === 'fulfilled') applyPageContent(pageResult.value?.data?.[0]);
+        document.body.dataset.cmsReady = 'true';
+      }).catch(() => {
+        document.body.dataset.cmsReady = 'fallback';
+      });
+    })();
+  </script>
 </body>
 </html>
 
@@ -131,6 +340,7 @@ const services = [
   :global(.services-page *){box-sizing:border-box}
   :global(.services-page a){color:inherit;text-decoration:none}
   .services-shell{width:min(1240px,calc(100% - 48px));margin-inline:auto}
+
   .services-header{position:sticky;top:0;z-index:30;padding:18px 0;background:linear-gradient(#fbfaf7f5,#fbfaf7d9,transparent);backdrop-filter:blur(14px)}
   .services-nav-wrap{min-height:72px;padding:0 22px;border:1px solid rgba(20,23,31,.11);border-radius:22px;background:rgba(255,255,255,.72);display:flex;align-items:center;justify-content:space-between;gap:28px;box-shadow:0 18px 55px rgba(28,31,50,.05)}
   .services-brand{display:flex;align-items:center;gap:11px;direction:ltr;flex:none}
@@ -144,59 +354,80 @@ const services = [
   .services-nav-wrap nav a::after{content:'';position:absolute;right:50%;left:50%;bottom:4px;height:2px;border-radius:20px;background:#6d4be2;transition:.25s}
   .services-nav-wrap nav a:hover::after,.services-nav-wrap nav a.active::after{right:6%;left:6%}
 
-  .services-hero{padding:clamp(72px,10vw,150px) 0 clamp(76px,9vw,128px);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(310px,.8fr);align-items:end;column-gap:60px}
-  .hero-kicker{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:#6c7282;font-weight:700;font-size:.9rem;margin-bottom:26px}
+  .services-hero{padding:clamp(72px,10vw,150px) 0 clamp(58px,7vw,94px);display:grid;grid-template-columns:minmax(0,1.18fr) minmax(310px,.82fr);align-items:end;column-gap:60px}
+  .hero-kicker{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:#6c7282;font-size:.9rem;margin-bottom:26px}
   .hero-kicker span{display:block;width:38px;height:1px;background:#6d4be2}
-  .services-hero h1{margin:0;color:#101116;font-size:clamp(52px,7.3vw,104px);line-height:1.03;letter-spacing:-.055em;font-weight:800}
+  .hero-kicker b{font-weight:800}
+  .services-hero h1{margin:0;color:#101116;font-size:clamp(52px,7.1vw,100px);line-height:1.05;letter-spacing:-.055em;font-weight:800}
   .services-hero h1 em{font-style:normal;color:#6948dc}
-  .services-hero p{margin:0 0 10px;color:#5e6472;font-size:clamp(16px,1.28vw,19px);line-height:2.05;max-width:510px}
-  .hero-action{grid-column:2;margin-top:27px;justify-self:start;display:inline-flex;align-items:center;gap:32px;padding:13px 18px 13px 13px;border-bottom:1px solid #17181c;font-weight:800}
+  .hero-copy{display:flex;flex-direction:column;align-items:flex-start;gap:24px;padding-bottom:5px}
+  .hero-copy p{margin:0;color:#5e6472;font-size:clamp(16px,1.28vw,19px);line-height:2.05;max-width:520px}
+  .hero-action{display:inline-flex;align-items:center;gap:32px;padding:13px 18px 13px 13px;border-bottom:1px solid #17181c;font-weight:800}
   .hero-action span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#17181c;color:white}
 
+  .services-intro{padding:20px 0 52px;border-top:1px solid rgba(20,23,31,.12);display:grid;grid-template-columns:.35fr 1fr;gap:40px;align-items:start}
+  .services-intro span{font:700 .72rem/1.4 Arial,sans-serif;letter-spacing:.16em;color:#777d89;padding-top:8px}
+  .services-intro p{margin:0;max-width:780px;color:#252832;font-size:clamp(20px,2vw,31px);line-height:1.75;font-weight:700;letter-spacing:-.025em}
+
   .services-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid rgba(20,23,31,.14);border-right:1px solid rgba(20,23,31,.14)}
-  .service-card{min-height:390px;padding:38px clamp(28px,3.4vw,52px) 42px;border-left:1px solid rgba(20,23,31,.14);border-bottom:1px solid rgba(20,23,31,.14);background:rgba(255,255,255,.32);transition:transform .3s,background .3s,box-shadow .3s;position:relative;overflow:hidden}
+  .service-card{min-height:500px;padding:38px clamp(28px,3.4vw,52px) 38px;border-left:1px solid rgba(20,23,31,.14);border-bottom:1px solid rgba(20,23,31,.14);background:rgba(255,255,255,.32);transition:transform .3s,background .3s,box-shadow .3s;position:relative;overflow:hidden;display:flex;flex-direction:column}
   .service-card::before{content:'';position:absolute;width:190px;height:190px;border-radius:50%;left:-95px;bottom:-115px;background:radial-gradient(circle,rgba(103,74,220,.13),transparent 70%);opacity:0;transition:.3s}
+  .service-card.featured::after{content:'CORE';position:absolute;top:24px;left:28px;font:700 .62rem/1 Arial,sans-serif;letter-spacing:.14em;color:#6846db;border:1px solid rgba(104,70,219,.22);border-radius:999px;padding:6px 8px;background:#fff}
   .service-card:hover{background:rgba(255,255,255,.78);transform:translateY(-4px);box-shadow:0 22px 60px rgba(29,32,49,.07)}
   .service-card:hover::before{opacity:1}
-  .service-topline{display:flex;align-items:center;justify-content:space-between;margin-bottom:55px;color:#858b98}
+  .service-topline{display:flex;align-items:center;justify-content:space-between;margin-bottom:46px;color:#858b98}
   .service-number{font-size:.8rem;font-weight:800;letter-spacing:.08em}
-  .service-icon{display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(20,23,31,.13);border-radius:15px;color:#6948dc;font-size:1.35rem;background:#fff}
-  .service-card h2{margin:0 0 15px;color:#17181c;font-size:clamp(27px,2.3vw,37px);line-height:1.3;letter-spacing:-.03em}
-  .service-card p{margin:0;color:#626875;line-height:1.95;font-size:1rem;max-width:540px}
-  .service-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:29px;direction:ltr;justify-content:flex-end}
-  .service-tags span{padding:6px 10px;border:1px solid rgba(20,23,31,.1);border-radius:999px;color:#737987;background:#ffffff9e;font-size:.72rem;font-weight:700}
+  .service-icon{display:grid;place-items:center;width:52px;height:52px;border:1px solid rgba(20,23,31,.13);border-radius:16px;color:#6948dc;font-size:1.45rem;background:#fff}
+  .service-card h2{margin:0 0 15px;color:#17181c;font-size:clamp(27px,2.3vw,37px);line-height:1.35;letter-spacing:-.03em}
+  .service-summary{margin:0;color:#4f5563;line-height:1.95;font-size:1rem;max-width:550px}
+  .service-details{margin:17px 0 0;color:#7b808b;line-height:1.9;font-size:.88rem;max-width:560px}
+  .service-bottom{margin-top:auto;padding-top:30px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+  .service-tags{display:flex;flex-wrap:wrap;gap:7px;direction:ltr;justify-content:flex-end}
+  .service-tags span{padding:6px 10px;border:1px solid rgba(20,23,31,.1);border-radius:999px;color:#737987;background:#ffffff9e;font-size:.7rem;font-weight:700}
+  .service-link{flex:none;display:inline-flex;align-items:center;gap:9px;color:#5e40ca;font-size:.82rem;font-weight:800;border-bottom:1px solid rgba(94,64,202,.25);padding-bottom:5px}
+  .service-link span{font-size:1rem}
 
-  .services-cta{margin-top:clamp(80px,10vw,140px);margin-bottom:80px;padding:clamp(42px,6vw,75px);border-radius:34px;background:#14151b;color:white;display:flex;align-items:flex-end;justify-content:space-between;gap:40px;position:relative;overflow:hidden}
+  .services-cta{margin-top:clamp(80px,10vw,140px);margin-bottom:80px;padding:clamp(42px,6vw,75px);border-radius:34px;background:#14151b;color:white;display:flex;align-items:flex-end;justify-content:space-between;gap:54px;position:relative;overflow:hidden}
   .services-cta::after{content:'';position:absolute;width:420px;height:420px;border-radius:50%;left:-130px;top:-220px;background:radial-gradient(circle,rgba(117,89,235,.44),transparent 67%);pointer-events:none}
+  .cta-copy{position:relative;z-index:1;max-width:790px}
   .cta-label{display:block;color:#aaaec0;font-size:.88rem;font-weight:700;margin-bottom:18px}
-  .services-cta h2{margin:0;font-size:clamp(36px,4.4vw,66px);line-height:1.22;letter-spacing:-.04em;position:relative;z-index:1}
-  .services-cta a{position:relative;z-index:1;display:flex;align-items:center;gap:34px;padding:16px 19px;border:1px solid rgba(255,255,255,.22);border-radius:16px;font-weight:800;white-space:nowrap;transition:.25s}
-  .services-cta a:hover{background:white;color:#16171c}
-  .services-cta a span{font-size:1.4rem}
+  .services-cta h2{margin:0;white-space:pre-line;font-size:clamp(34px,4.2vw,62px);line-height:1.3;letter-spacing:-.04em}
+  .services-cta p{margin:22px 0 0;max-width:670px;color:#b8bbc7;font-size:.95rem;line-height:1.95}
+  .cta-button{position:relative;z-index:1;display:flex;align-items:center;gap:34px;padding:16px 19px;border:1px solid rgba(255,255,255,.22);border-radius:16px;font-weight:800;white-space:nowrap;transition:.25s}
+  .cta-button:hover{background:white;color:#16171c}
+  .cta-button b{font-size:1.4rem;font-weight:400}
   .services-footer{padding:0 0 38px;display:flex;justify-content:space-between;gap:20px;color:#8a8f9a;font-size:.78rem;direction:ltr}
 
   @media(max-width:900px){
     .services-shell{width:min(100% - 28px,1240px)}
     .services-header{padding:10px 0}
-    .services-nav-wrap{padding:0 15px;min-height:62px;border-radius:17px}
-    .services-brand svg{width:41px;height:34px}.services-brand strong{font-size:1.1rem}
-    .services-nav-wrap nav{overflow-x:auto;white-space:nowrap;max-width:72%;gap:18px;scrollbar-width:none}
+    .services-nav-wrap{min-height:60px;border-radius:17px;padding:0 15px}
+    .services-brand strong{display:none}
+    .services-brand svg{width:40px}
+    .services-nav-wrap nav{gap:14px;font-size:.8rem;overflow:auto;white-space:nowrap;scrollbar-width:none}
     .services-nav-wrap nav::-webkit-scrollbar{display:none}
-    .services-hero{grid-template-columns:1fr;padding-top:62px;row-gap:28px}
-    .services-hero h1,.services-hero p,.hero-action{grid-column:1}
-    .hero-action{margin-top:0}
+    .services-nav-wrap nav a:nth-child(4),.services-nav-wrap nav a:nth-child(5){display:none}
+    .services-hero{grid-template-columns:1fr;padding-top:72px;row-gap:34px}
+    .hero-kicker{margin-bottom:0}
+    .services-hero h1{font-size:clamp(46px,11vw,72px)}
+    .hero-copy{padding:0}
+    .services-intro{grid-template-columns:1fr;gap:14px;padding-bottom:38px}
     .services-list{grid-template-columns:1fr}
-    .service-card{min-height:auto;padding:30px 25px 34px}
-    .service-topline{margin-bottom:38px}
-    .services-cta{align-items:flex-start;flex-direction:column;margin-bottom:45px;border-radius:24px;padding:34px 26px}
+    .service-card{min-height:460px}
+    .services-cta{align-items:flex-start;flex-direction:column}
   }
+
   @media(max-width:560px){
-    .services-nav-wrap{display:block;padding:13px 14px 8px}
-    .services-brand{margin-bottom:5px}
-    .services-nav-wrap nav{max-width:100%;padding-bottom:3px;font-size:.82rem}
-    .services-hero{padding:50px 0 70px}
-    .services-hero h1{font-size:clamp(44px,14vw,68px)}
-    .service-card h2{font-size:28px}
-    .services-footer{flex-direction:column;align-items:center;text-align:center}
+    .services-shell{width:min(100% - 22px,1240px)}
+    .services-nav-wrap nav{gap:12px}
+    .services-nav-wrap nav a:nth-child(3){display:none}
+    .services-hero{padding:54px 0 48px}
+    .services-hero h1{font-size:clamp(42px,13vw,62px)}
+    .service-card{min-height:auto;padding:28px 22px 28px}
+    .service-topline{margin-bottom:36px}
+    .service-bottom{align-items:flex-start;flex-direction:column}
+    .service-tags{justify-content:flex-start}
+    .services-cta{border-radius:24px;margin-bottom:54px;padding:34px 25px}
+    .services-footer{flex-direction:column;align-items:flex-start}
   }
 </style>
