@@ -1,0 +1,62 @@
+---
+import '../styles/base.css';
+import '../styles/content-pages.css';
+const base = import.meta.env.BASE_URL;
+const cmsUrl = 'https://cms.webigram.ir';
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="درخواست تماس و مشاوره با وبیگرام برای DevOps، اتوماسیون، پلتفرم، پنل سازمانی و توسعه وب." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://webigram.ir/contact/" />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <title>درخواست تماس | Webigram</title>
+</head>
+<body>
+  <header class="cp-header"><div class="cp-shell cp-nav">
+    <a class="cp-brand" href={`${base}`}><svg viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"/></svg><span>Webigram</span></a>
+    <nav><a href={`${base}`}>خانه</a><a href={`${base}services/`}>خدمات</a><a href={`${base}portfolio/`}>نمونه کارها</a><a href={`${base}blog/`}>بلاگ</a><a class="active" href={`${base}contact/`}>تماس با ما</a></nav>
+  </div></header>
+
+  <main>
+    <section class="cp-shell cp-hero"><div class="cp-kicker">شروع یک گفتگو</div><h1>مسئله را بگویید؛ مسیر فنی را با هم پیدا می کنیم.</h1><p>لازم نیست اسم تکنولوژی یا راه حل را بدانید. کافی است بگویید الان چه مشکلی دارید و دوست دارید در نهایت چه اتفاقی بیفتد.</p></section>
+    <section class="cp-shell contact-layout">
+      <div class="contact-copy"><h2>درخواست تماس</h2><p>اطلاعات را بفرستید تا بتوانیم قبل از تماس یک تصویر اولیه از نیاز شما داشته باشیم.</p><div class="contact-points"><div class="contact-point"><strong>مناسب برای</strong><br/>DevOps، اتوماسیون، پلتفرم، پنل سازمانی، وب و AI</div><div class="contact-point"><strong>اطلاعات شما</strong><br/>در Directus خصوصی ذخیره می شود و از API عمومی قابل خواندن نیست.</div></div></div>
+      <form class="contact-form" data-contact-form novalidate>
+        <div class="form-grid">
+          <div class="field"><label for="full_name">نام و نام خانوادگی *</label><input id="full_name" name="full_name" autocomplete="name" required maxlength="255" /></div>
+          <div class="field"><label for="mobile">شماره موبایل *</label><input id="mobile" name="mobile" inputmode="tel" autocomplete="tel" required maxlength="50" /></div>
+          <div class="field"><label for="email">ایمیل</label><input id="email" name="email" type="email" autocomplete="email" maxlength="255" /></div>
+          <div class="field"><label for="company">شرکت / مجموعه</label><input id="company" name="company" autocomplete="organization" maxlength="255" /></div>
+          <div class="field"><label for="service">موضوع</label><select id="service" name="service"><option value="">انتخاب کنید</option><option>DevOps و زیرساخت</option><option>اتوماسیون و یکپارچه سازی</option><option>طراحی و ساخت پلتفرم</option><option>پنل سازمانی و داشبورد</option><option>وب سایت و وب اپلیکیشن</option><option>راهکار هوش مصنوعی</option><option>سایر</option></select></div>
+          <div class="field"><label for="preferred_contact">روش تماس ترجیحی</label><select id="preferred_contact" name="preferred_contact"><option value="phone">تماس تلفنی</option><option value="whatsapp">واتساپ</option><option value="email">ایمیل</option></select></div>
+          <div class="field full"><label for="message">کمی درباره نیازتان بگویید *</label><textarea id="message" name="message" required maxlength="5000" placeholder="چه مسئله ای دارید؟ الان چه سیستمی دارید؟ نتیجه مطلوبتان چیست؟"></textarea></div>
+          <div class="field-honeypot" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off" /></div>
+          <label class="consent"><input type="checkbox" name="consent" required /> <span>با ارسال این فرم موافقم اطلاعات وارد شده برای پیگیری همین درخواست تماس ذخیره شود.</span></label>
+          <div class="contact-actions"><button class="cp-button" type="submit" data-submit>ارسال درخواست</button><span class="cp-notice" data-notice role="status"></span></div>
+        </div>
+      </form>
+    </section>
+  </main>
+  <footer class="cp-shell cp-footer"><span>Webigram</span><span>Build · Automate · Operate</span></footer>
+
+  <script define:vars={{ cmsUrl }} is:inline>
+    (() => {
+      const form=document.querySelector('[data-contact-form]'),button=document.querySelector('[data-submit]'),notice=document.querySelector('[data-notice]');
+      const show=(message,type)=>{notice.textContent=message;notice.className=`cp-notice show ${type}`;};
+      form.addEventListener('submit',async(event)=>{
+        event.preventDefault(); if(!form.reportValidity()) return;
+        const fd=new FormData(form); const payload={full_name:String(fd.get('full_name')||'').trim(),mobile:String(fd.get('mobile')||'').trim(),email:String(fd.get('email')||'').trim()||null,company:String(fd.get('company')||'').trim()||null,service:String(fd.get('service')||'').trim()||null,message:String(fd.get('message')||'').trim(),preferred_contact:String(fd.get('preferred_contact')||'phone'),consent:fd.get('consent')==='on',website:String(fd.get('website')||'').trim()};
+        if(payload.website){show('درخواست نامعتبر است.','error');return;}
+        button.disabled=true;button.textContent='در حال ارسال…';form.classList.add('cp-loading');notice.className='cp-notice';
+        try{const response=await fetch(`${cmsUrl}/items/contact_requests`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});if(!response.ok)throw new Error();form.reset();show('درخواست شما ثبت شد. برای پیگیری با شما تماس می گیریم.','ok');}
+        catch{show('ارسال درخواست انجام نشد. لطفا دوباره تلاش کنید.','error');}
+        finally{button.disabled=false;button.textContent='ارسال درخواست';form.classList.remove('cp-loading');}
+      });
+    })();
+  </script>
+</body>
+</html>
