@@ -4,6 +4,7 @@ import '../styles/composition-fixes.css';
 import '../styles/real-composition.css';
 import '../styles/real-photo.css';
 import '../styles/mobile.css';
+import '../styles/home5-live.css';
 import Composition from '../components/Composition.astro';
 
 const base = import.meta.env.BASE_URL;
@@ -26,7 +27,7 @@ const nav = [
   <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
   <title>وبیگرام | از ایده تا اجرای واقعی</title>
 </head>
-<body data-stage="0">
+<body data-stage="0" data-home5-live>
   <div class="slide-loader" id="loader"><div>در حال آماده‌سازی طرح‌ها<div class="loader-line"></div></div></div>
   <main class="story" id="story">
     <i class="anchor a1" id="sketch"></i><i class="anchor a2" id="color"></i><i class="anchor a3" id="real"></i>
@@ -75,7 +76,7 @@ const nav = [
         <section class="slide slide-real" data-slide="2">
           <div class="visual visual-real">
             <div class="real-composition-shell" aria-label="نسخه واقعی همان ترکیب‌بندی طرح اولیه">
-              <Composition variant="real" />
+              <Composition variant="real" live />
             </div>
           </div>
           <div class="right">
@@ -99,6 +100,9 @@ const nav = [
 
   <div class="progress" aria-label="مراحل طراحی"><button class="active" data-jump="0" aria-label="طرح اولیه"></button><button data-jump="1" aria-label="طراحی رنگی"></button><button data-jump="2" aria-label="نسخه واقعی"></button></div>
 
+  <script>
+    import '../scripts/home5-live';
+  </script>
   <script is:inline>
     const story=document.getElementById('story'),slides=[...document.querySelectorAll('[data-slide]')],dots=[...document.querySelectorAll('.progress button')],loader=document.getElementById('loader');
     requestAnimationFrame(()=>loader.classList.add('done'));
