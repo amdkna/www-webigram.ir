@@ -35,9 +35,57 @@ jobs:
           cd "$APP_DIR"
           docker network inspect app-net >/dev/null 2>&1 || docker network create app-net
 
-          # Re-apply the current CMS stack and force Directus itself to be rebuilt from
-          # the known-good main configuration. This is intentionally limited to CMS.
+          # Bring the secret generator and PostgreSQL up first. The password stored in
+          # the secret volume can outlive or be recreated independently from the
+          # PostgreSQL data volume, so verify that the persisted DB role still uses it.
           docker compose up -d directus-secrets-init directus-db
+
+          db_healthy=0
+          for i in $(seq 1 30); do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-directus-db 2>/dev/null || true)
+            echo "db_attempt=$i status=$STATUS"
+            if [ "$STATUS" = "healthy" ]; then
+              db_healthy=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$db_healthy" -ne 1 ]; then
+            echo "ERROR: Directus PostgreSQL did not become healthy."
+            docker compose ps || true
+            docker logs --tail 200 webigram-directus-db || true
+            exit 1
+          fi
+
+          # Never print the password. First test TCP auth exactly as Directus uses it.
+          # If the secret and the persisted PostgreSQL role are out of sync, repair the
+          # role through the local trusted socket and verify TCP auth again.
+          docker compose exec -T directus-db sh -s <<'DB_SYNC'
+          set -eu
+          CURRENT_PASSWORD="$(cat /run/directus-secrets/db_password)"
+
+          if PGPASSWORD="$CURRENT_PASSWORD" psql \
+            -h 127.0.0.1 -U directus -d directus \
+            -v ON_ERROR_STOP=1 -Atqc "SELECT 1" >/dev/null 2>&1; then
+            echo "db_credentials=aligned"
+            exit 0
+          fi
+
+          echo "db_credentials=mismatch; resyncing role password"
+          psql -U directus -d directus \
+            -v ON_ERROR_STOP=1 \
+            -v db_password="$CURRENT_PASSWORD" <<'SQL' >/dev/null
+          ALTER ROLE directus WITH PASSWORD :'db_password';
+          SQL
+
+          PGPASSWORD="$CURRENT_PASSWORD" psql \
+            -h 127.0.0.1 -U directus -d directus \
+            -v ON_ERROR_STOP=1 -Atqc "SELECT 1" >/dev/null
+          echo "db_credentials=resynced"
+          DB_SYNC
+
+          # Recreate Directus only after database authentication is known-good.
           docker compose up -d --force-recreate directus
 
           directus_healthy=0
