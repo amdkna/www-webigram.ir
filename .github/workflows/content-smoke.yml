@@ -74,6 +74,10 @@ jobs:
             echo "OK Directus read: ${endpoint}"
           }
 
+          # Services was introduced in the first CMS deployment and acts as a useful
+          # baseline to distinguish public-policy problems from unapplied migrations.
+          check_api_200 '/items/services?limit=1&fields=id' 'services'
+          check_api_200 '/items/services_page?limit=1&fields=id' 'services-page'
           check_api_200 '/items/portfolio?limit=1&fields=id' 'portfolio'
           check_api_200 '/items/portfolio_page?limit=1&fields=id' 'portfolio-page'
           check_api_200 '/items/blog_posts?limit=1&fields=id' 'blog-posts'
@@ -105,6 +109,6 @@ jobs:
 
       - name: Summary
         run: |
-          echo "Portfolio, contact and blog pages are reachable from outside production."
-          echo "Portfolio/blog Directus reads work for the public role."
+          echo "Services, portfolio, contact and blog pages/APIs are reachable from outside production."
+          echo "Published CMS content is readable through the public role."
           echo "Contact request records are not publicly readable."
