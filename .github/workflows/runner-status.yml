@@ -20,6 +20,7 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          echo 'Inspecting repository-level runner state while CMS recovery is blocked.'
           curl -fsS -L \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
