@@ -18,12 +18,12 @@ jobs:
     timeout-minutes: 2
     env:
       GH_TOKEN: ${{ github.token }}
-      STUCK_RUN_ID: "34709059060"
+      STUCK_RUN_ID: "34709401949"
     steps:
-      - name: Cancel run stuck after rollback
+      - name: Cancel run stuck after CMS recovery failure
         run: |
           set -euo pipefail
-          echo "Cancelling workflow run ${STUCK_RUN_ID} so the self-hosted runner can accept CMS recovery."
+          echo "Cancelling workflow run ${STUCK_RUN_ID} so the self-hosted runner can accept the repaired CMS recovery."
 
           gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/cancel" || true
 
