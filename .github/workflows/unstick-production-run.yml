@@ -1,0 +1,37 @@
+name: Unstick Webigram Production Runner
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/unstick-production-run.yml
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cancel-stuck-run:
+    name: Cancel stuck production run
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      GH_TOKEN: ${{ github.token }}
+      STUCK_RUN_ID: "34709059060"
+    steps:
+      - name: Cancel run stuck after rollback
+        run: |
+          set -euo pipefail
+          echo "Cancelling workflow run ${STUCK_RUN_ID} so the self-hosted runner can accept CMS recovery."
+          gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/cancel" || true
+
+          for i in $(seq 1 12); do
+            STATUS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.status')
+            CONCLUSION=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.conclusion // ""')
+            echo "attempt=$i status=$STATUS conclusion=$CONCLUSION"
+            [ "$STATUS" = "completed" ] && exit 0
+            sleep 5
+          done
+
+          echo "Cancellation was requested; run has not reported completion yet."
