@@ -1,0 +1,89 @@
+name: Apply Webigram Directus Migrations
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-cms-migrations.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: webigram-directus-migrations
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply Directus migrations
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 8
+    env:
+      APP_DIR: /opt/apps/www-webigram.ir
+      CMS_URL: https://cms.webigram.ir
+    steps:
+      - name: Sync Directus configuration from main
+        run: |
+          set -euo pipefail
+          test -d "$APP_DIR/.git"
+          git -C "$APP_DIR" fetch origin main
+          git -C "$APP_DIR" checkout -B main origin/main
+          test -d "$APP_DIR/directus/migrations"
+
+      - name: Restart Directus and apply migrations
+        working-directory: /opt/apps/www-webigram.ir
+        run: |
+          set -euo pipefail
+          docker compose up -d directus-db directus
+          docker compose restart directus
+
+          healthy=0
+          for i in $(seq 1 60); do
+            status=$(docker inspect --format='{{.State.Health.Status}}' webigram-directus 2>/dev/null || true)
+            echo "attempt=$i directus=$status"
+            if [ "$status" = "healthy" ]; then
+              healthy=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$healthy" -ne 1 ]; then
+            docker compose ps || true
+            docker logs --tail 250 webigram-directus || true
+            exit 1
+          fi
+
+      - name: Verify public CMS permissions
+        run: |
+          set -euo pipefail
+
+          check_read() {
+            local endpoint="$1"
+            local out="$RUNNER_TEMP/cms-check.json"
+            local code
+            code=$(curl -sS -o "$out" -w '%{http_code}' --connect-timeout 5 --max-time 20 \
+              -H 'Accept: application/json' "${CMS_URL}${endpoint}")
+            if [ "$code" != "200" ]; then
+              echo "ERROR: ${endpoint} -> HTTP ${code}"
+              cat "$out" || true
+              exit 1
+            fi
+            grep -q '"data"' "$out"
+            echo "OK: ${endpoint}"
+          }
+
+          check_read '/items/services?limit=1&fields=id'
+          check_read '/items/portfolio?limit=1&fields=id'
+          check_read '/items/blog_posts?limit=1&fields=id'
+          check_read '/items/blog_categories?limit=1&fields=id'
+          check_read '/items/blog_tags?limit=1&fields=id'
+
+          out="$RUNNER_TEMP/contact-private.json"
+          code=$(curl -sS -o "$out" -w '%{http_code}' --connect-timeout 5 --max-time 20 \
+            -H 'Accept: application/json' "${CMS_URL}/items/contact_requests?limit=1")
+          case "$code" in
+            401|403) echo "OK: contact requests are private (HTTP ${code})" ;;
+            *) echo "ERROR: contact requests unexpectedly readable (HTTP ${code})"; cat "$out" || true; exit 1 ;;
+          esac
