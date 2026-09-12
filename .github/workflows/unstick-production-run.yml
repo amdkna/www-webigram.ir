@@ -18,9 +18,9 @@ jobs:
     timeout-minutes: 2
     env:
       GH_TOKEN: ${{ github.token }}
-      STUCK_RUN_ID: "34709401949"
+      STUCK_RUN_ID: "34713786738"
     steps:
-      - name: Cancel run stuck after CMS recovery failure
+      - name: Cancel deploy blocking CMS recovery
         run: |
           set -euo pipefail
           echo "Cancelling workflow run ${STUCK_RUN_ID} so the self-hosted runner can accept the repaired CMS recovery."
