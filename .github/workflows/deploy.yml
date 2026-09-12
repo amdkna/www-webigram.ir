@@ -149,22 +149,71 @@ jobs:
           done
           [ "$api_healthy" -eq 1 ]
 
-          # Directus custom migrations only run during bootstrap. Because the migrations
-          # directory is bind-mounted, adding a migration does not make Compose recreate
-          # the container by itself. Restart Directus whenever CMS migrations/config changed.
+          # Repair Directus whenever its config/migrations changed OR the existing
+          # container is unhealthy. This keeps a broken CMS from poisoning every deploy.
           DIRECTUS_CHANGED=0
+          CURRENT_DIRECTUS_STATUS=$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' webigram-directus 2>/dev/null || true)
           if [ -z "$PREVIOUS_SHA" ]; then
             DIRECTUS_CHANGED=1
           elif ! git diff --quiet "$PREVIOUS_SHA" HEAD -- directus/migrations compose.yaml; then
             DIRECTUS_CHANGED=1
+          elif [ "$CURRENT_DIRECTUS_STATUS" != "healthy" ]; then
+            echo "Directus is currently $CURRENT_DIRECTUS_STATUS; forcing CMS recovery."
+            DIRECTUS_CHANGED=1
           fi
 
           if [ "$DIRECTUS_CHANGED" -eq 1 ]; then
-            echo "Directus migration/config changed; restarting Directus so bootstrap applies migrations."
-            docker compose restart directus
+            echo "Preparing Directus database and validating persisted credentials."
+            docker compose up -d directus-secrets-init directus-db
+
+            db_healthy=0
+            for i in $(seq 1 30); do
+              DB_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-directus-db 2>/dev/null || true)
+              echo "directus_db_attempt=$i db=$DB_STATUS"
+              if [ "$DB_STATUS" = "healthy" ]; then
+                db_healthy=1
+                break
+              fi
+              sleep 2
+            done
+
+            if [ "$db_healthy" -ne 1 ]; then
+              echo "ERROR: Directus PostgreSQL did not become healthy."
+              docker logs --tail 200 webigram-directus-db || true
+              exit 1
+            fi
+
+            # Never print the password. Test TCP authentication exactly as Directus uses
+            # it and repair the persisted PostgreSQL role if the secret volume drifted.
+            docker compose exec -T directus-db sh -s <<'DB_SYNC'
+          set -eu
+          CURRENT_PASSWORD="$(cat /run/directus-secrets/db_password)"
+
+          if PGPASSWORD="$CURRENT_PASSWORD" psql \
+            -h 127.0.0.1 -U directus -d directus \
+            -v ON_ERROR_STOP=1 -Atqc "SELECT 1" >/dev/null 2>&1; then
+            echo "db_credentials=aligned"
+            exit 0
+          fi
+
+          echo "db_credentials=mismatch; resyncing role password"
+          psql -U directus -d directus \
+            -v ON_ERROR_STOP=1 \
+            -v db_password="$CURRENT_PASSWORD" <<'SQL' >/dev/null
+          ALTER ROLE directus WITH PASSWORD :'db_password';
+          SQL
+
+          PGPASSWORD="$CURRENT_PASSWORD" psql \
+            -h 127.0.0.1 -U directus -d directus \
+            -v ON_ERROR_STOP=1 -Atqc "SELECT 1" >/dev/null
+          echo "db_credentials=resynced"
+          DB_SYNC
+
+            echo "Recreating Directus after CMS recovery checks."
+            docker compose up -d --no-deps --force-recreate directus
 
             directus_healthy=0
-            for i in $(seq 1 45); do
+            for i in $(seq 1 60); do
               DIRECTUS_STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-directus 2>/dev/null || true)
               echo "directus_restart_attempt=$i directus=$DIRECTUS_STATUS"
               if [ "$DIRECTUS_STATUS" = "healthy" ]; then
@@ -173,9 +222,16 @@ jobs:
               fi
               sleep 2
             done
-            [ "$directus_healthy" -eq 1 ]
+
+            if [ "$directus_healthy" -ne 1 ]; then
+              echo "ERROR: Directus did not become healthy after recovery."
+              docker compose ps || true
+              docker logs --tail 250 webigram-directus || true
+              docker logs --tail 120 webigram-directus-db || true
+              exit 1
+            fi
           else
-            echo "No Directus migration/config changes detected; keeping CMS container up."
+            echo "Directus is healthy and no CMS migration/config changes were detected."
           fi
 
           # A bind-mounted single file can keep the old inode after git checkout.
@@ -198,7 +254,7 @@ jobs:
           [ "$web_ready" -eq 1 ]
 
           # Reload both nginx layers. The outer edge nginx resolves Docker hostnames
-          # at config load time, so this refreshes the webigram-web IP after any recreate.
+          # at config load time, so this refreshes the webigram-web/Directus IPs.
           docker exec webigram-web nginx -t
           docker exec webigram-web nginx -s reload
           docker exec "$EDGE_CONTAINER" nginx -t
