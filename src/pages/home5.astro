@@ -1,0 +1,160 @@
+---
+import '../styles/scroll-slides.css';
+import '../styles/composition-fixes.css';
+import '../styles/real-composition.css';
+import '../styles/real-photo.css';
+import '../styles/mobile.css';
+import Composition from '../components/Composition.astro';
+
+const base = import.meta.env.BASE_URL;
+const nav = [
+  { label: 'خانه', href: '#sketch', jump: 0, key: 'home' },
+  { label: 'خدمات', href: `${base}services/`, key: 'services' },
+  { label: 'نمونه‌کارها', href: `${base}portfolio/`, key: 'work' },
+  { label: 'بلاگ', href: `${base}blog/`, key: 'blog' },
+  { label: 'درباره‌ما', href: '#real', jump: 2, key: 'about' },
+  { label: 'تماس با ما', href: `${base}contact/`, key: 'contact' },
+];
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="وبیگرام؛ ایده شما را از طرح اولیه تا یک راهکار دیجیتال واقعی همراهی می‌کند." />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <title>وبیگرام | از ایده تا اجرای واقعی</title>
+</head>
+<body data-stage="0">
+  <div class="slide-loader" id="loader"><div>در حال آماده‌سازی طرح‌ها<div class="loader-line"></div></div></div>
+  <main class="story" id="story">
+    <i class="anchor a1" id="sketch"></i><i class="anchor a2" id="color"></i><i class="anchor a3" id="real"></i>
+    <div class="viewport">
+      <div class="frame">
+        <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+          <filter id="pencil-rough"><feTurbulence type="fractalNoise" baseFrequency=".014" numOctaves="2" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale=".65"/></filter>
+        </svg>
+
+        <section class="slide slide-sketch active" data-slide="0">
+          <div class="visual visual-sketch"><Composition variant="sketch" /></div>
+          <div class="right">
+            <header class="stage-header">
+              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".42" stroke-width="2"/></svg><span>Webigram</span></a>
+              <nav class="nav" aria-label="منوی مرحله طرح اولیه">{nav.map((item)=><a href={item.href} data-jump={item.jump} class={item.key==='home'?'current':''}>{item.label}</a>)}</nav>
+            </header>
+            <div class="copy">
+              <h1>ایده شما،<br/>نقطه آغاز است</h1>
+              <p>هر پروژه از یک نیاز، مسئله یا ایده آغاز می‌شود.<br/>شما ایده را مطرح می‌کنید؛ ما آن را بررسی می‌کنیم تا مسیر تبدیل آن به یک راهکار واقعی مشخص شود.</p>
+              <div class="actions">
+                <a href="#color" data-jump="1">مشاهده مسیر اجرا <span>←</span></a>
+                <a href={`${base}services/`}>آشنایی با خدمات ما <span>←</span></a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide slide-color" data-slide="1">
+          <div class="visual visual-color"><Composition variant="color" /></div>
+          <div class="right">
+            <header class="stage-header">
+              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
+              <nav class="nav" aria-label="منوی مرحله طراحی رنگی">{nav.map((item)=><a href={item.href} data-jump={item.jump}>{item.label}</a>)}</nav>
+            </header>
+            <div class="copy">
+              <h2>ما مسیر اجرای آن را<br/><em>طراحی می‌کنیم</em></h2>
+              <p>نیازها را تحلیل می‌کنیم، ساختار و تجربه کاربری را شکل می‌دهیم و ایده را به یک طرح روشن، منسجم و قابل اجرا تبدیل می‌کنیم.</p>
+              <div class="actions">
+                <a href="#real" data-jump="2">مشاهده نتیجه <span>←</span></a>
+                <a href={`${base}services/`}>آشنایی با خدمات ما <span>←</span></a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="slide slide-real" data-slide="2">
+          <div class="visual visual-real">
+            <div class="real-composition-shell" aria-label="نسخه واقعی همان ترکیب‌بندی طرح اولیه">
+              <Composition variant="real" />
+            </div>
+          </div>
+          <div class="right">
+            <header class="stage-header">
+              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
+              <nav class="nav" aria-label="منوی مرحله محصول واقعی">{nav.map((item)=><a href={item.href} data-jump={item.jump}>{item.label}</a>)}</nav>
+            </header>
+            <div class="copy">
+              <h2>ایده شما را به<br/><em>واقعیت تبدیل می‌کنیم</em></h2>
+              <p>از طراحی و توسعه تا استقرار و بهبود، طرح نهایی را به یک وب‌سایت، اپلیکیشن، سامانه یا ابزار اختصاصی واقعی و قابل استفاده تبدیل می‌کنیم.</p>
+              <div class="actions">
+                <a href={`${base}contact/`}>شروع همکاری <span>←</span></a>
+                <a href={`${base}portfolio/`}>مشاهده نمونه کارها <span>←</span></a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div class="progress" aria-label="مراحل طراحی"><button class="active" data-jump="0" aria-label="طرح اولیه"></button><button data-jump="1" aria-label="طراحی رنگی"></button><button data-jump="2" aria-label="نسخه واقعی"></button></div>
+
+  <script is:inline>
+    const story=document.getElementById('story'),slides=[...document.querySelectorAll('[data-slide]')],dots=[...document.querySelectorAll('.progress button')],loader=document.getElementById('loader');
+    requestAnimationFrame(()=>loader.classList.add('done'));
+
+    let current=-1,raf=0;
+    const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+    const viewportHeight=()=>window.visualViewport?.height||innerHeight;
+    const setStage=n=>{
+      n=clamp(n,0,slides.length-1);
+      if(n===current)return;
+      current=n;
+      document.body.dataset.stage=n;
+      slides.forEach((slide,index)=>slide.classList.toggle('active',index===n));
+      dots.forEach((dot,index)=>dot.classList.toggle('active',index===n));
+      document.documentElement.style.setProperty('--dot',n===0?'#171717':n===1?'#315cff':'#7b43ff');
+    };
+
+    const metrics=()=>{
+      const height=viewportHeight();
+      const max=Math.max(1,story.offsetHeight-height);
+      const y=clamp(-story.getBoundingClientRect().top,0,max);
+      return {max,progress:(y/max)*(slides.length-1)};
+    };
+
+    const render=()=>{
+      raf=0;
+      const {progress}=metrics();
+
+      slides.forEach((slide,index)=>{
+        const cover=index<slides.length-1?clamp(progress-index,0,1):0;
+        const inset=`inset(0 0 ${cover*100}% 0)`;
+        slide.style.transform='none';
+        slide.style.clipPath=inset;
+        slide.style.webkitClipPath=inset;
+        slide.style.zIndex=String(slides.length-index);
+        slide.setAttribute('aria-hidden',Math.round(progress)!==index?'true':'false');
+      });
+
+      setStage(Math.round(progress));
+    };
+
+    const queueRender=()=>{if(!raf)raf=requestAnimationFrame(render)};
+    addEventListener('scroll',queueRender,{passive:true});
+    addEventListener('resize',queueRender);
+    window.visualViewport?.addEventListener('resize',queueRender);
+    requestAnimationFrame(render);
+
+    document.addEventListener('click',event=>{
+      const el=event.target.closest('[data-jump]');
+      if(!el)return;
+      event.preventDefault();
+      const n=clamp(Number(el.dataset.jump),0,slides.length-1);
+      const {max}=metrics();
+      const target=story.offsetTop+(max/(slides.length-1))*n;
+      scrollTo({top:target,behavior:'smooth'});
+    });
+  </script>
+</body>
+</html>
