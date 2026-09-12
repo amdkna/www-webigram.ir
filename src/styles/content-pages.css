@@ -8,3 +8,16 @@
 .contact-layout{display:grid;grid-template-columns:minmax(280px,.72fr) minmax(0,1.28fr);gap:55px;padding-bottom:80px}.contact-copy h2{font-size:clamp(32px,4vw,52px);margin:0 0 18px}.contact-copy p{color:var(--muted);line-height:2}.contact-points{margin-top:30px;display:grid;gap:14px}.contact-point{padding:15px 0;border-bottom:1px solid var(--line)}.contact-form{border:1px solid var(--line);background:rgba(255,255,255,.82);border-radius:26px;padding:clamp(22px,3vw,38px);box-shadow:0 20px 70px rgba(29,31,48,.05)}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.field{display:grid;gap:7px}.field.full{grid-column:1/-1}.field label{font-size:.82rem;font-weight:800;color:#555b68}.field input,.field select,.field textarea{width:100%;border:1px solid rgba(21,22,26,.15);background:#fff;border-radius:13px;padding:12px 13px;outline:none;transition:.2s}.field textarea{min-height:160px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#7659df;box-shadow:0 0 0 3px rgba(118,89,223,.1)}.field-honeypot{position:absolute!important;left:-9999px!important;opacity:0!important;pointer-events:none!important}.consent{grid-column:1/-1;display:flex;align-items:flex-start;gap:9px;color:#656b77;font-size:.84rem;line-height:1.7}.consent input{margin-top:5px}.contact-actions{grid-column:1/-1;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 
 @media(max-width:900px){.cp-shell{width:min(100% - 26px,1220px)}.cp-nav nav{display:none}.portfolio-grid,.blog-grid,.contact-layout,.detail-layout{grid-template-columns:1fr}.blog-grid{gap:13px}.detail-side{position:static}.gallery-grid{grid-template-columns:1fr}.gallery-grid figure:nth-child(3n+1){grid-column:auto}.form-grid{grid-template-columns:1fr}.field.full,.consent,.contact-actions{grid-column:auto}.cp-footer{flex-direction:column}.cp-hero{padding-top:55px}}
+
+/* Match the homepage header composition: logo and navigation stay together on the right instead of being stretched across the page. */
+.cp-header{padding:18px 0;background:rgba(251,250,247,.94);backdrop-filter:blur(14px)}
+.cp-nav{min-height:72px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;justify-content:flex-start;gap:28px;direction:rtl}
+.cp-brand{font-size:1.28rem;gap:.65rem;flex:none}
+.cp-brand svg{width:54px;height:43px}
+.cp-nav nav{gap:clamp(12px,1.15vw,22px);white-space:nowrap;color:#181818;font-size:clamp(.78rem,.86vw,.96rem);font-weight:700}
+.cp-nav nav a{position:relative;padding:.55rem .08rem;color:#181818}
+.cp-nav nav a:hover,.cp-nav nav a.active{color:#181818}
+.cp-nav nav a::after{content:'';position:absolute;right:10%;left:10%;bottom:.15rem;height:2px;background:currentColor;transform:scaleX(0);transition:transform .2s}
+.cp-nav nav a:hover::after,.cp-nav nav a.active::after{transform:scaleX(1)}
+
+@media(max-width:900px){.cp-header{padding:10px 0}.cp-nav{min-height:60px}.cp-brand svg{width:46px;height:37px}.cp-nav nav{display:none}}
