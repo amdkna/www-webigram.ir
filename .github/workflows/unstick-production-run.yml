@@ -15,15 +15,15 @@ jobs:
   cancel-stuck-run:
     name: Cancel stuck production run
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
     env:
       GH_TOKEN: ${{ github.token }}
-      STUCK_RUN_ID: "34713786738"
+      STUCK_RUN_ID: "34715856089"
     steps:
-      - name: Cancel deploy blocking CMS recovery
+      - name: Cancel deploy blocking repaired CMS rollout
         run: |
           set -euo pipefail
-          echo "Cancelling workflow run ${STUCK_RUN_ID} so the self-hosted runner can accept the repaired CMS recovery."
+          echo "Cancelling workflow run ${STUCK_RUN_ID} so the repaired CMS deploy can use the self-hosted runner."
 
           gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/cancel" || true
 
@@ -36,9 +36,9 @@ jobs:
           done
 
           echo "Normal cancellation was not acknowledged; force-cancelling run ${STUCK_RUN_ID}."
-          gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/force-cancel"
+          gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/force-cancel" || true
 
-          for i in $(seq 1 10); do
+          for i in $(seq 1 30); do
             STATUS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.status')
             CONCLUSION=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.conclusion // ""')
             echo "force_cancel_attempt=$i status=$STATUS conclusion=$CONCLUSION"
