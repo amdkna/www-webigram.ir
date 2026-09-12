@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ["Deploy Webigram to Production Server"]
     types: [completed]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,8 +16,8 @@ concurrency:
 jobs:
   smoke:
     name: Smoke test portfolio, contact and blog
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: [self-hosted, Linux, X64]
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
       WEB_URL: https://webigram.ir
@@ -100,6 +101,6 @@ jobs:
 
       - name: Summary
         run: |
-          echo "Portfolio, contact and blog pages are reachable."
+          echo "Portfolio, contact and blog pages are reachable from outside production."
           echo "Portfolio/blog Directus reads work for the public role."
           echo "Contact request records are not publicly readable."
