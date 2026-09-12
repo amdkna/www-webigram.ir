@@ -1,0 +1,26 @@
+name: Release Stale Webigram Deploy Lock
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-stale-deploy-lock.yml'
+
+permissions:
+  contents: read
+
+# One-shot recovery workflow. It deliberately shares the stale deployment's
+# concurrency group and cancels that run. The stale job is already in its
+# read-only verification phase, so cancelling it cannot interrupt a file or
+# container swap.
+concurrency:
+  group: webigram-production-v2
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Release stale deployment lock
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: echo 'Released stale webigram-production-v2 concurrency lock.'
