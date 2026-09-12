@@ -81,7 +81,7 @@ const fallbackPage = {
       };
       Promise.all([
         get('/items/portfolio_page?limit=1'),
-        get('/items/portfolio?sort=sort,-date_created&limit=100&fields=id,slug,title,summary,client,year,service,technologies,cover_image,featured')
+        get('/items/portfolio?sort=sort,title&limit=100&fields=id,slug,title,summary,client,year,service,technologies,cover_image,featured')
       ]).then(([page,items]) => { setPage(page.data?.[0]); render(items.data || []); })
         .catch(() => { grid.innerHTML = '<div class="cp-empty" style="grid-column:1/-1">فعلا امکان دریافت نمونه کارها نیست. کمی بعد دوباره امتحان کنید.</div>'; });
     })();
