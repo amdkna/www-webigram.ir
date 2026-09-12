@@ -1,0 +1,126 @@
+name: Recover Coursino Directus from cached images
+
+on:
+  push:
+    branches:
+      - ops/coursino-directus-recovery
+    paths:
+      - .github/workflows/recover-coursino-directus.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recover:
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 12
+
+    steps:
+      - name: Inspect shared host state
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f /opt/apps/live.webigram.ir/docker-compose.yml
+          test -f /opt/apps/live.webigram.ir/app/api/internal/directus-auth/route.ts
+          echo '--- Coursino containers ---'
+          cd /opt/apps/live.webigram.ir
+          docker compose ps -a || true
+          echo '--- Webigram Directus containers ---'
+          docker inspect -f '{{.Name}} image={{.Image}} running={{.State.Running}}' webigram-directus webigram-directus-db
+
+      - name: Reuse known-good Directus and PostgreSQL images
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DIRECTUS_IMAGE_ID="$(docker inspect --format '{{.Image}}' webigram-directus)"
+          POSTGRES_IMAGE_ID="$(docker inspect --format '{{.Image}}' webigram-directus-db)"
+
+          test -n "$DIRECTUS_IMAGE_ID"
+          test -n "$POSTGRES_IMAGE_ID"
+
+          docker image inspect "$DIRECTUS_IMAGE_ID" >/dev/null
+          docker image inspect "$POSTGRES_IMAGE_ID" >/dev/null
+
+          docker tag "$DIRECTUS_IMAGE_ID" directus/directus:12.3.1
+          docker tag "$POSTGRES_IMAGE_ID" postgres:16-alpine
+
+          docker image inspect directus/directus:12.3.1 --format 'directus={{.Id}}'
+          docker image inspect postgres:16-alpine --format 'postgres={{.Id}}'
+
+      - name: Ensure Directus runtime values
+        shell: bash
+        run: |
+          set -euo pipefail
+          ENV_FILE=/opt/apps/live.webigram.ir/.env
+          touch "$ENV_FILE"
+          chmod 600 "$ENV_FILE"
+
+          if ! grep -q '^DIRECTUS_SECRET=' "$ENV_FILE"; then
+            echo "DIRECTUS_SECRET=$(openssl rand -hex 32)" >> "$ENV_FILE"
+          fi
+          if ! grep -q '^DIRECTUS_ADMIN_EMAIL=' "$ENV_FILE"; then
+            echo 'DIRECTUS_ADMIN_EMAIL=admin@live.webigram.ir' >> "$ENV_FILE"
+          fi
+          if ! grep -q '^DIRECTUS_ADMIN_PASSWORD=' "$ENV_FILE"; then
+            AUTH_PASSWORD_VALUE="$(grep '^AUTH_PASSWORD=' "$ENV_FILE" | head -n1 | cut -d= -f2-)"
+            test -n "$AUTH_PASSWORD_VALUE"
+            printf 'DIRECTUS_ADMIN_PASSWORD=%s\n' "$AUTH_PASSWORD_VALUE" >> "$ENV_FILE"
+          fi
+
+      - name: Start Coursino Directus without registry access
+        shell: bash
+        working-directory: /opt/apps/live.webigram.ir
+        run: |
+          set -euo pipefail
+          timeout 180s docker compose up -d --pull never coursino-live-directus-db coursino-live-directus
+
+          for attempt in {1..60}; do
+            if timeout 8s docker exec coursino-live node -e "fetch('http://coursino-live-directus:8055/server/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"; then
+              echo 'Directus health check passed.'
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo 'Directus did not become healthy.'
+          docker logs --tail=240 coursino-live-directus 2>&1 || true
+          docker logs --tail=160 coursino-live-directus-db 2>&1 || true
+          exit 1
+
+      - name: Reload edge and verify protected route
+        shell: bash
+        run: |
+          set -euo pipefail
+          timeout 10s docker exec edge-nginx nginx -t
+          timeout 10s docker exec edge-nginx nginx -s reload
+
+          STATUS="$(curl -ksS -o /tmp/coursino-directus-response -w '%{http_code}' --connect-timeout 3 --max-time 10 --resolve live.webigram.ir:443:127.0.0.1 https://live.webigram.ir/directus/ || true)"
+          echo "unauthenticated_directus_status=$STATUS"
+          case "$STATUS" in
+            401|403)
+              echo 'Protected Directus route is responding correctly.'
+              ;;
+            *)
+              cat /tmp/coursino-directus-response 2>/dev/null || true
+              exit 1
+              ;;
+          esac
+
+      - name: Failure diagnostics
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+          cd /opt/apps/live.webigram.ir
+          echo '--- compose ps ---'
+          docker compose ps -a
+          echo '--- coursino app ---'
+          docker logs --tail=200 coursino-live 2>&1
+          echo '--- directus ---'
+          docker logs --tail=240 coursino-live-directus 2>&1
+          echo '--- directus db ---'
+          docker logs --tail=160 coursino-live-directus-db 2>&1
+          echo '--- edge ---'
+          docker logs --tail=120 edge-nginx 2>&1
