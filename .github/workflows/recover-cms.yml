@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: webigram-production-v2
+  group: webigram-cms-recovery
   cancel-in-progress: false
 
 jobs:
