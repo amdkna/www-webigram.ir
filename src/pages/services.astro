@@ -1,5 +1,6 @@
 ---
 import '../styles/base.css';
+import '../styles/content-pages.css';
 
 const base = import.meta.env.BASE_URL;
 const cmsUrl = 'https://cms.webigram.ir';
@@ -14,7 +15,7 @@ const fallbackServices = [
     details: 'طراحی Pipeline، کانتینرسازی، استقرار روی سرور و Cloud، Reverse Proxy، SSL، مانیتورینگ، Backup و مدیریت محیط های توسعه و Production.',
     tags: ['CI/CD', 'Docker', 'Linux', 'Nginx', 'Monitoring'],
     cta_label: 'مشاوره DevOps',
-    cta_url: '/#real',
+    cta_url: '/contact/',
   },
   {
     slug: 'automation',
@@ -25,7 +26,7 @@ const fallbackServices = [
     details: 'طراحی Workflow، اتصال APIها، فرم ها و CRM، اعلان ها، گزارش گیری، Botها، پردازش فایل و داده و ساخت اتوماسیون های اختصاصی.',
     tags: ['Automation', 'API', 'Workflow', 'Integration', 'Bots'],
     cta_label: 'بررسی فرآیند',
-    cta_url: '/#real',
+    cta_url: '/contact/',
   },
   {
     slug: 'platform-development',
@@ -36,7 +37,7 @@ const fallbackServices = [
     details: 'برای پلتفرم های اختصاصی، MVP، SaaS و محصولات داخلی، ابتدا مسئله و جریان کار را مدل می کنیم و بعد راهکار را مرحله به مرحله می سازیم.',
     tags: ['Platform', 'MVP', 'SaaS', 'Backend', 'Frontend'],
     cta_label: 'شروع طراحی پلتفرم',
-    cta_url: '/#real',
+    cta_url: '/contact/',
   },
   {
     slug: 'enterprise-panels',
@@ -47,7 +48,7 @@ const fallbackServices = [
     details: 'پنل های مدیریت، داشبوردهای عملیاتی، سیستم های ثبت و پیگیری، گزارش ها، نقش ها و سطح دسترسی، گردش تایید و ابزارهای داخلی تحت وب.',
     tags: ['Admin Panel', 'Dashboard', 'RBAC', 'Reporting', 'Internal Tools'],
     cta_label: 'طراحی پنل سازمانی',
-    cta_url: '/#real',
+    cta_url: '/contact/',
   },
   {
     slug: 'web-development',
@@ -58,7 +59,7 @@ const fallbackServices = [
     details: 'طراحی رابط، توسعه Frontend و Backend، اتصال CMS، فرم ها، سئو فنی، Analytics، بهینه سازی سرعت و استقرار کامل پروژه.',
     tags: ['Website', 'Web App', 'SEO', 'CMS', 'Performance'],
     cta_label: 'ساخت وب سایت',
-    cta_url: '/#real',
+    cta_url: '/contact/',
   },
   {
     slug: 'ai-solutions',
@@ -69,7 +70,7 @@ const fallbackServices = [
     details: 'اتصال مدل های زبانی به داده و ابزارهای سازمان، RAG، دستیارهای داخلی، طبقه بندی و استخراج اطلاعات و Agentهای کنترل شده برای وظایف مشخص.',
     tags: ['AI', 'LLM', 'RAG', 'Agents', 'Knowledge Base'],
     cta_label: 'بررسی کاربرد AI',
-    cta_url: '/#real',
+    cta_url: '/contact/',
   },
 ];
 
@@ -83,7 +84,7 @@ const fallbackPage = {
   cta_title: 'از مسئله شروع کنیم.\nراه حل را با هم می سازیم.',
   cta_description: 'لازم نیست از قبل بدانید چه تکنولوژی یا چه نوع نرم افزاری می خواهید. مسئله و نتیجه مورد انتظار را بگویید؛ مسیر فنی را ما طراحی می کنیم.',
   cta_button_label: 'شروع گفتگو',
-  cta_button_url: '/#real',
+  cta_button_url: '/contact/',
   seo_title: 'خدمات وبیگرام | DevOps، اتوماسیون، پلتفرم و طراحی سایت',
   seo_description: 'خدمات وبیگرام شامل DevOps و زیرساخت، اتوماسیون، طراحی پلتفرم، پنل های سازمانی، وب سایت و راهکارهای هوش مصنوعی است.',
 };
@@ -101,18 +102,18 @@ const fallbackPage = {
   <title>{fallbackPage.seo_title}</title>
 </head>
 <body class="services-page" data-cms-collection="services">
-  <header class="services-header">
-    <div class="services-shell services-nav-wrap">
-      <a class="services-brand" href={`${base}`} aria-label="وبیگرام - خانه">
+  <header class="cp-header">
+    <div class="cp-shell cp-nav">
+      <a class="cp-brand" href={`${base}`} aria-label="وبیگرام - خانه">
         <svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"/></svg>
-        <strong>Webigram</strong>
+        <span>Webigram</span>
       </a>
       <nav aria-label="منوی اصلی">
         <a href={`${base}`}>خانه</a>
         <a class="active" href={`${base}services/`}>خدمات</a>
-        <a href={`${base}#color`}>نمونه کارها</a>
-        <a href={`${base}#real`}>درباره ما</a>
-        <a href={`${base}#real`}>تماس با ما</a>
+        <a href={`${base}portfolio/`}>نمونه کارها</a>
+        <a href={`${base}blog/`}>بلاگ</a>
+        <a href={`${base}contact/`}>تماس با ما</a>
       </nav>
     </div>
   </header>
@@ -170,10 +171,7 @@ const fallbackPage = {
     </section>
   </main>
 
-  <footer class="services-footer services-shell">
-    <span>Webigram</span>
-    <span>DevOps · Automation · Platforms · Web</span>
-  </footer>
+  <footer class="cp-shell cp-footer"><span>Webigram</span><span>Build · Automate · Operate</span></footer>
 
   <script define:vars={{ cmsUrl }} is:inline>
     (() => {
@@ -326,33 +324,10 @@ const fallbackPage = {
 </html>
 
 <style>
-  :global(body.services-page){
-    margin:0;
-    min-width:320px;
-    color:#15161a;
-    background:
-      radial-gradient(circle at 12% 16%,rgba(102,74,218,.08),transparent 25%),
-      radial-gradient(circle at 90% 42%,rgba(89,117,255,.06),transparent 26%),
-      #fbfaf7;
-    font-family:'Vazirmatn',Tahoma,sans-serif;
-    overflow-x:hidden;
-  }
+  :global(body.services-page){overflow-x:hidden}
   :global(.services-page *){box-sizing:border-box}
   :global(.services-page a){color:inherit;text-decoration:none}
   .services-shell{width:min(1240px,calc(100% - 48px));margin-inline:auto}
-
-  .services-header{position:sticky;top:0;z-index:30;padding:18px 0;background:linear-gradient(#fbfaf7f5,#fbfaf7d9,transparent);backdrop-filter:blur(14px)}
-  .services-nav-wrap{min-height:72px;padding:0 22px;border:1px solid rgba(20,23,31,.11);border-radius:22px;background:rgba(255,255,255,.72);display:flex;align-items:center;justify-content:space-between;gap:28px;box-shadow:0 18px 55px rgba(28,31,50,.05)}
-  .services-brand{display:flex;align-items:center;gap:11px;direction:ltr;flex:none}
-  .services-brand svg{width:48px;height:39px}
-  .services-brand path{fill:none;stroke:#17181c;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
-  .services-brand .echo{stroke:#6b49d9;stroke-width:2;opacity:.7}
-  .services-brand strong{font-size:1.3rem;letter-spacing:-.04em}
-  .services-nav-wrap nav{display:flex;align-items:center;gap:clamp(10px,1.6vw,25px);font-size:.93rem;font-weight:700}
-  .services-nav-wrap nav a{position:relative;padding:11px 1px;color:#555b69;transition:.2s}
-  .services-nav-wrap nav a:hover,.services-nav-wrap nav a.active{color:#17181c}
-  .services-nav-wrap nav a::after{content:'';position:absolute;right:50%;left:50%;bottom:4px;height:2px;border-radius:20px;background:#6d4be2;transition:.25s}
-  .services-nav-wrap nav a:hover::after,.services-nav-wrap nav a.active::after{right:6%;left:6%}
 
   .services-hero{padding:clamp(72px,10vw,150px) 0 clamp(58px,7vw,94px);display:grid;grid-template-columns:minmax(0,1.18fr) minmax(310px,.82fr);align-items:end;column-gap:60px}
   .hero-kicker{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:#6c7282;font-size:.9rem;margin-bottom:26px}
@@ -387,7 +362,7 @@ const fallbackPage = {
   .service-link{flex:none;display:inline-flex;align-items:center;gap:9px;color:#5e40ca;font-size:.82rem;font-weight:800;border-bottom:1px solid rgba(94,64,202,.25);padding-bottom:5px}
   .service-link span{font-size:1rem}
 
-  .services-cta{margin-top:clamp(80px,10vw,140px);margin-bottom:80px;padding:clamp(42px,6vw,75px);border-radius:34px;background:#14151b;color:white;display:flex;align-items:flex-end;justify-content:space-between;gap:54px;position:relative;overflow:hidden}
+  .services-cta{margin-top:clamp(80px,10vw,140px);margin-bottom:20px;padding:clamp(42px,6vw,75px);border-radius:34px;background:#14151b;color:white;display:flex;align-items:flex-end;justify-content:space-between;gap:54px;position:relative;overflow:hidden}
   .services-cta::after{content:'';position:absolute;width:420px;height:420px;border-radius:50%;left:-130px;top:-220px;background:radial-gradient(circle,rgba(117,89,235,.44),transparent 67%);pointer-events:none}
   .cta-copy{position:relative;z-index:1;max-width:790px}
   .cta-label{display:block;color:#aaaec0;font-size:.88rem;font-weight:700;margin-bottom:18px}
@@ -396,17 +371,9 @@ const fallbackPage = {
   .cta-button{position:relative;z-index:1;display:flex;align-items:center;gap:34px;padding:16px 19px;border:1px solid rgba(255,255,255,.22);border-radius:16px;font-weight:800;white-space:nowrap;transition:.25s}
   .cta-button:hover{background:white;color:#16171c}
   .cta-button b{font-size:1.4rem;font-weight:400}
-  .services-footer{padding:0 0 38px;display:flex;justify-content:space-between;gap:20px;color:#8a8f9a;font-size:.78rem;direction:ltr}
 
   @media(max-width:900px){
     .services-shell{width:min(100% - 28px,1240px)}
-    .services-header{padding:10px 0}
-    .services-nav-wrap{min-height:60px;border-radius:17px;padding:0 15px}
-    .services-brand strong{display:none}
-    .services-brand svg{width:40px}
-    .services-nav-wrap nav{gap:14px;font-size:.8rem;overflow:auto;white-space:nowrap;scrollbar-width:none}
-    .services-nav-wrap nav::-webkit-scrollbar{display:none}
-    .services-nav-wrap nav a:nth-child(4),.services-nav-wrap nav a:nth-child(5){display:none}
     .services-hero{grid-template-columns:1fr;padding-top:72px;row-gap:34px}
     .hero-kicker{margin-bottom:0}
     .services-hero h1{font-size:clamp(46px,11vw,72px)}
@@ -419,15 +386,12 @@ const fallbackPage = {
 
   @media(max-width:560px){
     .services-shell{width:min(100% - 22px,1240px)}
-    .services-nav-wrap nav{gap:12px}
-    .services-nav-wrap nav a:nth-child(3){display:none}
     .services-hero{padding:54px 0 48px}
     .services-hero h1{font-size:clamp(42px,13vw,62px)}
     .service-card{min-height:auto;padding:28px 22px 28px}
     .service-topline{margin-bottom:36px}
     .service-bottom{align-items:flex-start;flex-direction:column}
     .service-tags{justify-content:flex-start}
-    .services-cta{border-radius:24px;margin-bottom:54px;padding:34px 25px}
-    .services-footer{flex-direction:column;align-items:flex-start}
+    .services-cta{border-radius:24px;padding:34px 25px}
   }
 </style>
