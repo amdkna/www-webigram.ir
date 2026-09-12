@@ -4,9 +4,11 @@ import '../styles/composition-fixes.css';
 import '../styles/real-composition.css';
 import '../styles/real-photo.css';
 import '../styles/mobile.css';
+import '../styles/home-narratives.css';
 import Composition from '../components/Composition.astro';
 
 const base = import.meta.env.BASE_URL;
+const cmsUrl = 'https://cms.webigram.ir';
 const nav = [
   { label: 'خانه', href: '#sketch', jump: 0, key: 'home' },
   { label: 'خدمات', href: `${base}services/`, key: 'services' },
@@ -88,7 +90,7 @@ const nav = [
               <p>از طراحی و توسعه تا استقرار و بهبود، طرح نهایی را به یک وب‌سایت، اپلیکیشن، سامانه یا ابزار اختصاصی واقعی و قابل استفاده تبدیل می‌کنیم.</p>
               <div class="actions">
                 <a href={`${base}contact/`}>شروع همکاری <span>←</span></a>
-                <a href={`${base}portfolio/`}>مشاهده نمونه کارها <span>←</span></a>
+                <a href="#narratives">مشاهده روایت پروژه‌ها <span>←</span></a>
               </div>
             </div>
           </div>
@@ -96,6 +98,23 @@ const nav = [
       </div>
     </div>
   </main>
+
+  <section class="home-narratives" id="narratives" aria-labelledby="narratives-title">
+    <div class="narrative-shell">
+      <header class="narrative-head">
+        <div class="narrative-heading">
+          <span class="narrative-kicker">پروژه‌های Webigram</span>
+          <h2 id="narratives-title">هر پروژه، <em>یک روایت</em></h2>
+          <p>از مسئله‌ای که مطرح شد تا تصمیم‌هایی که گرفته شد و محصولی که در نهایت شکل گرفت؛ هر پروژه مسیر خودش را دارد.</p>
+        </div>
+        <a class="narrative-all" href={`${base}portfolio/`}>مشاهده همه پروژه‌ها <span>←</span></a>
+      </header>
+
+      <div class="narrative-list" data-narratives-list>
+        <div class="narrative-empty">در حال دریافت پروژه‌ها…</div>
+      </div>
+    </div>
+  </section>
 
   <div class="progress" aria-label="مراحل طراحی"><button class="active" data-jump="0" aria-label="طرح اولیه"></button><button data-jump="1" aria-label="طراحی رنگی"></button><button data-jump="2" aria-label="نسخه واقعی"></button></div>
 
@@ -155,6 +174,37 @@ const nav = [
       const target=story.offsetTop+(max/(slides.length-1))*n;
       scrollTo({top:target,behavior:'smooth'});
     });
+  </script>
+
+  <script define:vars={{ cmsUrl }} is:inline>
+    (()=>{
+      const list=document.querySelector('[data-narratives-list]');
+      if(!list)return;
+      const esc=(value='')=>String(value).replace(/[&<>'"]/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+      const asset=(id)=>id?`${cmsUrl}/assets/${encodeURIComponent(id)}?width=900&height=520&fit=cover&quality=86`:'';
+      const fields='id,slug,title,summary,client,year,service,cover_image,featured';
+      fetch(`${cmsUrl}/items/portfolio?sort=-featured,sort,title&limit=4&fields=${encodeURIComponent(fields)}`,{headers:{Accept:'application/json'},cache:'no-store'})
+        .then((response)=>{if(!response.ok)throw new Error(`CMS ${response.status}`);return response.json();})
+        .then(({data})=>{
+          const items=Array.isArray(data)?data:[];
+          if(!items.length){list.innerHTML='<div class="narrative-empty">روایت پروژه‌ها به‌زودی اینجا منتشر می‌شود.</div>';return;}
+          list.innerHTML=items.map((item,index)=>{
+            const image=asset(item.cover_image);
+            const meta=[item.service,item.client,item.year].filter(Boolean).map((value)=>`<span>${esc(value)}</span>`).join('');
+            return `<a class="narrative-row" href="/portfolio/${encodeURIComponent(item.slug)}/">
+              <span class="narrative-index">${String(index+1).padStart(2,'0')}</span>
+              <div class="narrative-main">
+                <div class="narrative-meta">${meta}</div>
+                <h3>${esc(item.title)}</h3>
+                <p>${esc(item.summary||'')}</p>
+              </div>
+              <div class="narrative-cover">${image?`<img src="${image}" alt="${esc(item.title)}" loading="lazy" />`:''}</div>
+              <span class="narrative-cta">مشاهده روایت <b>←</b></span>
+            </a>`;
+          }).join('');
+        })
+        .catch(()=>{list.innerHTML='<div class="narrative-empty">فعلا امکان دریافت پروژه‌ها نیست.</div>';});
+    })();
   </script>
 </body>
 </html>
