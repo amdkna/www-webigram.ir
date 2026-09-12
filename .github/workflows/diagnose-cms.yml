@@ -1,0 +1,30 @@
+name: Diagnose Webigram CMS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/diagnose-cms.yml'
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - name: Inspect Directus runtime
+        run: |
+          set +e
+          echo '=== docker ps ==='
+          docker ps -a --filter 'name=webigram-directus'
+          echo
+          echo '=== directus health from host network path ==='
+          docker exec edge-nginx wget -S -O- http://webigram-directus:8055/server/health 2>&1 || true
+          echo
+          echo '=== directus logs ==='
+          docker logs --tail 200 webigram-directus 2>&1 || true
+          echo
+          echo '=== directus db health ==='
+          docker inspect --format='{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}' webigram-directus-db 2>/dev/null || true
+          echo
+          echo '=== directus container health ==='
+          docker inspect --format='{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}} restart={{.RestartCount}}' webigram-directus 2>/dev/null || true
