@@ -1,0 +1,105 @@
+name: Verify Webigram Content CMS
+
+on:
+  workflow_run:
+    workflows: ["Deploy Webigram to Production Server"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: webigram-content-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Smoke test portfolio, contact and blog
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 5
+    env:
+      WEB_URL: https://webigram.ir
+      CMS_URL: https://cms.webigram.ir
+    steps:
+      - name: Verify public pages
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          check_page() {
+            local path="$1"
+            local marker="$2"
+            local name="$3"
+            local out="$RUNNER_TEMP/webigram-${name}.html"
+
+            curl -fsS --connect-timeout 5 --max-time 20 --retry 2 --retry-delay 2 \
+              "${WEB_URL}${path}?smoke=${GITHUB_RUN_ID}" -o "$out"
+            grep -Fq "$marker" "$out"
+            echo "OK page: ${path}"
+          }
+
+          check_page "/portfolio/" 'data-portfolio-grid' "portfolio"
+          check_page "/contact/" 'data-contact-form' "contact"
+          check_page "/blog/" 'data-blog-grid' "blog"
+
+      - name: Verify Directus public read API
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          check_api_200() {
+            local endpoint="$1"
+            local name="$2"
+            local out="$RUNNER_TEMP/directus-${name}.json"
+            local code
+
+            code=$(curl -sS -o "$out" -w '%{http_code}' \
+              --connect-timeout 5 --max-time 20 --retry 2 --retry-delay 2 \
+              -H 'Accept: application/json' \
+              "${CMS_URL}${endpoint}")
+
+            if [ "$code" != "200" ]; then
+              echo "ERROR: ${endpoint} returned HTTP ${code}"
+              cat "$out" || true
+              exit 1
+            fi
+
+            grep -q '"data"' "$out"
+            echo "OK Directus read: ${endpoint}"
+          }
+
+          check_api_200 '/items/portfolio?limit=1&fields=id' 'portfolio'
+          check_api_200 '/items/portfolio_page?limit=1&fields=id' 'portfolio-page'
+          check_api_200 '/items/blog_posts?limit=1&fields=id' 'blog-posts'
+          check_api_200 '/items/blog_categories?limit=1&fields=id' 'blog-categories'
+          check_api_200 '/items/blog_tags?limit=1&fields=id' 'blog-tags'
+          check_api_200 '/items/blog_page?limit=1&fields=id' 'blog-page'
+
+      - name: Verify contact requests remain private
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          out="$RUNNER_TEMP/directus-contact-private.json"
+          code=$(curl -sS -o "$out" -w '%{http_code}' \
+            --connect-timeout 5 --max-time 20 \
+            -H 'Accept: application/json' \
+            "${CMS_URL}/items/contact_requests?limit=1")
+
+          case "$code" in
+            401|403)
+              echo "OK privacy: public contact_requests read is blocked with HTTP ${code}."
+              ;;
+            *)
+              echo "ERROR: contact_requests must not be publicly readable; got HTTP ${code}."
+              cat "$out" || true
+              exit 1
+              ;;
+          esac
+
+      - name: Summary
+        run: |
+          echo "Portfolio, contact and blog pages are reachable."
+          echo "Portfolio/blog Directus reads work for the public role."
+          echo "Contact request records are not publicly readable."
