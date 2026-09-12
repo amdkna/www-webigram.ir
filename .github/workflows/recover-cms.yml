@@ -1,0 +1,87 @@
+name: Recover Webigram CMS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/recover-cms.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: webigram-production-v2
+  cancel-in-progress: false
+
+jobs:
+  recover-cms:
+    name: Recover Directus CMS
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 10
+    env:
+      APP_DIR: /opt/apps/www-webigram.ir
+      EDGE_CONTAINER: edge-nginx
+      CMS_HEALTH_URL: https://cms.webigram.ir/server/ping
+    steps:
+      - name: Restore current Directus configuration and restart CMS
+        run: |
+          set -euo pipefail
+
+          test -d "$APP_DIR/.git"
+          git -C "$APP_DIR" fetch origin main
+          git -C "$APP_DIR" checkout -B main origin/main
+
+          cd "$APP_DIR"
+          docker network inspect app-net >/dev/null 2>&1 || docker network create app-net
+
+          # Re-apply the current CMS stack and force Directus itself to be rebuilt from
+          # the known-good main configuration. This is intentionally limited to CMS.
+          docker compose up -d directus-secrets-init directus-db
+          docker compose up -d --force-recreate directus
+
+          directus_healthy=0
+          for i in $(seq 1 60); do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' webigram-directus 2>/dev/null || true)
+            echo "directus_attempt=$i status=$STATUS"
+            if [ "$STATUS" = "healthy" ]; then
+              directus_healthy=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$directus_healthy" -ne 1 ]; then
+            echo "ERROR: Directus did not become healthy."
+            docker compose ps || true
+            docker logs --tail 250 webigram-directus || true
+            docker logs --tail 120 webigram-directus-db || true
+            exit 1
+          fi
+
+          # Edge nginx resolves the Docker upstream name when its config is loaded.
+          # Reload after recreating Directus so cms.webigram.ir points at its current IP.
+          docker exec "$EDGE_CONTAINER" nginx -t
+          docker exec "$EDGE_CONTAINER" nginx -s reload
+
+          cms_ready=0
+          for i in $(seq 1 30); do
+            CODE=$(curl -sS -o /tmp/webigram-cms-ping -w '%{http_code}' \
+              --connect-timeout 3 --max-time 5 "$CMS_HEALTH_URL" || true)
+            echo "cms_public_attempt=$i http=$CODE body=$(cat /tmp/webigram-cms-ping 2>/dev/null || true)"
+            if [ "$CODE" = "200" ]; then
+              cms_ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$cms_ready" -ne 1 ]; then
+            echo "ERROR: Directus is healthy internally but cms.webigram.ir is not reachable."
+            docker inspect "$EDGE_CONTAINER" --format '{{json .NetworkSettings.Networks}}' || true
+            docker inspect webigram-directus --format '{{json .NetworkSettings.Networks}}' || true
+            docker logs --tail 250 "$EDGE_CONTAINER" || true
+            exit 1
+          fi
+
+          echo "CMS recovery successful: $CMS_HEALTH_URL returned HTTP 200."
