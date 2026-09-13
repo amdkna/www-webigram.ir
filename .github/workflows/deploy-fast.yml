@@ -6,9 +6,12 @@ on:
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
+      - '.github/workflows/deploy-fast.yml'
       - '.github/workflows/unstick-production-run.yml'
       - '.github/workflows/release-stale-deploy-lock.yml'
       - '.github/workflows/recover-stale-deploy.yml'
+      - 'scripts/deploy/remote-deploy.sh'
+      - 'scripts/deploy/sync-release.sh'
 
 permissions:
   contents: read
@@ -66,133 +69,129 @@ jobs:
   deploy:
     name: Fast production deploy
     needs: prepare
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
     timeout-minutes: 8
     concurrency:
-      group: webigram-production-v3
+      group: webigram-production-v4
       cancel-in-progress: false
     env:
-      APP_DIR: /opt/apps/www-webigram.ir
-      PUBLIC_HEALTH_URL: https://webigram.ir/healthz
-      EDGE_CONTAINER: edge-nginx
+      SSH_HOST: webigram.ir
+      SSH_PORT: '34822'
+      SSH_USER: arna
       SITE_CHANGED: ${{ needs.prepare.outputs.site_changed }}
       SERVER_CHANGED: ${{ needs.prepare.outputs.server_changed }}
       DIRECTUS_CHANGED: ${{ needs.prepare.outputs.directus_changed }}
       COMPOSE_CHANGED: ${{ needs.prepare.outputs.compose_changed }}
       NGINX_CHANGED: ${{ needs.prepare.outputs.nginx_changed }}
     steps:
-      - name: Prepare deployment source without checkout action
+      - name: Configure production SSH key
         shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.WEBIGRAM_DEPLOY_SSH_KEY }}
         run: |
           set -euo pipefail
-
-          source_dir="$RUNNER_TEMP/webigram-source"
-          fetch_dir="$RUNNER_TEMP/webigram-fetch"
-          release_dir="$RUNNER_TEMP/webigram-dist"
-
-          rm -rf "$source_dir" "$fetch_dir" "$release_dir"
-          mkdir -p "$source_dir" "$release_dir"
-
-          if git -C "$APP_DIR" rev-parse --git-dir >/dev/null 2>&1; then
-            echo "Using the server repository as the local Git object cache."
-            timeout 30s git -C "$APP_DIR" fetch --no-tags origin "$GITHUB_SHA"
-            git -C "$APP_DIR" cat-file -e "$GITHUB_SHA^{commit}"
-            git -C "$APP_DIR" archive "$GITHUB_SHA" | tar -x -C "$source_dir"
-          else
-            echo "Server repository is unavailable; using a shallow temporary fetch."
-            git init "$fetch_dir"
-            git -C "$fetch_dir" remote add origin https://github.com/amdkna/www-webigram.ir.git
-            timeout 30s git -C "$fetch_dir" fetch --no-tags --depth=1 origin "$GITHUB_SHA"
-            git -C "$fetch_dir" archive FETCH_HEAD | tar -x -C "$source_dir"
-          fi
-
-          test -s "$source_dir/Dockerfile"
-          test -s "$source_dir/scripts/deploy/sync-release.sh"
-
-          echo "SOURCE_DIR=$source_dir" >> "$GITHUB_ENV"
-          echo "RELEASE_DIR=$release_dir" >> "$GITHUB_ENV"
-          echo "Deployment source prepared without actions/checkout post-job cleanup."
-
-      - name: Build static release from local Docker cache
-        if: env.SITE_CHANGED == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          image="webigram-build:deploy"
-
-          cd "$SOURCE_DIR"
-          timeout 120s docker build --target build --tag "$image" .
-
-          cid=$(docker create "$image")
-          cleanup_container() {
-            docker rm -f "$cid" >/dev/null 2>&1 || true
-          }
-          trap cleanup_container EXIT
-
-          timeout 30s docker cp "$cid:/app/dist/." "$RELEASE_DIR/"
-          cleanup_container
-          trap - EXIT
-
-          test -s "$RELEASE_DIR/index.html"
-          test -s "$RELEASE_DIR/portfolio/index.html"
-          test -s "$RELEASE_DIR/services/index.html"
-          echo "Static release built locally using persistent Docker cache."
-
-      - name: Snapshot, sync source and publish static files
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd "$SOURCE_DIR"
-          timeout 45s bash scripts/deploy/sync-release.sh
-
-      - name: Apply only changed runtime services
-        working-directory: /opt/apps/www-webigram.ir
-        shell: bash
-        run: timeout 180s bash scripts/deploy/apply-runtime.sh
-
-      - name: Fast change-aware smoke checks
-        working-directory: /opt/apps/www-webigram.ir
-        shell: bash
-        run: |
-          set -euo pipefail
-          smoke_timeout=90
-          if [ "$DIRECTUS_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
-            smoke_timeout=180
-          fi
-          echo "Smoke-check hard timeout: ${smoke_timeout}s"
-          timeout --signal=TERM --kill-after=5s "${smoke_timeout}s" bash scripts/deploy/verify-release.sh
-
-      - name: Roll back automatically on failure
-        if: ${{ failure() }}
-        shell: bash
-        run: |
-          if [ -f "$APP_DIR/scripts/deploy/rollback-release.sh" ]; then
-            timeout --signal=TERM --kill-after=5s 60s bash "$APP_DIR/scripts/deploy/rollback-release.sh"
-          else
-            echo "Rollback helper is unavailable because source sync did not complete."
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::error::Repository secret WEBIGRAM_DEPLOY_SSH_KEY is not configured."
             exit 1
           fi
 
-      - name: Record successful deployment
-        if: ${{ success() }}
-        run: |
-          printf '%s\n' "$GITHUB_SHA" > "$APP_DIR/.last-successful-deploy"
-          echo "Successful production revision: $GITHUB_SHA"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/webigram_deploy"
+          chmod 600 "$HOME/.ssh/webigram_deploy"
 
-      - name: Clean temporary deploy files
-        if: ${{ always() }}
-        continue-on-error: true
-        timeout-minutes: 1
+          cat > "$HOME/.ssh/known_hosts" <<'EOF'
+          [webigram.ir]:34822 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHwe+Xzw7jZbNHs5vNgh0vKz7WSbVnBZ9eIlgjByfpg
+          EOF
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Verify SSH connectivity
         shell: bash
         run: |
-          set +e
-          timeout 15s rm -rf \
-            "${SOURCE_DIR:-$RUNNER_TEMP/webigram-source}" \
-            "${RELEASE_DIR:-$RUNNER_TEMP/webigram-dist}" \
-            "$RUNNER_TEMP/webigram-fetch"
-          rc=$?
-          if [ "$rc" -eq 124 ]; then
-            echo "::warning::Temporary deploy cleanup exceeded 15 seconds; leaving cleanup to the runner workspace rotation."
-            exit 0
+          set -euo pipefail
+          timeout 15s ssh \
+            -p "$SSH_PORT" \
+            -i "$HOME/.ssh/webigram_deploy" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=8 \
+            "$SSH_USER@$SSH_HOST" \
+            'echo "SSH deployment channel ready on $(hostname)"'
+
+      - name: Deploy exact revision on wbg-001
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -p "$SSH_PORT" \
+            -i "$HOME/.ssh/webigram_deploy" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=8 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=2 \
+            "$SSH_USER@$SSH_HOST" \
+            bash -s -- \
+              "$GITHUB_SHA" \
+              "$GITHUB_RUN_ID" \
+              "$GITHUB_RUN_ATTEMPT" \
+              "$SITE_CHANGED" \
+              "$SERVER_CHANGED" \
+              "$DIRECTUS_CHANGED" \
+              "$COMPOSE_CHANGED" \
+              "$NGINX_CHANGED" <<'REMOTE'
+          set -Eeuo pipefail
+
+          GITHUB_SHA="$1"
+          GITHUB_RUN_ID="$2"
+          GITHUB_RUN_ATTEMPT="$3"
+          SITE_CHANGED="$4"
+          SERVER_CHANGED="$5"
+          DIRECTUS_CHANGED="$6"
+          COMPOSE_CHANGED="$7"
+          NGINX_CHANGED="$8"
+
+          APP_DIR=/opt/apps/www-webigram.ir
+          SOURCE_DIR="/tmp/webigram-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-source"
+          RELEASE_DIR="/tmp/webigram-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-dist"
+          PUBLIC_HEALTH_URL=https://webigram.ir/healthz
+          EDGE_CONTAINER=edge-nginx
+
+          export GITHUB_SHA GITHUB_RUN_ID GITHUB_RUN_ATTEMPT
+          export SITE_CHANGED SERVER_CHANGED DIRECTUS_CHANGED COMPOSE_CHANGED NGINX_CHANGED
+          export APP_DIR SOURCE_DIR RELEASE_DIR PUBLIC_HEALTH_URL EDGE_CONTAINER
+
+          cleanup() {
+            rm -rf "$SOURCE_DIR" "$RELEASE_DIR" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          rm -rf "$SOURCE_DIR" "$RELEASE_DIR"
+          mkdir -p "$SOURCE_DIR" "$RELEASE_DIR"
+
+          if git -C "$APP_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+            echo "Using production repository as the local Git object cache."
+          else
+            echo "Production repository is missing; cloning it once."
+            rm -rf "$APP_DIR"
+            timeout 60s git clone https://github.com/amdkna/www-webigram.ir.git "$APP_DIR"
           fi
-          exit "$rc"
+
+          timeout 30s git -C "$APP_DIR" fetch --no-tags origin "$GITHUB_SHA"
+          git -C "$APP_DIR" cat-file -e "$GITHUB_SHA^{commit}"
+          git -C "$APP_DIR" archive "$GITHUB_SHA" | tar -x -C "$SOURCE_DIR"
+
+          test -s "$SOURCE_DIR/Dockerfile"
+          test -s "$SOURCE_DIR/scripts/deploy/remote-deploy.sh"
+
+          timeout --signal=TERM --kill-after=10s 360s \
+            bash "$SOURCE_DIR/scripts/deploy/remote-deploy.sh"
+          REMOTE
+
+      - name: Remove temporary SSH material
+        if: ${{ always() }}
+        continue-on-error: true
+        shell: bash
+        run: rm -rf "$HOME/.ssh/webigram_deploy" "$HOME/.ssh/known_hosts"
