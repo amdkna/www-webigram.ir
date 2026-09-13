@@ -18,12 +18,12 @@ jobs:
     timeout-minutes: 3
     env:
       GH_TOKEN: ${{ github.token }}
-      STUCK_RUN_ID: "34715856089"
+      STUCK_RUN_ID: "34739302768"
     steps:
-      - name: Cancel deploy blocking repaired CMS rollout
+      - name: Cancel stuck production deployment
         run: |
           set -euo pipefail
-          echo "Cancelling workflow run ${STUCK_RUN_ID} so the repaired CMS deploy can use the self-hosted runner."
+          echo "Cancelling workflow run ${STUCK_RUN_ID}."
 
           gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/cancel" || true
 
