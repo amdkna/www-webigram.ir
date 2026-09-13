@@ -12,53 +12,42 @@
 }
 
 /*
- * The first three homepage states still behave like one pinned story, but the
- * story gets an extra scroll beat after state three. That final beat is used
- * to physically clear the stage before the portfolio narratives arrive.
+ * The first three homepage states remain one pinned story. The extra scroll
+ * beat after state three is now a real overlap: section four starts underneath
+ * section three, invisible, then becomes visible while the third scene clears.
  */
 .story {
+  position: relative;
+  z-index: 2;
   height: 340svh;
   min-height: 340svh;
 }
 
+/*
+ * The old transition painted a fake section-four background inside the frame.
+ * Keep the stage transparent instead so the real narratives section can be
+ * revealed through it.
+ */
 .viewport,
 .frame {
-  background:
-    linear-gradient(
-      rgba(247, 248, 252, var(--section-exit)),
-      rgba(247, 248, 252, var(--section-exit))
-    ),
-    #fff;
+  background: transparent;
 }
 
 .frame {
   isolation: isolate;
 }
 
-/* Matching section-four background revealed as the two halves leave. */
 .frame::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 18% 20%, rgba(36, 87, 255, .065), transparent 30%),
-    radial-gradient(circle at 82% 76%, rgba(154, 60, 255, .055), transparent 32%),
-    #f7f8fc;
-  opacity: var(--section-exit);
+  content: none;
 }
 
 .slide-real .visual-real,
-.slide-real .right,
-.slide-real .stage-header,
-.slide-real .copy,
-.slide-real .actions {
+.slide-real .copy {
   will-change: transform, opacity;
   backface-visibility: hidden;
 }
 
-/* Artwork exits left like a physical panel being pulled off the stage. */
+/* Artwork leaves to the left, exposing the real fourth section below it. */
 .slide-real .visual-real {
   transform:
     translate3d(var(--exit-left), 0, 0)
@@ -68,26 +57,49 @@
   opacity: var(--exit-opacity);
 }
 
-/* Copy panel exits in the opposite direction, opening the center of the page. */
+/*
+ * IMPORTANT: the right panel itself no longer moves. The menu lives inside it,
+ * so moving the panel was also moving the site navigation. Instead, only the
+ * panel background and the copy leave; the header/menu remains completely still.
+ */
 .slide-real .right {
+  transform: none !important;
+  opacity: 1 !important;
+  background: transparent !important;
+  isolation: isolate;
+}
+
+.slide-real .right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 7% 10%, rgba(101, 75, 255, .055), transparent 30%),
+    #fdfdfd;
+  opacity: calc(1 - var(--section-exit));
+}
+
+.slide-real .stage-header {
+  z-index: 10;
+  transform: none !important;
+  opacity: 1 !important;
+  will-change: auto;
+}
+
+.slide-real .copy {
+  z-index: 1;
   transform:
-    translate3d(var(--exit-right), 0, 0)
+    translate3d(var(--exit-right), var(--exit-copy-y), 0)
     rotate(var(--exit-rotate-right));
   transform-origin: 20% 48%;
   opacity: var(--exit-opacity);
 }
 
-/* Small secondary motions keep the exit from feeling like two flat screenshots. */
-.slide-real .stage-header {
-  transform: translate3d(0, var(--exit-header-y), 0);
-}
-
-.slide-real .copy {
-  transform: translate3d(0, var(--exit-copy-y), 0);
-}
-
+/* Do not apply a second transform to actions; they already travel with .copy. */
 .slide-real .actions {
-  transform: translate3d(0, var(--exit-copy-y), 0);
+  transform: none !important;
 }
 
 .progress {
@@ -99,19 +111,48 @@ body.section-exiting .progress {
   pointer-events: none;
 }
 
-/* Section four uses the exact revealed background, so the sticky handoff has no cut. */
+/*
+ * Section four physically overlaps the final 90svh of the story. At the start
+ * of the handoff it is lower in the viewport and fully transparent. As the user
+ * scrolls, its normal document movement brings it upward while --section-exit
+ * fades the whole real section from 0 -> 1. This is the requested “comes out of
+ * section three” effect, not a cut to a new screen.
+ */
 .home-narratives {
+  position: relative;
+  z-index: 1;
+  margin-top: -90svh;
+  opacity: var(--section-exit);
+  will-change: opacity;
   background:
     radial-gradient(circle at 18% 0%, rgba(36, 87, 255, .045), transparent 28%),
     radial-gradient(circle at 82% 18%, rgba(154, 60, 255, .04), transparent 30%),
     #f7f8fc;
 }
 
+/*
+ * The overlapping story is above section four so its menu stays on top. Let
+ * pointer events pass through the transparent story during the handoff, then
+ * explicitly keep the menu interactive.
+ */
+body.section-exiting .story {
+  pointer-events: none;
+}
+
+body.section-exiting .slide-real .stage-header,
+body.section-exiting .slide-real .stage-header * {
+  pointer-events: auto;
+}
+
 @media (max-width: 820px) {
-  /* mobile.css sets 300svh later in its own file; this file is imported last */
+  /* mobile.css sets 300svh earlier; this file is imported last. */
   .story {
     height: 340svh;
     min-height: 340svh;
+  }
+
+  .home-narratives {
+    margin-top: -78svh;
   }
 
   .slide-real .visual-real {
@@ -122,23 +163,34 @@ body.section-exiting .progress {
   }
 
   .slide-real .right {
+    transform: none !important;
+  }
+
+  .slide-real .copy {
     transform:
-      translate3d(var(--exit-right), 0, 0)
+      translate3d(var(--exit-right), var(--exit-copy-y), 0)
       rotate(var(--exit-rotate-right)) !important;
+  }
+
+  .slide-real .stage-header {
+    transform: none !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .slide-real .visual-real,
-  .slide-real .right,
-  .slide-real .stage-header,
   .slide-real .copy,
+  .slide-real .stage-header,
   .slide-real .actions {
     transform: none !important;
   }
 
   .slide-real .visual-real,
-  .slide-real .right {
-    opacity: var(--transition-controls-opacity);
+  .slide-real .copy {
+    opacity: calc(1 - var(--section-exit));
+  }
+
+  .slide-real .stage-header {
+    opacity: 1 !important;
   }
 }
