@@ -9,14 +9,24 @@ set -euo pipefail
 : "${NGINX_CHANGED:=false}"
 
 rollback_dir="$APP_DIR/.deploy-rollback"
+deployment_id="${GITHUB_RUN_ID:-manual}-${GITHUB_RUN_ATTEMPT:-1}"
 
-test -f "$rollback_dir/available"
-test -s "$rollback_dir/dist/index.html"
+active_run=$(cat "$rollback_dir/active-run" 2>/dev/null || true)
+snapshot_run=$(cat "$rollback_dir/snapshot-run" 2>/dev/null || true)
 
-if [ -s "$rollback_dir/main.sha" ]; then
-  previous_sha=$(cat "$rollback_dir/main.sha")
-  git -C "$APP_DIR" checkout -B main "$previous_sha"
+if [ "$active_run" != "$deployment_id" ]; then
+  echo "No production mutation was started by this run; rollback is unnecessary."
+  exit 0
 fi
+
+if [ "$snapshot_run" != "$deployment_id" ] || [ ! -s "$rollback_dir/main.sha" ] || [ ! -s "$rollback_dir/dist/index.html" ]; then
+  echo "No rollback snapshot belongs to this run; refusing to restore stale data."
+  exit 0
+fi
+
+previous_sha=$(cat "$rollback_dir/main.sha")
+echo "Restoring previous production revision: $previous_sha"
+git -C "$APP_DIR" checkout -B main "$previous_sha"
 
 mkdir -p "$APP_DIR/dist"
 cp -a "$rollback_dir/dist/." "$APP_DIR/dist/"
