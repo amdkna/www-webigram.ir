@@ -9,12 +9,10 @@ on:
 permissions:
   contents: read
 
-# One-shot recovery workflow. It deliberately shares the stale deployment's
-# concurrency group and cancels that run. The stale job is already in its
-# read-only verification phase, so cancelling it cannot interrupt a file or
-# container swap.
+# One-shot recovery workflow. It deliberately shares the production deploy
+# concurrency group and asks GitHub's scheduler to cancel the stale holder.
 concurrency:
-  group: webigram-production-v2
+  group: webigram-production-v3
   cancel-in-progress: true
 
 jobs:
@@ -23,4 +21,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - run: echo 'Released stale webigram-production-v2 concurrency lock.'
+      - run: echo 'Released stale webigram-production-v3 concurrency lock.'
