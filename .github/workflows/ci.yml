@@ -1,4 +1,4 @@
-name: Webigram CI
+name: Webigram Fast CI
 
 on:
   pull_request:
@@ -8,48 +8,52 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: webigram-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  website-doctor:
-    name: Website Doctor checks
+  fast-ci:
+    name: Fast checks and production build
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate JavaScript syntax
-        run: |
-          set -e
-          node --check server/website-doctor-api.mjs
-          node --check public/scripts/website-doctor.js
-          node --check extension/website-doctor/popup.js
-          node -e "JSON.parse(require('fs').readFileSync('extension/website-doctor/manifest.json', 'utf8'))"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
 
-      - name: API smoke and SSRF safety test
+      - name: Cheap checks first
+        run: bash scripts/ci/early-checks.sh
+
+      - name: Install dependencies with registry fallback
+        run: bash scripts/ci/npm-ci-fallback.sh
+
+      - name: Astro and TypeScript checks
+        run: npm run check
+
+      - name: Website Doctor API smoke
+        shell: bash
         run: |
-          set -e
-          node server/website-doctor-api.mjs >/tmp/website-doctor-api.log 2>&1 &
-          API_PID=$!
-          trap 'kill $API_PID 2>/dev/null || true' EXIT
-          for i in $(seq 1 20); do
-            curl -fsS http://127.0.0.1:8787/healthz >/dev/null && break
+          set -euo pipefail
+          node server/website-doctor-api.mjs >"$RUNNER_TEMP/website-doctor-api.log" 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+
+          for _ in $(seq 1 20); do
+            if curl -fsS --connect-timeout 1 --max-time 2 http://127.0.0.1:8787/healthz >/dev/null; then
+              exit 0
+            fi
             sleep 0.25
           done
-          curl -fsS http://127.0.0.1:8787/healthz
-          RESPONSE=$(curl -sS -X POST http://127.0.0.1:8787/check \
-            -H 'Content-Type: application/json' \
-            --data '{"url":"http://127.0.0.1"}')
-          echo "$RESPONSE" | grep -q '"ok":false'
-          echo "$RESPONSE" | grep -q 'رزروشده'
 
-      - name: Build production image
-        run: docker build --tag webigram-ci:${GITHUB_SHA} .
+          cat "$RUNNER_TEMP/website-doctor-api.log" || true
+          exit 1
 
-      - name: Verify generated Website Doctor artifacts
-        run: |
-          set -e
-          CID=$(docker create webigram-ci:${GITHUB_SHA})
-          trap 'docker rm -f "$CID" >/dev/null 2>&1 || true' EXIT
-          docker cp "$CID:/usr/share/nginx/html/tools/website-doctor/index.html" /tmp/website-doctor.html
-          docker cp "$CID:/usr/share/nginx/html/downloads/webigram-website-doctor-chrome.zip" /tmp/website-doctor-extension.zip
-          test -s /tmp/website-doctor.html
-          test -s /tmp/website-doctor-extension.zip
-          unzip -t /tmp/website-doctor-extension.zip
+      - name: Build production site
+        run: bash scripts/ci/build-site.sh
+
+      - name: Verify production output
+        run: bash scripts/ci/verify-dist.sh

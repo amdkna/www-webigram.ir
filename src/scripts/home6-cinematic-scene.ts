@@ -167,10 +167,14 @@ export class CinematicHomeScene extends HomeScene {
     camera.updateProjectionMatrix();
 
     if (this.bokeh) {
-      this.bokeh.uniforms.focus.value = camera.position.distanceTo(this.focusTarget);
+      const uniforms = this.bokeh.uniforms as {
+        focus: { value: number };
+        aperture: { value: number };
+      };
+      uniforms.focus.value = camera.position.distanceTo(this.focusTarget);
       // Slightly close the virtual aperture at night where bright practical
       // lights otherwise make the bokeh effect feel synthetic.
-      this.bokeh.uniforms.aperture.value = THREE.MathUtils.lerp(.000045, .000032, internal.nightMix);
+      uniforms.aperture.value = THREE.MathUtils.lerp(.000045, .000032, internal.nightMix);
     }
     if (this.windowLight) this.windowLight.intensity = THREE.MathUtils.lerp(7.2, .45, internal.nightMix);
   }

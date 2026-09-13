@@ -1,26 +1,20 @@
-name: Verify Webigram Content CMS
+name: Webigram Deep Smoke
 
 on:
-  workflow_run:
-    workflows: ["Deploy Webigram to Production Server"]
-    types: [completed]
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/content-smoke.yml'
+  schedule:
+    - cron: '23 2 * * *'
 
 permissions:
   contents: read
 
 concurrency:
-  group: webigram-content-smoke
-  cancel-in-progress: false
+  group: webigram-deep-smoke
+  cancel-in-progress: true
 
 jobs:
   smoke:
-    name: Smoke test portfolio, contact and blog
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    name: Deep public and CMS smoke tests
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
@@ -38,7 +32,7 @@ jobs:
             local name="$3"
             local out="$RUNNER_TEMP/webigram-${name}.html"
 
-            curl -fsS --connect-timeout 5 --max-time 20 --retry 2 --retry-delay 2 \
+            curl -fsS --connect-timeout 5 --max-time 15 --retry 1 \
               "${WEB_URL}${path}?smoke=${GITHUB_RUN_ID}" -o "$out"
             grep -Fq "$marker" "$out"
             echo "OK page: ${path}"
@@ -60,22 +54,20 @@ jobs:
             local code
 
             code=$(curl -sS -o "$out" -w '%{http_code}' \
-              --connect-timeout 5 --max-time 20 --retry 2 --retry-delay 2 \
+              --connect-timeout 5 --max-time 15 --retry 1 \
               -H 'Accept: application/json' \
               "${CMS_URL}${endpoint}")
 
-            if [ "$code" != "200" ]; then
+            test "$code" = "200" || {
               echo "ERROR: ${endpoint} returned HTTP ${code}"
               cat "$out" || true
               exit 1
-            fi
+            }
 
             grep -q '"data"' "$out"
             echo "OK Directus read: ${endpoint}"
           }
 
-          # Services was introduced in the first CMS deployment and acts as a useful
-          # baseline to distinguish public-policy problems from unapplied migrations.
           check_api_200 '/items/services?limit=1&fields=id' 'services'
           check_api_200 '/items/services_page?limit=1&fields=id' 'services-page'
           check_api_200 '/items/portfolio?limit=1&fields=id' 'portfolio'
@@ -89,26 +81,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           out="$RUNNER_TEMP/directus-contact-private.json"
           code=$(curl -sS -o "$out" -w '%{http_code}' \
-            --connect-timeout 5 --max-time 20 \
+            --connect-timeout 5 --max-time 15 \
             -H 'Accept: application/json' \
             "${CMS_URL}/items/contact_requests?limit=1")
 
           case "$code" in
-            401|403)
-              echo "OK privacy: public contact_requests read is blocked with HTTP ${code}."
-              ;;
-            *)
-              echo "ERROR: contact_requests must not be publicly readable; got HTTP ${code}."
-              cat "$out" || true
-              exit 1
-              ;;
+            401|403) echo "OK privacy: contact_requests public read is blocked." ;;
+            *) echo "ERROR: contact_requests unexpectedly returned HTTP ${code}"; cat "$out" || true; exit 1 ;;
           esac
-
-      - name: Summary
-        run: |
-          echo "Services, portfolio, contact and blog pages/APIs are reachable from outside production."
-          echo "Published CMS content is readable through the public role."
-          echo "Contact request records are not publicly readable."
