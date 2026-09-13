@@ -31,11 +31,12 @@ const cmsUrl = 'https://cms.webigram.ir';
   <script define:vars={{ cmsUrl }} is:inline>
     (() => {
       const esc = (value='') => String(value).replace(/[&<>'"]/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+      const nl = (value='') => esc(value).replace(/\n/g, '<br />');
       const slug = decodeURIComponent(location.pathname.replace(/^\/portfolio\//,'').replace(/\/$/,'')).trim();
       const asset = (id, query='') => id ? `${cmsUrl}/assets/${encodeURIComponent(id)}${query}` : '';
       const fail = () => { document.querySelector('[data-project-title]').textContent='پروژه پیدا نشد'; document.querySelector('[data-project-summary]').textContent='ممکن است این نمونه کار منتشر نشده باشد یا آدرس آن تغییر کرده باشد.'; };
       if (!slug || slug === 'project') { fail(); return; }
-      const fields = 'id,slug,title,summary,description,client,year,service,technologies,cover_image,project_url,seo_title,seo_description,gallery.id,gallery.sort,gallery.directus_files_id.id,gallery.directus_files_id.title,gallery.directus_files_id.description';
+      const fields = 'id,slug,title,summary,description,client,year,service,duration,client_request,approach,outcome,technologies,cover_image,project_url,seo_title,seo_description,gallery.id,gallery.sort,gallery.directus_files_id';
       fetch(`${cmsUrl}/items/portfolio?filter[slug][_eq]=${encodeURIComponent(slug)}&limit=1&fields=${encodeURIComponent(fields)}`, {headers:{Accept:'application/json'},cache:'no-store'})
         .then((r)=>{if(!r.ok)throw new Error();return r.json();}).then(({data})=>{
           const item=data?.[0]; if(!item){fail();return;}
@@ -45,11 +46,21 @@ const cmsUrl = 'https://cms.webigram.ir';
           document.querySelector('[data-project-summary]').textContent=item.summary||'';
           const meta=[item.service,item.year,item.client].filter(Boolean); document.querySelector('[data-project-meta]').innerHTML=meta.map((x)=>`<span class="cp-pill">${esc(x)}</span>`).join('');
           const cover=document.querySelector('[data-project-cover]'); if(item.cover_image){cover.src=asset(item.cover_image,'?width=1800&quality=88');cover.alt=item.title;cover.hidden=false;}
-          document.querySelector('[data-project-description]').innerHTML=item.description||'<p>توضیحات کامل این پروژه به زودی اضافه می شود.</p>';
-          const rows=[['خدمت',item.service],['مشتری',item.client],['سال',item.year]].filter(([,v])=>v); document.querySelector('[data-project-side]').innerHTML=rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
+
+          const sections=[
+            ['خواسته / مسئله',item.client_request],
+            ['مسیر اجرا',item.approach],
+            ['نتیجه',item.outcome],
+          ].filter(([,value])=>value);
+          const structured=sections.map(([title,value])=>`<section><h2>${esc(title)}</h2><p>${nl(value)}</p></section>`).join('');
+          const extra=item.description ? `<section><h2>جزئیات بیشتر</h2>${item.description}</section>` : '';
+          document.querySelector('[data-project-description]').innerHTML=structured||extra||'<p>توضیحات کامل این پروژه به زودی اضافه می شود.</p>';
+          if(structured&&extra) document.querySelector('[data-project-description]').insertAdjacentHTML('beforeend',extra);
+
+          const rows=[['خدمت',item.service],['مشتری',item.client],['سال',item.year],['مدت پروژه',item.duration]].filter(([,v])=>v); document.querySelector('[data-project-side]').innerHTML=rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
           const tech=Array.isArray(item.technologies)?item.technologies:[];document.querySelector('[data-project-tech]').innerHTML=tech.map((x)=>`<span class="cp-pill">${esc(x)}</span>`).join('');
           const url=document.querySelector('[data-project-url]');if(item.project_url){url.href=item.project_url;url.hidden=false;}
-          const gallery=[...(item.gallery||[])].sort((a,b)=>(a.sort||0)-(b.sort||0));document.querySelector('[data-project-gallery]').innerHTML=gallery.map((g)=>{const f=g.directus_files_id;if(!f)return'';return `<figure><img src="${asset(f.id,'?width=1800&quality=88')}" alt="${esc(f.title||item.title)}" loading="lazy" /></figure>`;}).join('');
+          const gallery=[...(item.gallery||[])].sort((a,b)=>(a.sort||0)-(b.sort||0));document.querySelector('[data-project-gallery]').innerHTML=gallery.map((g)=>{const f=g.directus_files_id;const id=typeof f==='string'?f:f?.id;if(!id)return'';return `<figure><img src="${asset(id,'?width=1800&quality=88')}" alt="${esc(item.title)}" loading="lazy" /></figure>`;}).join('');
         }).catch(fail);
     })();
   </script>
