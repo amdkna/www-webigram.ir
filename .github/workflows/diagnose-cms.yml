@@ -1,30 +1,68 @@
 name: Diagnose Webigram CMS
 
 on:
-  push:
+  pull_request:
     branches: [main]
     paths:
       - '.github/workflows/diagnose-cms.yml'
-  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   diagnose:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
-      - name: Inspect Directus runtime
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.WEBIGRAM_DEPLOY_SSH_KEY }}
         run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/webigram_deploy"
+          chmod 600 "$HOME/.ssh/webigram_deploy"
+          cat > "$HOME/.ssh/known_hosts" <<'EOF'
+          [webigram.ir]:34822 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHwe+Xzw7jZbNHs5vNgh0vKz7WSbVnBZ9eIlgjByfpg
+          EOF
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Diagnose cms.webigram.ir on wbg-001
+        run: |
+          set -euo pipefail
+          ssh -p 34822 -i "$HOME/.ssh/webigram_deploy" \
+            -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=8 arna@webigram.ir 'bash -s' <<'REMOTE'
           set +e
-          echo '=== docker ps ==='
-          docker ps -a --filter 'name=webigram-directus'
-          echo
-          echo '=== directus health from host network path ==='
-          docker exec edge-nginx wget -S -O- http://webigram-directus:8055/server/health 2>&1 || true
-          echo
-          echo '=== directus logs ==='
-          docker logs --tail 200 webigram-directus 2>&1 || true
-          echo
-          echo '=== directus db health ==='
-          docker inspect --format='{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}' webigram-directus-db 2>/dev/null || true
-          echo
-          echo '=== directus container health ==='
-          docker inspect --format='{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}} restart={{.RestartCount}}' webigram-directus 2>/dev/null || true
+          cd /opt/apps/www-webigram.ir
+
+          echo '=== docker compose ps ==='
+          docker compose ps
+
+          echo '=== Directus inspect ==='
+          docker inspect webigram-directus --format 'status={{.State.Status}} running={{.State.Running}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} restart={{.RestartCount}} networks={{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}' 2>&1 || true
+
+          echo '=== Postgres inspect ==='
+          docker inspect webigram-directus-db --format 'status={{.State.Status}} running={{.State.Running}} health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}} restart={{.RestartCount}}' 2>&1 || true
+
+          echo '=== Directus logs ==='
+          docker logs --tail 120 webigram-directus 2>&1 || true
+
+          echo '=== Postgres logs ==='
+          docker logs --tail 80 webigram-directus-db 2>&1 || true
+
+          echo '=== Directus local health from container ==='
+          docker exec webigram-directus node -e "fetch('http://127.0.0.1:8055/server/health').then(async r=>{console.log(r.status, await r.text());process.exit(r.ok?0:1)}).catch(e=>{console.error(e);process.exit(1)})" 2>&1 || true
+
+          echo '=== Edge -> Directus DNS ==='
+          docker exec edge-nginx getent hosts webigram-directus 2>&1 || true
+
+          echo '=== Edge -> Directus HTTP ==='
+          docker exec edge-nginx wget -S -O- -T 5 http://webigram-directus:8055/server/health 2>&1 || true
+
+          echo '=== app-net members ==='
+          docker network inspect app-net --format '{{range $id,$c := .Containers}}{{$c.Name}} {{$c.IPv4Address}}{{"\n"}}{{end}}' 2>&1 || true
+
+          echo '=== edge nginx recent cms errors ==='
+          docker logs --tail 120 edge-nginx 2>&1 | grep -Ei 'cms\.webigram\.ir|webigram-directus|upstream|502' | tail -80 || true
+          REMOTE
