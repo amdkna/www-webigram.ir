@@ -1,4 +1,4 @@
-/** Homepage live artwork plus the original stage-three header handoff. */
+/** Homepage live artwork plus the stage-three header handoff. */
 const artwork = document.querySelector<HTMLElement>('[data-home5-live] .live-composition');
 const story = document.getElementById('story');
 const frame = document.querySelector<HTMLElement>('.frame');
@@ -22,9 +22,13 @@ if (artwork) {
 }
 
 /*
- * Do not clone the navigation. The exact same header used in sections 1-3 is
- * temporarily moved to <body> when stage three becomes active. This keeps one
- * menu in the DOM and lets that original menu remain fixed over section four.
+ * Keep exactly one navigation visible.
+ *
+ * The stage-three header stays inside the slide while sections 2 -> 3 are
+ * transitioning. Only when the dedicated 3 -> 4 handoff starts do we move the
+ * original header to <body> and make it fixed. This prevents the real header
+ * from sitting on top of section two's header and creating the doubled/shadowed
+ * menu that appeared during the previous implementation.
  */
 const headerMarker = realHeader ? document.createComment('webigram-stage-header-home') : null;
 let headerDetached = false;
@@ -92,7 +96,11 @@ const restoreOriginalHeader = () => {
 };
 
 const syncPersistentHeader = () => {
-  if (document.body.dataset.stage === '2') {
+  const handoffActive =
+    document.body.classList.contains('section-exiting') ||
+    document.body.classList.contains('section-exit-complete');
+
+  if (handoffActive) {
     detachOriginalHeader();
     positionDetachedHeader();
   } else {
@@ -107,8 +115,9 @@ const syncNarrativeRelease = () => {
   document.body.classList.toggle('section-exit-complete', complete);
 };
 
+/* renderExit() toggles section-exiting on body, so watch body.class directly. */
 const bodyObserver = new MutationObserver(syncPersistentHeader);
-bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['data-stage'] });
+bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
 window.addEventListener('scroll', syncNarrativeRelease, { passive: true });
 window.addEventListener('resize', () => {
