@@ -6,12 +6,10 @@ on:
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
-      - '.github/workflows/deploy-fast.yml'
       - '.github/workflows/unstick-production-run.yml'
       - '.github/workflows/release-stale-deploy-lock.yml'
       - '.github/workflows/recover-stale-deploy.yml'
-      - 'scripts/deploy/remote-deploy.sh'
-      - 'scripts/deploy/sync-release.sh'
+  workflow_dispatch:
 
 permissions:
   contents: read
