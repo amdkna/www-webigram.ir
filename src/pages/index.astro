@@ -6,6 +6,7 @@ import '../styles/real-photo.css';
 import '../styles/mobile.css';
 import '../styles/home5-live.css';
 import '../styles/home-narratives.css';
+import '../styles/home-section-transition.css';
 import Composition from '../components/Composition.astro';
 
 const base = import.meta.env.BASE_URL;
@@ -126,6 +127,8 @@ const nav = [
     const story=document.getElementById('story'),slides=[...document.querySelectorAll('[data-slide]')],dots=[...document.querySelectorAll('.progress button')],loader=document.getElementById('loader');
     requestAnimationFrame(()=>loader.classList.add('done'));
 
+    const SLIDES_END=.68;
+    const EXIT_START=.76;
     let current=-1,raf=0;
     const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
     const viewportHeight=()=>window.visualViewport?.height||innerHeight;
@@ -143,12 +146,34 @@ const nav = [
       const height=viewportHeight();
       const max=Math.max(1,story.offsetHeight-height);
       const y=clamp(-story.getBoundingClientRect().top,0,max);
-      return {max,progress:(y/max)*(slides.length-1)};
+      const raw=y/max;
+      const progress=clamp(raw/SLIDES_END,0,1)*(slides.length-1);
+      return {max,raw,progress};
+    };
+
+    const renderExit=raw=>{
+      const linear=clamp((raw-EXIT_START)/(1-EXIT_START),0,1);
+      const eased=linear*linear*(3-2*linear);
+      const root=document.documentElement;
+      const movingOpacity=1-(eased*.28);
+      const controlOpacity=1-eased;
+
+      root.style.setProperty('--section-exit',eased.toFixed(4));
+      root.style.setProperty('--exit-left',`${(-112*eased).toFixed(2)}vw`);
+      root.style.setProperty('--exit-right',`${(112*eased).toFixed(2)}vw`);
+      root.style.setProperty('--exit-header-y',`${(-18*eased).toFixed(2)}vh`);
+      root.style.setProperty('--exit-copy-y',`${(14*eased).toFixed(2)}vh`);
+      root.style.setProperty('--exit-rotate-left',`${(-2.3*eased).toFixed(3)}deg`);
+      root.style.setProperty('--exit-rotate-right',`${(1.4*eased).toFixed(3)}deg`);
+      root.style.setProperty('--exit-scale',(1-(eased*.035)).toFixed(4));
+      root.style.setProperty('--exit-opacity',movingOpacity.toFixed(4));
+      root.style.setProperty('--transition-controls-opacity',controlOpacity.toFixed(4));
+      document.body.classList.toggle('section-exiting',linear>.015);
     };
 
     const render=()=>{
       raf=0;
-      const {progress}=metrics();
+      const {raw,progress}=metrics();
 
       slides.forEach((slide,index)=>{
         const cover=index<slides.length-1?clamp(progress-index,0,1):0;
@@ -160,6 +185,7 @@ const nav = [
         slide.setAttribute('aria-hidden',Math.round(progress)!==index?'true':'false');
       });
 
+      renderExit(raw);
       setStage(Math.round(progress));
     };
 
@@ -175,7 +201,7 @@ const nav = [
       event.preventDefault();
       const n=clamp(Number(el.dataset.jump),0,slides.length-1);
       const {max}=metrics();
-      const target=story.offsetTop+(max/(slides.length-1))*n;
+      const target=story.offsetTop+(max*SLIDES_END)*(n/(slides.length-1));
       scrollTo({top:target,behavior:'smooth'});
     });
   </script>
