@@ -3,6 +3,8 @@ name: Deploy Webigram to Production Server
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '.github/workflows/publish-home5.yml'
   workflow_dispatch:
 
 permissions:
