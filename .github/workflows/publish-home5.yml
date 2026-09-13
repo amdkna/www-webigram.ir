@@ -1,0 +1,74 @@
+name: Publish Home5 Static Page
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-home5.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Share the full deployment lock to prevent simultaneous writes to dist.
+concurrency:
+  group: webigram-production-v2
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish and verify home5
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 4
+    env:
+      APP_DIR: /opt/apps/www-webigram.ir
+      BUILD_SHA: 7a318e65e5b012ef3673d336edf309b90976ddc4
+    steps:
+      - name: Prepare verified static build
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d "$APP_DIR/.git"
+          test -s "$APP_DIR/dist/index.html"
+          git -C "$APP_DIR" fetch origin production-build
+          git -C "$APP_DIR" cat-file -e "$BUILD_SHA^{commit}"
+          test "$(git -C "$APP_DIR" show -s --format=%s "$BUILD_SHA")" = "Build 6b325c7b21212789c54bf098708b2eeef1e5e9c6"
+          STAGING=$(mktemp -d "$RUNNER_TEMP/home5-release.XXXXXX")
+          echo "STAGING=$STAGING" >> "$GITHUB_ENV"
+          git -C "$APP_DIR" archive "$BUILD_SHA" home5 _astro | tar -x -C "$STAGING"
+          grep -q 'data-home5-live' "$STAGING/home5/index.html"
+          grep -q 'live-composition' "$STAGING/home5/index.html"
+          grep -q 'data-live-playing' "$STAGING/home5/index.html"
+          grep -rq 'h5-trend' "$STAGING/_astro"
+          test -s "$APP_DIR/dist/home5/index.html"
+          cp "$APP_DIR/dist/home5/index.html" "$STAGING/previous-home5.html"
+
+      - name: Publish page and verify its public assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Hashed assets are additive; existing pages retain their original files.
+          cp -an "$STAGING/_astro/." "$APP_DIR/dist/_astro/"
+          cp "$STAGING/home5/index.html" "$APP_DIR/dist/home5/index.html.new"
+          mv "$APP_DIR/dist/home5/index.html.new" "$APP_DIR/dist/home5/index.html"
+          restore() {
+            cp "$STAGING/previous-home5.html" "$APP_DIR/dist/home5/index.html.new"
+            mv "$APP_DIR/dist/home5/index.html.new" "$APP_DIR/dist/home5/index.html"
+          }
+          trap restore ERR
+          curl -fsS --connect-timeout 5 --max-time 20 --retry 2 \
+            "https://webigram.ir/home5/?release=$BUILD_SHA" -o "$STAGING/public.html"
+          cmp "$STAGING/home5/index.html" "$STAGING/public.html"
+          python3 - "$STAGING/public.html" > "$STAGING/assets.txt" <<'PY'
+          import re, sys
+          html = open(sys.argv[1]).read()
+          for path in sorted(set(re.findall(r'["\x27](/_astro/[^"\x27]+)', html))):
+              print(path)
+          PY
+          while IFS= read -r asset; do
+            curl -fsS --connect-timeout 5 --max-time 20 --retry 2 \
+              "https://webigram.ir$asset" -o "$STAGING/asset-check"
+            test -s "$STAGING/asset-check"
+          done < "$STAGING/assets.txt"
+          trap - ERR
+          echo "HOME5_VERIFIED: public HTML matches the animated build; assets return HTTP 200."
+          echo "Published home5 from $BUILD_SHA" >> "$GITHUB_STEP_SUMMARY"
