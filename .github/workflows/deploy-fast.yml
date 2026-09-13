@@ -1,0 +1,125 @@
+name: Deploy Webigram to Production Server
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Classify, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    concurrency:
+      group: webigram-build-main
+      cancel-in-progress: true
+    outputs:
+      site_changed: ${{ steps.changes.outputs.site_changed }}
+      server_changed: ${{ steps.changes.outputs.server_changed }}
+      directus_changed: ${{ steps.changes.outputs.directus_changed }}
+      compose_changed: ${{ steps.changes.outputs.compose_changed }}
+      nginx_changed: ${{ steps.changes.outputs.nginx_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Classify changed paths
+        id: changes
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: bash scripts/deploy/classify-changes.sh "$BEFORE_SHA" "$GITHUB_SHA" "${{ github.event_name }}" "$GITHUB_OUTPUT"
+
+      - name: Cheap checks first
+        run: bash scripts/ci/early-checks.sh
+
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.site_changed == 'true'
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies with registry fallback
+        if: steps.changes.outputs.site_changed == 'true'
+        run: bash scripts/ci/npm-ci-fallback.sh
+
+      - name: Astro and TypeScript checks
+        if: steps.changes.outputs.site_changed == 'true'
+        run: npm run check
+
+      - name: Build production site
+        if: steps.changes.outputs.site_changed == 'true'
+        run: bash scripts/ci/build-site.sh
+
+      - name: Verify production output
+        if: steps.changes.outputs.site_changed == 'true'
+        run: bash scripts/ci/verify-dist.sh
+
+      - name: Upload static release
+        if: steps.changes.outputs.site_changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: webigram-dist-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 6
+
+  deploy:
+    name: Fast production deploy
+    needs: prepare
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 8
+    concurrency:
+      group: webigram-production-v3
+      cancel-in-progress: false
+    env:
+      APP_DIR: /opt/apps/www-webigram.ir
+      RELEASE_DIR: ${{ runner.temp }}/webigram-dist
+      PUBLIC_HEALTH_URL: https://webigram.ir/healthz
+      EDGE_CONTAINER: edge-nginx
+      SITE_CHANGED: ${{ needs.prepare.outputs.site_changed }}
+      SERVER_CHANGED: ${{ needs.prepare.outputs.server_changed }}
+      DIRECTUS_CHANGED: ${{ needs.prepare.outputs.directus_changed }}
+      COMPOSE_CHANGED: ${{ needs.prepare.outputs.compose_changed }}
+      NGINX_CHANGED: ${{ needs.prepare.outputs.nginx_changed }}
+    steps:
+      - name: Download static release
+        if: env.SITE_CHANGED == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: webigram-dist-${{ github.sha }}
+          path: ${{ runner.temp }}/webigram-dist
+
+      - name: Snapshot, sync source and publish static files
+        run: bash "$APP_DIR/scripts/deploy/sync-release.sh"
+
+      - name: Apply only changed runtime services
+        working-directory: /opt/apps/www-webigram.ir
+        run: bash scripts/deploy/apply-runtime.sh
+
+      - name: Fast change-aware smoke checks
+        working-directory: /opt/apps/www-webigram.ir
+        run: bash scripts/deploy/verify-release.sh
+
+      - name: Roll back automatically on failure
+        if: ${{ failure() }}
+        run: |
+          if [ -f "$APP_DIR/scripts/deploy/rollback-release.sh" ]; then
+            bash "$APP_DIR/scripts/deploy/rollback-release.sh"
+          else
+            echo "Rollback helper is unavailable because source sync did not complete."
+            exit 1
+          fi
+
+      - name: Record successful deployment
+        if: ${{ success() }}
+        run: |
+          printf '%s\n' "$GITHUB_SHA" > "$APP_DIR/.last-successful-deploy"
+          echo "Successful production revision: $GITHUB_SHA"
