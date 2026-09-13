@@ -31,8 +31,15 @@ fi
 # immediately before we start mutating the checked-out production release.
 printf '%s\n' "$deployment_id" > "$rollback_dir/active-run"
 
-git -C "$APP_DIR" fetch --prune origin main
-git -C "$APP_DIR" checkout -B main origin/main
+if [ -n "${GITHUB_SHA:-}" ]; then
+  echo "Syncing exact requested revision: $GITHUB_SHA"
+  timeout 30s git -C "$APP_DIR" fetch --no-tags origin "$GITHUB_SHA"
+  git -C "$APP_DIR" cat-file -e "$GITHUB_SHA^{commit}"
+  git -C "$APP_DIR" checkout -B main "$GITHUB_SHA"
+else
+  git -C "$APP_DIR" fetch --prune origin main
+  git -C "$APP_DIR" checkout -B main origin/main
+fi
 
 if [ "$SITE_CHANGED" = "true" ]; then
   test -s "$RELEASE_DIR/index.html"
