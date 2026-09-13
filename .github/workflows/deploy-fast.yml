@@ -81,7 +81,6 @@ jobs:
       cancel-in-progress: false
     env:
       APP_DIR: /opt/apps/www-webigram.ir
-      RELEASE_DIR: ${{ runner.temp }}/webigram-dist
       PUBLIC_HEALTH_URL: https://webigram.ir/healthz
       EDGE_CONTAINER: edge-nginx
       SITE_CHANGED: ${{ needs.prepare.outputs.site_changed }}
@@ -90,6 +89,8 @@ jobs:
       COMPOSE_CHANGED: ${{ needs.prepare.outputs.compose_changed }}
       NGINX_CHANGED: ${{ needs.prepare.outputs.nginx_changed }}
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download static release
         if: env.SITE_CHANGED == 'true'
         uses: actions/download-artifact@v4
@@ -98,7 +99,7 @@ jobs:
           path: ${{ runner.temp }}/webigram-dist
 
       - name: Snapshot, sync source and publish static files
-        run: bash "$APP_DIR/scripts/deploy/sync-release.sh"
+        run: bash scripts/deploy/sync-release.sh
 
       - name: Apply only changed runtime services
         working-directory: /opt/apps/www-webigram.ir
