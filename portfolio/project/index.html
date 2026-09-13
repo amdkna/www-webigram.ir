@@ -1,0 +1,37 @@
+<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index, follow"><meta name="description" content="نمونه کار وبیگرام" data-page-description><link rel="icon" type="image/svg+xml" href="/favicon.svg"><title>نمونه کار | Webigram</title><link rel="stylesheet" href="/_astro/content-pages.DIfnou5q.css"></head><body><header class="cp-header"><div class="cp-shell cp-nav"><a class="cp-brand" href="/"><svg viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"></path><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"></path></svg><span>Webigram</span></a><nav><a href="/">خانه</a><a href="/services/">خدمات</a><a class="active" href="/portfolio/">نمونه کارها</a><a href="/blog/">بلاگ</a><a href="/contact/">تماس</a></nav></div></header><main class="cp-shell" data-project-root><section class="detail-hero"><div class="cp-kicker">CASE STUDY</div><h1 data-project-title>در حال دریافت پروژه…</h1><p data-project-summary></p><div class="detail-meta" data-project-meta></div></section><img class="detail-cover" data-project-cover alt="" hidden><section class="detail-layout"><article class="detail-copy" data-project-description></article><aside class="detail-side"><dl data-project-side></dl><div class="portfolio-tech" data-project-tech></div><a class="cp-button" data-project-url hidden target="_blank" rel="noopener noreferrer">مشاهده پروژه ↗</a></aside></section><section class="gallery-grid" data-project-gallery></section></main><footer class="cp-shell cp-footer"><span>Webigram</span><span><a href="/portfolio/">← همه نمونه کارها</a></span></footer><script>(function(){const cmsUrl = "https://cms.webigram.ir";
+
+    (() => {
+      const esc = (value='') => String(value).replace(/[&<>'"]/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+      const nl = (value='') => esc(value).replace(/\n/g, '<br />');
+      const slug = decodeURIComponent(location.pathname.replace(/^\/portfolio\//,'').replace(/\/$/,'')).trim();
+      const asset = (id, query='') => id ? `${cmsUrl}/assets/${encodeURIComponent(id)}${query}` : '';
+      const fail = () => { document.querySelector('[data-project-title]').textContent='پروژه پیدا نشد'; document.querySelector('[data-project-summary]').textContent='ممکن است این نمونه کار منتشر نشده باشد یا آدرس آن تغییر کرده باشد.'; };
+      if (!slug || slug === 'project') { fail(); return; }
+      const fields = 'id,slug,title,summary,description,client,year,service,duration,client_request,approach,outcome,technologies,cover_image,project_url,seo_title,seo_description,gallery.id,gallery.sort,gallery.directus_files_id';
+      fetch(`${cmsUrl}/items/portfolio?filter[slug][_eq]=${encodeURIComponent(slug)}&limit=1&fields=${encodeURIComponent(fields)}`, {headers:{Accept:'application/json'},cache:'no-store'})
+        .then((r)=>{if(!r.ok)throw new Error();return r.json();}).then(({data})=>{
+          const item=data?.[0]; if(!item){fail();return;}
+          document.title=item.seo_title||`${item.title} | Webigram`;
+          const desc=document.querySelector('[data-page-description]'); if(item.seo_description||item.summary)desc.content=item.seo_description||item.summary;
+          document.querySelector('[data-project-title]').textContent=item.title;
+          document.querySelector('[data-project-summary]').textContent=item.summary||'';
+          const meta=[item.service,item.year,item.client].filter(Boolean); document.querySelector('[data-project-meta]').innerHTML=meta.map((x)=>`<span class="cp-pill">${esc(x)}</span>`).join('');
+          const cover=document.querySelector('[data-project-cover]'); if(item.cover_image){cover.src=asset(item.cover_image,'?width=1800&quality=88');cover.alt=item.title;cover.hidden=false;}
+
+          const sections=[
+            ['خواسته / مسئله',item.client_request],
+            ['مسیر اجرا',item.approach],
+            ['نتیجه',item.outcome],
+          ].filter(([,value])=>value);
+          const structured=sections.map(([title,value])=>`<section><h2>${esc(title)}</h2><p>${nl(value)}</p></section>`).join('');
+          const extra=item.description ? `<section><h2>جزئیات بیشتر</h2>${item.description}</section>` : '';
+          document.querySelector('[data-project-description]').innerHTML=structured||extra||'<p>توضیحات کامل این پروژه به زودی اضافه می شود.</p>';
+          if(structured&&extra) document.querySelector('[data-project-description]').insertAdjacentHTML('beforeend',extra);
+
+          const rows=[['خدمت',item.service],['مشتری',item.client],['سال',item.year],['مدت پروژه',item.duration]].filter(([,v])=>v); document.querySelector('[data-project-side]').innerHTML=rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
+          const tech=Array.isArray(item.technologies)?item.technologies:[];document.querySelector('[data-project-tech]').innerHTML=tech.map((x)=>`<span class="cp-pill">${esc(x)}</span>`).join('');
+          const url=document.querySelector('[data-project-url]');if(item.project_url){url.href=item.project_url;url.hidden=false;}
+          const gallery=[...(item.gallery||[])].sort((a,b)=>(a.sort||0)-(b.sort||0));document.querySelector('[data-project-gallery]').innerHTML=gallery.map((g)=>{const f=g.directus_files_id;const id=typeof f==='string'?f:f?.id;if(!id)return'';return `<figure><img src="${asset(id,'?width=1800&quality=88')}" alt="${esc(item.title)}" loading="lazy" /></figure>`;}).join('');
+        }).catch(fail);
+    })();
+  })();</script></body></html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="نمونه پروژه های وبیگرام در حوزه DevOps، اتوماسیون، طراحی پلتفرم، پنل سازمانی و توسعه وب." data-page-description><meta name="robots" content="index, follow"><link rel="canonical" href="https://webigram.ir/portfolio/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><title>نمونه کارهای وبیگرام</title><link rel="stylesheet" href="/_astro/content-pages.DIfnou5q.css"></head><body><header class="cp-header"><div class="cp-shell cp-nav"><a class="cp-brand" href="/"><svg viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"></path><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"></path></svg><span>Webigram</span></a><nav><a href="/">خانه</a><a href="/services/">خدمات</a><a class="active" href="/portfolio/">نمونه کارها</a><a href="/blog/">بلاگ</a><a href="/contact/">تماس با ما</a></nav></div></header><main><section class="cp-shell cp-hero"><div class="cp-kicker" data-field="hero_kicker">نمونه کارهای وبیگرام</div><h1 data-field="hero_title">چیزهایی که ساختیم، نه فقط چیزهایی که گفتیم.</h1><p data-field="hero_description">پروژه هایی از زیرساخت و اتوماسیون تا پنل سازمانی، پلتفرم و وب. هر پروژه یک مسئله واقعی داشته و راه حل متناسب خودش را.</p></section><section class="cp-shell" aria-labelledby="portfolio-heading"><div class="cp-section-head"><div><h2 id="portfolio-heading">پروژه ها</h2><p>هر کارت را باز کنید تا جزئیات و گالری کامل را ببینید.</p></div></div><div class="portfolio-grid" data-portfolio-grid><div class="cp-empty">در حال دریافت نمونه کارها…</div></div></section></main><footer class="cp-shell cp-footer"><span>Webigram</span><span>Portfolio · Platforms · Automation · DevOps</span></footer><script>(function(){const cmsUrl = "https://cms.webigram.ir";
+
+    (() => {
+      const grid = document.querySelector('[data-portfolio-grid]');
+      const esc = (value='') => String(value).replace(/[&<>'"]/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+      const tags = (value) => Array.isArray(value) ? value : [];
+      const asset = (id) => id ? `${cmsUrl}/assets/${encodeURIComponent(id)}?width=1200&height=675&fit=cover&quality=84` : '';
+      const get = async (path) => {
+        const response = await fetch(`${cmsUrl}${path}`, { headers:{Accept:'application/json'}, cache:'no-store' });
+        if (!response.ok) throw new Error(`CMS ${response.status}`);
+        return response.json();
+      };
+      const setPage = (page) => {
+        ['hero_kicker','hero_title','hero_description'].forEach((field) => {
+          const el = document.querySelector(`[data-field="${field}"]`);
+          if (el && page?.[field]) el.textContent = page[field];
+        });
+        if (page?.seo_title) document.title = page.seo_title;
+        const desc = document.querySelector('[data-page-description]');
+        if (desc && page?.seo_description) desc.setAttribute('content', page.seo_description);
+      };
+      const render = (items) => {
+        if (!items.length) {
+          grid.innerHTML = '<div class="cp-empty" style="grid-column:1/-1">هنوز نمونه کاری برای نمایش منتشر نشده است.</div>';
+          return;
+        }
+        grid.innerHTML = items.map((item) => {
+          const image = asset(item.cover_image);
+          const meta = [item.service,item.year,item.client].filter(Boolean).map((x)=>`<span class="cp-pill">${esc(x)}</span>`).join('');
+          return `<article class="portfolio-card">
+            <a class="portfolio-cover" href="/portfolio/${encodeURIComponent(item.slug)}/">${image ? `<img src="${image}" alt="${esc(item.title)}" loading="lazy" />` : ''}</a>
+            <div class="portfolio-card-body"><div class="portfolio-meta">${meta}</div><h2><a href="/portfolio/${encodeURIComponent(item.slug)}/">${esc(item.title)}</a></h2><p>${esc(item.summary)}</p>
+            <div class="portfolio-tech">${tags(item.technologies).slice(0,6).map((x)=>`<span class="cp-pill">${esc(x)}</span>`).join('')}</div>
+            <a class="portfolio-link" href="/portfolio/${encodeURIComponent(item.slug)}/">مشاهده پروژه ←</a></div>
+          </article>`;
+        }).join('');
+      };
+      Promise.all([
+        get('/items/portfolio_page?limit=1'),
+        get('/items/portfolio?sort=sort,title&limit=100&fields=id,slug,title,summary,client,year,service,technologies,cover_image,featured')
+      ]).then(([page,items]) => { setPage(page.data?.[0]); render(items.data || []); })
+        .catch(() => { grid.innerHTML = '<div class="cp-empty" style="grid-column:1/-1">فعلا امکان دریافت نمونه کارها نیست. کمی بعد دوباره امتحان کنید.</div>'; });
+    })();
+  })();</script></body></html>

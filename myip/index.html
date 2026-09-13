@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f6f6f8"><meta name="description" content="IP عمومی اینترنت خود را آنلاین ببینید. ابزار رایگان Webigram My IP با پشتیبانی از IPv4 و IPv6."><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="canonical" href="https://webigram.ir/myip/"><title>IP من چیست؟ | Webigram My IP</title><link rel="stylesheet" href="/_astro/public-tools.CCmbFcrl.css"></head><body><header class="tools-header"><div class="shell tools-header-inner"><a class="tools-brand" href="/" aria-label="وبیگرام"><svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"></path><path d="M7 9 17 41 28 17l8 25L57 9"></path></svg><strong>Webigram</strong></a><nav class="tools-nav" aria-label="منوی ابزارها"><a href="/">خانه</a><a class="active" href="/tools/">ابزارها</a></nav></div></header><main class="tools-main"><div class="shell ip-wrap"><div class="breadcrumb"><a href="/tools/">ابزارها</a><span>/</span><span>IP من</span></div><section class="ip-card"><span class="eyebrow">My IP</span><h1>IP اینترنت شما</h1><p>آدرس IP عمومی‌ای که اینترنت شما با آن دیده می‌شود، همین پایین نمایش داده می‌شود.</p><div class="ip-display" aria-live="polite" aria-busy="true" id="ipDisplay"><span class="ip-label">Public IP Address</span><strong class="ip-value" id="ipValue">در حال دریافت...</strong><span class="ip-type" id="ipType">لطفا چند لحظه صبر کنید</span></div><div class="ip-actions"><button class="ip-button" id="copyButton" type="button" disabled>کپی IP</button><button class="ip-button secondary" id="refreshButton" type="button">دریافت مجدد</button></div><div class="ip-message" id="ipMessage" role="status"></div><div class="ip-note">این صفحه فقط IP عمومی اتصال فعلی شما را نمایش می‌دهد. اگر VPN یا Proxy روشن باشد، معمولا IP خروجی همان سرویس نمایش داده می‌شود. دریافت IP از endpoint عمومی ipify انجام می‌شود.</div></section></div></main><footer class="tools-footer"><div class="shell">Webigram Tools · webigram.ir/myip</div></footer><script>
+    (() => {
+      const value = document.getElementById('ipValue');
+      const type = document.getElementById('ipType');
+      const display = document.getElementById('ipDisplay');
+      const message = document.getElementById('ipMessage');
+      const copy = document.getElementById('copyButton');
+      const refresh = document.getElementById('refreshButton');
+      let currentIp = '';
+      let activeScript = null;
+      let timeoutId = null;
+
+      const setMessage = (text = '', state = '') => {
+        message.textContent = text;
+        message.className = `ip-message${state ? ` ${state}` : ''}`;
+      };
+
+      const finishLoading = () => {
+        display.setAttribute('aria-busy', 'false');
+        refresh.disabled = false;
+        if (timeoutId) clearTimeout(timeoutId);
+      };
+
+      const fail = () => {
+        currentIp = '';
+        value.textContent = 'دریافت IP ناموفق بود';
+        type.textContent = 'اتصال اینترنت یا محدودیت دسترسی را بررسی کنید';
+        copy.disabled = true;
+        setMessage('امکان دریافت IP وجود نداشت. دوباره تلاش کنید.', 'error');
+        finishLoading();
+      };
+
+      window.webigramReceiveIp = (payload) => {
+        if (!payload || typeof payload.ip !== 'string' || !payload.ip.trim()) return fail();
+        currentIp = payload.ip.trim();
+        value.textContent = currentIp;
+        type.textContent = currentIp.includes(':') ? 'IPv6' : 'IPv4';
+        copy.disabled = false;
+        setMessage('');
+        finishLoading();
+        activeScript?.remove();
+        activeScript = null;
+      };
+
+      const loadIp = () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        activeScript?.remove();
+        currentIp = '';
+        display.setAttribute('aria-busy', 'true');
+        value.textContent = 'در حال دریافت...';
+        type.textContent = 'در حال بررسی اتصال فعلی';
+        copy.disabled = true;
+        refresh.disabled = true;
+        setMessage('');
+
+        activeScript = document.createElement('script');
+        activeScript.src = `https://api64.ipify.org?format=jsonp&callback=webigramReceiveIp&_=${Date.now()}`;
+        activeScript.async = true;
+        activeScript.onerror = fail;
+        document.head.appendChild(activeScript);
+        timeoutId = setTimeout(fail, 9000);
+      };
+
+      const fallbackCopy = () => {
+        const area = document.createElement('textarea');
+        area.value = currentIp;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        const ok = document.execCommand('copy');
+        area.remove();
+        return ok;
+      };
+
+      copy.addEventListener('click', async () => {
+        if (!currentIp) return;
+        try {
+          if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(currentIp);
+          else if (!fallbackCopy()) throw new Error('copy failed');
+          setMessage('IP کپی شد.', 'success');
+        } catch {
+          setMessage('کپی خودکار انجام نشد؛ IP را دستی انتخاب کنید.', 'error');
+        }
+      });
+
+      refresh.addEventListener('click', loadIp);
+      loadIp();
+    })();
+  </script></body></html>
