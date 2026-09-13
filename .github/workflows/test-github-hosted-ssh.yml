@@ -1,0 +1,59 @@
+name: Test GitHub-hosted SSH reachability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/test-github-hosted-ssh.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Probe webigram.ir:34822 from GitHub-hosted runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Show runner egress and DNS
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'GitHub-hosted runner public IP:'
+          curl -4fsS --connect-timeout 5 --max-time 10 https://api.ipify.org || true
+          echo
+          echo 'webigram.ir IPv4:'
+          getent ahostsv4 webigram.ir || true
+          dig +short A webigram.ir || true
+
+      - name: Test TCP port 34822
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'Testing TCP connection to webigram.ir:34822 ...'
+          timeout 10s nc -vz -w 8 webigram.ir 34822
+
+      - name: Test SSH handshake without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'Requesting SSH host key from webigram.ir:34822 ...'
+          timeout 12s ssh-keyscan -T 8 -p 34822 webigram.ir 2>&1 | tee /tmp/webigram-hostkeys
+          test -s /tmp/webigram-hostkeys
+          echo
+          echo 'Host key fingerprints:'
+          ssh-keygen -lf /tmp/webigram-hostkeys || true
+
+      - name: Result summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## GitHub-hosted → wbg-001 connectivity test'
+            echo
+            echo '- Target: `webigram.ir:34822`'
+            echo '- Runner: `ubuntu-latest`'
+            echo '- No SSH credentials were used.'
+            echo '- If both TCP and SSH handshake steps are green, external GitHub-hosted runners can reach the server through the firewall/NAT.'
+          } >> "$GITHUB_STEP_SUMMARY"
