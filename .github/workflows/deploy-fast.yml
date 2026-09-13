@@ -9,7 +9,6 @@ on:
       - '.github/workflows/unstick-production-run.yml'
       - '.github/workflows/release-stale-deploy-lock.yml'
       - '.github/workflows/recover-stale-deploy.yml'
-  workflow_dispatch:
 
 permissions:
   contents: read
