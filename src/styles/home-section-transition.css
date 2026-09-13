@@ -1,0 +1,144 @@
+:root {
+  --section-exit: 0;
+  --exit-left: 0vw;
+  --exit-right: 0vw;
+  --exit-header-y: 0vh;
+  --exit-copy-y: 0vh;
+  --exit-rotate-left: 0deg;
+  --exit-rotate-right: 0deg;
+  --exit-scale: 1;
+  --exit-opacity: 1;
+  --transition-controls-opacity: 1;
+}
+
+/*
+ * The first three homepage states still behave like one pinned story, but the
+ * story gets an extra scroll beat after state three. That final beat is used
+ * to physically clear the stage before the portfolio narratives arrive.
+ */
+.story {
+  height: 340svh;
+  min-height: 340svh;
+}
+
+.viewport,
+.frame {
+  background:
+    linear-gradient(
+      rgba(247, 248, 252, var(--section-exit)),
+      rgba(247, 248, 252, var(--section-exit))
+    ),
+    #fff;
+}
+
+.frame {
+  isolation: isolate;
+}
+
+/* Matching section-four background revealed as the two halves leave. */
+.frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(36, 87, 255, .065), transparent 30%),
+    radial-gradient(circle at 82% 76%, rgba(154, 60, 255, .055), transparent 32%),
+    #f7f8fc;
+  opacity: var(--section-exit);
+}
+
+.slide-real .visual-real,
+.slide-real .right,
+.slide-real .stage-header,
+.slide-real .copy,
+.slide-real .actions {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Artwork exits left like a physical panel being pulled off the stage. */
+.slide-real .visual-real {
+  transform:
+    translate3d(var(--exit-left), 0, 0)
+    rotate(var(--exit-rotate-left))
+    scale(var(--exit-scale));
+  transform-origin: 70% 52%;
+  opacity: var(--exit-opacity);
+}
+
+/* Copy panel exits in the opposite direction, opening the center of the page. */
+.slide-real .right {
+  transform:
+    translate3d(var(--exit-right), 0, 0)
+    rotate(var(--exit-rotate-right));
+  transform-origin: 20% 48%;
+  opacity: var(--exit-opacity);
+}
+
+/* Small secondary motions keep the exit from feeling like two flat screenshots. */
+.slide-real .stage-header {
+  transform: translate3d(0, var(--exit-header-y), 0);
+}
+
+.slide-real .copy {
+  transform: translate3d(0, var(--exit-copy-y), 0);
+}
+
+.slide-real .actions {
+  transform: translate3d(0, var(--exit-copy-y), 0);
+}
+
+.progress {
+  opacity: var(--transition-controls-opacity);
+  transition: opacity .12s linear, visibility .12s linear;
+}
+
+body.section-exiting .progress {
+  pointer-events: none;
+}
+
+/* Section four uses the exact revealed background, so the sticky handoff has no cut. */
+.home-narratives {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(36, 87, 255, .045), transparent 28%),
+    radial-gradient(circle at 82% 18%, rgba(154, 60, 255, .04), transparent 30%),
+    #f7f8fc;
+}
+
+@media (max-width: 820px) {
+  /* mobile.css sets 300svh later in its own file; this file is imported last */
+  .story {
+    height: 340svh;
+    min-height: 340svh;
+  }
+
+  .slide-real .visual-real {
+    transform:
+      translate3d(var(--exit-left), 0, 0)
+      rotate(var(--exit-rotate-left))
+      scale(var(--exit-scale)) !important;
+  }
+
+  .slide-real .right {
+    transform:
+      translate3d(var(--exit-right), 0, 0)
+      rotate(var(--exit-rotate-right)) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-real .visual-real,
+  .slide-real .right,
+  .slide-real .stage-header,
+  .slide-real .copy,
+  .slide-real .actions {
+    transform: none !important;
+  }
+
+  .slide-real .visual-real,
+  .slide-real .right {
+    opacity: var(--transition-controls-opacity);
+  }
+}
