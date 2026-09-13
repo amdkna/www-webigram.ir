@@ -95,14 +95,14 @@ jobs:
 
           if git -C "$APP_DIR" rev-parse --git-dir >/dev/null 2>&1; then
             echo "Using the server repository as the local Git object cache."
-            git -C "$APP_DIR" fetch --no-tags origin "$GITHUB_SHA"
+            timeout 30s git -C "$APP_DIR" fetch --no-tags origin "$GITHUB_SHA"
             git -C "$APP_DIR" cat-file -e "$GITHUB_SHA^{commit}"
             git -C "$APP_DIR" archive "$GITHUB_SHA" | tar -x -C "$source_dir"
           else
             echo "Server repository is unavailable; using a shallow temporary fetch."
             git init "$fetch_dir"
             git -C "$fetch_dir" remote add origin https://github.com/amdkna/www-webigram.ir.git
-            git -C "$fetch_dir" fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+            timeout 30s git -C "$fetch_dir" fetch --no-tags --depth=1 origin "$GITHUB_SHA"
             git -C "$fetch_dir" archive FETCH_HEAD | tar -x -C "$source_dir"
           fi
 
@@ -121,7 +121,7 @@ jobs:
           image="webigram-build:deploy"
 
           cd "$SOURCE_DIR"
-          docker build --target build --tag "$image" .
+          timeout 120s docker build --target build --tag "$image" .
 
           cid=$(docker create "$image")
           cleanup_container() {
@@ -129,7 +129,7 @@ jobs:
           }
           trap cleanup_container EXIT
 
-          docker cp "$cid:/app/dist/." "$RELEASE_DIR/"
+          timeout 30s docker cp "$cid:/app/dist/." "$RELEASE_DIR/"
           cleanup_container
           trap - EXIT
 
@@ -143,21 +143,31 @@ jobs:
         run: |
           set -euo pipefail
           cd "$SOURCE_DIR"
-          bash scripts/deploy/sync-release.sh
+          timeout 45s bash scripts/deploy/sync-release.sh
 
       - name: Apply only changed runtime services
         working-directory: /opt/apps/www-webigram.ir
-        run: bash scripts/deploy/apply-runtime.sh
+        shell: bash
+        run: timeout 180s bash scripts/deploy/apply-runtime.sh
 
       - name: Fast change-aware smoke checks
         working-directory: /opt/apps/www-webigram.ir
-        run: bash scripts/deploy/verify-release.sh
+        shell: bash
+        run: |
+          set -euo pipefail
+          smoke_timeout=90
+          if [ "$DIRECTUS_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
+            smoke_timeout=180
+          fi
+          echo "Smoke-check hard timeout: ${smoke_timeout}s"
+          timeout --signal=TERM --kill-after=5s "${smoke_timeout}s" bash scripts/deploy/verify-release.sh
 
       - name: Roll back automatically on failure
         if: ${{ failure() }}
+        shell: bash
         run: |
           if [ -f "$APP_DIR/scripts/deploy/rollback-release.sh" ]; then
-            bash "$APP_DIR/scripts/deploy/rollback-release.sh"
+            timeout --signal=TERM --kill-after=5s 60s bash "$APP_DIR/scripts/deploy/rollback-release.sh"
           else
             echo "Rollback helper is unavailable because source sync did not complete."
             exit 1
