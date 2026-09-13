@@ -27,7 +27,7 @@ else
   while IFS= read -r file; do
     [ -n "$file" ] || continue
     case "$file" in
-      src/*|public/*|extension/*|astro.config.*|package.json|package-lock.json|scripts/fetch-mountain-asset.mjs|scripts/ci/build-site.sh|scripts/ci/verify-dist.sh)
+      src/*|public/*|extension/*|astro.config.*|package.json|package-lock.json|Dockerfile|scripts/fetch-mountain-asset.mjs|scripts/ci/*|scripts/deploy/classify-changes.sh|.github/workflows/deploy-fast.yml)
         site_changed=true ;;
     esac
     case "$file" in server/*) server_changed=true ;; esac
