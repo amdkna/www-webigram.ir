@@ -21,4 +21,4 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - run: echo 'Released stale webigram-production-v3 concurrency lock.'
+      - run: echo 'Released stale webigram-production-v3 concurrency lock (retry).'
