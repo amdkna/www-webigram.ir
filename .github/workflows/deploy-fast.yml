@@ -81,7 +81,37 @@ jobs:
       COMPOSE_CHANGED: ${{ needs.prepare.outputs.compose_changed }}
       NGINX_CHANGED: ${{ needs.prepare.outputs.nginx_changed }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Prepare deployment source without checkout action
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_dir="$RUNNER_TEMP/webigram-source"
+          fetch_dir="$RUNNER_TEMP/webigram-fetch"
+          release_dir="$RUNNER_TEMP/webigram-dist"
+
+          rm -rf "$source_dir" "$fetch_dir" "$release_dir"
+          mkdir -p "$source_dir" "$release_dir"
+
+          if git -C "$APP_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+            echo "Using the server repository as the local Git object cache."
+            git -C "$APP_DIR" fetch --no-tags origin "$GITHUB_SHA"
+            git -C "$APP_DIR" cat-file -e "$GITHUB_SHA^{commit}"
+            git -C "$APP_DIR" archive "$GITHUB_SHA" | tar -x -C "$source_dir"
+          else
+            echo "Server repository is unavailable; using a shallow temporary fetch."
+            git init "$fetch_dir"
+            git -C "$fetch_dir" remote add origin https://github.com/amdkna/www-webigram.ir.git
+            git -C "$fetch_dir" fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+            git -C "$fetch_dir" archive FETCH_HEAD | tar -x -C "$source_dir"
+          fi
+
+          test -s "$source_dir/Dockerfile"
+          test -s "$source_dir/scripts/deploy/sync-release.sh"
+
+          echo "SOURCE_DIR=$source_dir" >> "$GITHUB_ENV"
+          echo "RELEASE_DIR=$release_dir" >> "$GITHUB_ENV"
+          echo "Deployment source prepared without actions/checkout post-job cleanup."
 
       - name: Build static release from local Docker cache
         if: env.SITE_CHANGED == 'true'
@@ -89,20 +119,31 @@ jobs:
         run: |
           set -euo pipefail
           image="webigram-build:deploy"
-          release_dir="$RUNNER_TEMP/webigram-dist"
 
+          cd "$SOURCE_DIR"
           docker build --target build --tag "$image" .
-          cid=$(docker create "$image")
-          docker cp "$cid:/app/dist/." "$release_dir/"
-          docker rm "$cid" >/dev/null
 
-          test -s "$release_dir/index.html"
-          test -s "$release_dir/portfolio/index.html"
-          test -s "$release_dir/services/index.html"
+          cid=$(docker create "$image")
+          cleanup_container() {
+            docker rm -f "$cid" >/dev/null 2>&1 || true
+          }
+          trap cleanup_container EXIT
+
+          docker cp "$cid:/app/dist/." "$RELEASE_DIR/"
+          cleanup_container
+          trap - EXIT
+
+          test -s "$RELEASE_DIR/index.html"
+          test -s "$RELEASE_DIR/portfolio/index.html"
+          test -s "$RELEASE_DIR/services/index.html"
           echo "Static release built locally using persistent Docker cache."
 
       - name: Snapshot, sync source and publish static files
-        run: bash scripts/deploy/sync-release.sh
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SOURCE_DIR"
+          bash scripts/deploy/sync-release.sh
 
       - name: Apply only changed runtime services
         working-directory: /opt/apps/www-webigram.ir
@@ -127,3 +168,21 @@ jobs:
         run: |
           printf '%s\n' "$GITHUB_SHA" > "$APP_DIR/.last-successful-deploy"
           echo "Successful production revision: $GITHUB_SHA"
+
+      - name: Clean temporary deploy files
+        if: ${{ always() }}
+        continue-on-error: true
+        timeout-minutes: 1
+        shell: bash
+        run: |
+          set +e
+          timeout 15s rm -rf \
+            "${SOURCE_DIR:-$RUNNER_TEMP/webigram-source}" \
+            "${RELEASE_DIR:-$RUNNER_TEMP/webigram-dist}" \
+            "$RUNNER_TEMP/webigram-fetch"
+          rc=$?
+          if [ "$rc" -eq 124 ]; then
+            echo "::warning::Temporary deploy cleanup exceeded 15 seconds; leaving cleanup to the runner workspace rotation."
+            exit 0
+          fi
+          exit "$rc"
