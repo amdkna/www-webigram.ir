@@ -30,7 +30,7 @@ if [ "$DIRECTUS_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
   cms_ready=0
   for _ in $(seq 1 60); do
     if docker exec webigram-directus node -e \
-      "fetch('http://127.0.0.1:8055/server/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" \
+      "fetch('http://127.0.0.1:8055/server/ping').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" \
       >/dev/null 2>&1; then
       cms_ready=1
       break
@@ -41,6 +41,11 @@ if [ "$DIRECTUS_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
     docker logs --tail 180 webigram-directus || true
     exit 1
   }
+
+  # Verify the public reverse-proxy path too. This catches a healthy Directus
+  # container that is still unreachable through cms.webigram.ir.
+  curl -fsS --connect-timeout 3 --max-time 10 \
+    "https://cms.webigram.ir/server/ping?deploy=${GITHUB_SHA:-manual}" >/dev/null
 fi
 
 if [ "$NGINX_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
