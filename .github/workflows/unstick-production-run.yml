@@ -1,4 +1,4 @@
-name: Verify Coursino Chat Deployment
+name: Unstick Webigram Production Runner
 
 on:
   push:
@@ -8,78 +8,43 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: write
   contents: read
 
 jobs:
-  verify:
-    name: Verify live.webigram.ir
+  cancel-stuck-run:
+    name: Cancel stuck production run
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 3
     env:
-      SSH_HOST: webigram.ir
-      SSH_PORT: '34822'
-      SSH_USER: arna
+      GH_TOKEN: ${{ github.token }}
+      STUCK_RUN_ID: "34739302768"
     steps:
-      - name: Configure SSH
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.WEBIGRAM_DEPLOY_SSH_KEY }}
+      - name: Cancel stuck production deployment
         run: |
           set -euo pipefail
-          test -n "$SSH_PRIVATE_KEY"
-          install -d -m 700 "$HOME/.ssh"
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/webigram_deploy"
-          chmod 600 "$HOME/.ssh/webigram_deploy"
-          cat > "$HOME/.ssh/known_hosts" <<'EOF'
-          [webigram.ir]:34822 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHwe+Xzw7jZbNHs5vNgh0vKz7WSbVnBZ9eIlgjByfpg
-          EOF
-          chmod 600 "$HOME/.ssh/known_hosts"
+          echo "Cancelling workflow run ${STUCK_RUN_ID}."
 
-      - name: Verify deployed source and container
-        run: |
-          set -euo pipefail
-          ssh -p "$SSH_PORT" -i "$HOME/.ssh/webigram_deploy" \
-            -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=8 \
-            "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
-          set -euo pipefail
-          APP_DIR=/opt/apps/live.webigram.ir
-          EXPECTED=1b6c443600ff54b84abbb3a5666b1e77de5fe0fd
-          cd "$APP_DIR"
+          gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/cancel" || true
 
-          ACTUAL="$(cat data/deployed-commit)"
-          echo "deployed_commit=$ACTUAL"
-          test "$ACTUAL" = "$EXPECTED"
+          for i in $(seq 1 5); do
+            STATUS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.status')
+            CONCLUSION=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.conclusion // ""')
+            echo "normal_cancel_attempt=$i status=$STATUS conclusion=$CONCLUSION"
+            [ "$STATUS" = "completed" ] && exit 0
+            sleep 2
+          done
 
-          grep -q 'fetchWithRoomAccess' components/persistent-chat-panel.tsx
-          grep -q 'renderMessageText' components/persistent-chat-panel.tsx
-          grep -q 'target="_blank"' components/persistent-chat-panel.tsx
-          grep -q 'grid-template-rows: auto auto' components/persistent-chat-panel.module.css
-          grep -q 'max-height: min(300px, 35vh)' components/persistent-chat-panel.module.css
-          grep -q 'fetchWithRoomAccess' components/room-engagement-panel.tsx
-          echo 'source_markers=ok'
+          echo "Normal cancellation was not acknowledged; force-cancelling run ${STUCK_RUN_ID}."
+          gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/force-cancel" || true
 
-          HEALTH="$(curl -fsS http://127.0.0.1:18080/healthz)"
-          echo "internal_health=$HEALTH"
-          test "$HEALTH" = 'ok'
+          for i in $(seq 1 30); do
+            STATUS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.status')
+            CONCLUSION=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.conclusion // ""')
+            echo "force_cancel_attempt=$i status=$STATUS conclusion=$CONCLUSION"
+            [ "$STATUS" = "completed" ] && exit 0
+            sleep 2
+          done
 
-          PUBLIC_HEALTH="$(curl -fsS https://live.webigram.ir/healthz)"
-          echo "public_health=$PUBLIC_HEALTH"
-          test "$PUBLIC_HEALTH" = 'ok'
-
-          docker inspect -f 'container_started={{.State.StartedAt}} image={{.Image}}' coursino-live
-
-          RUNNER_SERVICE='actions.runner.amdkna-www-coursino-live.www-coursino-live-wbg-001.service'
-          if systemctl is-active --quiet "$RUNNER_SERVICE"; then
-            echo "runner_service=$RUNNER_SERVICE active"
-            if sudo -n systemctl restart "$RUNNER_SERVICE" 2>/dev/null; then
-              echo 'runner_restart=success'
-            else
-              echo 'runner_restart=not_permitted'
-            fi
-          else
-            echo 'runner_service=not_active'
-          fi
-          REMOTE
-
-      - name: Cleanup
-        if: ${{ always() }}
-        run: rm -rf "$HOME/.ssh/webigram_deploy" "$HOME/.ssh/known_hosts"
+          echo "ERROR: Workflow run ${STUCK_RUN_ID} remained active after force-cancel." >&2
+          exit 1
