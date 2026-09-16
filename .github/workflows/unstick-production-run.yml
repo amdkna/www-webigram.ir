@@ -1,4 +1,4 @@
-name: Unstick Webigram Production Runner
+name: Emergency Deploy Coursino Chat Fix
 
 on:
   push:
@@ -8,43 +8,522 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
   contents: read
 
 jobs:
-  cancel-stuck-run:
-    name: Cancel stuck production run
+  deploy:
+    name: Patch and deploy live.webigram.ir
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 12
     env:
-      GH_TOKEN: ${{ github.token }}
-      STUCK_RUN_ID: "34739302768"
+      SSH_HOST: webigram.ir
+      SSH_PORT: '34822'
+      SSH_USER: arna
     steps:
-      - name: Cancel stuck production deployment
+      - name: Configure production SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.WEBIGRAM_DEPLOY_SSH_KEY }}
         run: |
           set -euo pipefail
-          echo "Cancelling workflow run ${STUCK_RUN_ID}."
+          test -n "$SSH_PRIVATE_KEY"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/webigram_deploy"
+          chmod 600 "$HOME/.ssh/webigram_deploy"
+          cat > "$HOME/.ssh/known_hosts" <<'EOF'
+          [webigram.ir]:34822 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPHwe+Xzw7jZbNHs5vNgh0vKz7WSbVnBZ9eIlgjByfpg
+          EOF
+          chmod 600 "$HOME/.ssh/known_hosts"
 
-          gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/cancel" || true
+      - name: Patch and rebuild Coursino Live
+        run: |
+          set -euo pipefail
+          ssh \
+            -p "$SSH_PORT" \
+            -i "$HOME/.ssh/webigram_deploy" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=8 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=2 \
+            "$SSH_USER@$SSH_HOST" 'bash -s' <<'REMOTE'
+          set -Eeuo pipefail
+          APP_DIR=/opt/apps/live.webigram.ir
+          TARGET_SHA=1b6c443600ff54b84abbb3a5666b1e77de5fe0fd
+          cd "$APP_DIR"
 
-          for i in $(seq 1 5); do
-            STATUS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.status')
-            CONCLUSION=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.conclusion // ""')
-            echo "normal_cancel_attempt=$i status=$STATUS conclusion=$CONCLUSION"
-            [ "$STATUS" = "completed" ] && exit 0
+          echo "before_deployed_commit=$(cat data/deployed-commit 2>/dev/null || echo unknown)"
+          command -v patch >/dev/null
+
+          if [ -f lib/client-room-access.ts ] \
+             && grep -q 'fetchWithRoomAccess' components/persistent-chat-panel.tsx \
+             && grep -q 'messageLink' components/persistent-chat-panel.module.css; then
+            echo 'Coursino chat patch is already present in source tree.'
+          else
+            BACKUP="/tmp/coursino-chat-fix-backup-$(date +%s)"
+            mkdir -p "$BACKUP/components" "$BACKUP/lib"
+            cp components/chat-with-engagement.tsx "$BACKUP/components/"
+            cp components/persistent-chat-panel.module.css "$BACKUP/components/"
+            cp components/persistent-chat-panel.tsx "$BACKUP/components/"
+            cp components/room-engagement-panel.tsx "$BACKUP/components/"
+            cp components/room-entry.tsx "$BACKUP/components/"
+            [ ! -f lib/client-room-access.ts ] || cp lib/client-room-access.ts "$BACKUP/lib/"
+            echo "backup=$BACKUP"
+
+            cat > /tmp/coursino-chat-fix.patch <<'PATCH'
+          diff --git a/components/chat-with-engagement.tsx b/components/chat-with-engagement.tsx
+          index b4c6c67..36c7755 100644
+          --- a/components/chat-with-engagement.tsx
+          +++ b/components/chat-with-engagement.tsx
+          @@ -19,7 +19,7 @@ type ChatWithEngagementProps = {
+           export function ChatWithEngagement(props: ChatWithEngagementProps) {
+             return (
+               <div className={styles.stack}>
+          -      <RoomEngagementPanel room={props.room} role={props.role} />
+          +      <RoomEngagementPanel room={props.room} name={props.name} role={props.role} gender={props.gender} />
+                 <PersistentChatPanel {...props} className={styles.chat} />
+               </div>
+             );
+          diff --git a/components/persistent-chat-panel.module.css b/components/persistent-chat-panel.module.css
+          index 63cefb6..4084cfd 100644
+          --- a/components/persistent-chat-panel.module.css
+          +++ b/components/persistent-chat-panel.module.css
+          @@ -116,12 +116,14 @@
+           .empty { min-height: 120px; display: grid; place-items: center; color: var(--muted); font-size: 11px; text-align: center; }
+           .message {
+             width: 100%;
+          +  min-width: 0;
+             min-height: 34px;
+          -  padding: 5px 7px;
+          +  padding: 6px 7px;
+             display: grid;
+          -  grid-template-columns: auto minmax(0, 1fr) auto;
+          -  align-items: center;
+          -  gap: 6px;
+          +  grid-template-columns: minmax(0, 1fr) auto;
+          +  grid-template-rows: auto auto;
+          +  align-items: start;
+          +  gap: 4px 8px;
+             border: 1px solid color-mix(in srgb, var(--line) 84%, transparent);
+             border-radius: 9px;
+             background: color-mix(in srgb, var(--surface, var(--panel-2)) 72%, transparent);
+          @@ -130,27 +132,39 @@
+           .staffOnly { border-color: color-mix(in srgb, #8b5cf6 28%, var(--line)); }
+           .meta { display: contents; }
+           .sender { grid-column: 1; grid-row: 1; min-width: 0; display: flex; align-items: center; gap: 5px; }
+          -.sender strong { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+          +.sender strong { max-width: min(180px, 55vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+           .sender strong::after { content: ':'; margin-inline-start: 2px; }
+           .privateTag { flex: 0 0 auto; padding: 2px 5px; border-radius: 6px; background: color-mix(in srgb, #8b5cf6 12%, var(--panel)); color: #a78bfa; font-size: 7px; }
+          -.metaActions { grid-column: 3; grid-row: 1; display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+          +.metaActions { grid-column: 2; grid-row: 1; display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+           .metaActions time { color: var(--muted); font-size: 7px; direction: ltr; }
+           .metaActions button { border: 0; background: transparent; color: var(--danger); padding: 2px 3px; font-size: 7px; }
+           .message p {
+          -  grid-column: 2;
+          -  grid-row: 1;
+          +  grid-column: 1 / -1;
+          +  grid-row: 2;
+          +  width: 100%;
+             min-width: 0;
+          +  max-width: 100%;
+             margin: 0;
+             white-space: pre-wrap;
+             overflow-wrap: anywhere;
+          +  word-break: break-word;
+             color: var(--soft-text, var(--text));
+             font-size: 12px;
+          -  line-height: 1.45;
+          +  line-height: 1.65;
+          +  unicode-bidi: plaintext;
+          +}
+          +.messageLink {
+          +  color: var(--accent);
+          +  text-decoration: underline;
+          +  text-underline-offset: 2px;
+          +  overflow-wrap: anywhere;
+          +  word-break: break-word;
+           }
+          +.messageLink:hover { opacity: .84; }
+           .error { flex: 0 0 auto; padding: 5px 9px; border-top: 1px solid var(--line); color: #ff8f93; font-size: 9px; }
+           .composerNotice { border-top: 1px solid var(--line); border-bottom: 0; color: #ffb46b; }
+           .composer { position: relative; flex: 0 0 auto; min-width: 0; display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: end; gap: 6px; padding: 7px; border-top: 1px solid var(--line); direction: ltr; }
+          -.composer textarea { width: 100%; min-width: 0; min-height: 40px; max-height: 112px; resize: none; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; outline: 0; background: var(--surface, var(--panel-2)); color: var(--text); padding: 9px 10px; font: inherit; font-size: 12px; line-height: 1.6; direction: rtl; }
+          +.composer textarea { width: 100%; min-width: 0; min-height: 40px; max-height: min(300px, 35vh); resize: none; overflow-y: hidden; border: 1px solid var(--line); border-radius: 10px; outline: 0; background: var(--surface, var(--panel-2)); color: var(--text); padding: 9px 10px; font: inherit; font-size: 12px; line-height: 1.6; direction: rtl; }
+           .composer textarea:focus { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+           .composer textarea:disabled { opacity: .68; cursor: not-allowed; }
+           .sendButton,.emojiButton { height: 40px; border: 1px solid var(--line); border-radius: 10px; font-weight: 900; }
+          @@ -172,11 +186,12 @@
+             .supportRequest { grid-template-columns: auto minmax(0,1fr) auto; }
+             .supportRequest time { display: none; }
+             .list { padding: 6px; gap: 4px; }
+          -  .message { min-height: 32px; padding: 4px 6px; border-radius: 8px; gap: 5px; }
+          -  .sender strong { max-width: 78px; font-size: 10px; }
+          -  .message p { font-size: 11px; }
+          +  .message { min-height: 32px; padding: 5px 6px; border-radius: 8px; gap: 3px 6px; }
+          +  .sender strong { max-width: min(120px, 42vw); font-size: 10px; }
+          +  .message p { font-size: 11px; line-height: 1.6; }
+             .metaActions time { display: none; }
+             .composer { padding: 6px; gap: 5px; }
+          +  .composer textarea { max-height: min(240px, 38vh); }
+             .sendButton { min-width: 54px; padding: 0 7px; }
+             .emojiButton { width: 38px; }
+             .emojiGrid { width: min(238px, calc(100vw - 22px)); gap: 2px; padding: 6px; }
+          diff --git a/components/persistent-chat-panel.tsx b/components/persistent-chat-panel.tsx
+          index 976548d..c25a8fd 100644
+          --- a/components/persistent-chat-panel.tsx
+          +++ b/components/persistent-chat-panel.tsx
+          @@ -2,6 +2,7 @@
+           
+           import { FormEvent, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
+           import { canModerate, canPresent, isStaffRole, type AppRole } from '@/lib/access';
+          +import { fetchWithRoomAccess } from '@/lib/client-room-access';
+           import type { Gender } from '@/lib/profile';
+           import { UserRoleIcon } from '@/components/user-role-icon';
+           import styles from './persistent-chat-panel.module.css';
+          @@ -23,6 +24,9 @@ const SUPPORT_OPTIONS = [
+             { value: 'disconnected', label: 'به کل قطع شده است' },
+           ] as const;
+           
+          +const URL_PATTERN = /((?:https?:\/\/|www\.)[^\s]+)/gi;
+          +const URL_PREFIX_PATTERN = /^(?:https?:\/\/|www\.)/i;
+          +
+           type ChatMode = 'public' | 'private' | 'closed';
+           type SupportIssue = typeof SUPPORT_OPTIONS[number]['value'];
+           
+          @@ -68,6 +72,24 @@ function supportLabel(issue: SupportIssue) {
+             return SUPPORT_OPTIONS.find((item) => item.value === issue)?.label || issue;
+           }
+           
+          +function renderMessageText(text: string) {
+          +  return text.split(URL_PATTERN).map((part, index) => {
+          +    if (!URL_PREFIX_PATTERN.test(part)) return part;
+          +    const href = /^www\./i.test(part) ? `https://${part}` : part;
+          +    return (
+          +      <a
+          +        key={`${index}:${part}`}
+          +        className={styles.messageLink}
+          +        href={href}
+          +        target="_blank"
+          +        rel="noopener noreferrer"
+          +      >
+          +        {part}
+          +      </a>
+          +    );
+          +  });
+          +}
+          +
+           export function PersistentChatPanel({
+             room,
+             name,
+          @@ -101,10 +123,15 @@ export function PersistentChatPanel({
+             const emojiRef = useRef<HTMLDivElement>(null);
+             const supportRef = useRef<HTMLDivElement>(null);
+             const initialLoadRef = useRef(true);
+          +  const accessContext = { room, name, role, gender };
+           
+             const load = useCallback(async () => {
+               try {
+          -      const response = await fetch(`/api/chat?room=${encodeURIComponent(room)}`, { cache: 'no-store' });
+          +      const response = await fetchWithRoomAccess(
+          +        `/api/chat?room=${encodeURIComponent(room)}`,
+          +        { cache: 'no-store' },
+          +        accessContext,
+          +      );
+                 const data = await response.json();
+                 if (!response.ok) {
+                   if (response.status !== 401) setError(data.error || 'دریافت گفتگو انجام نشد.');
+          @@ -119,7 +146,7 @@ export function PersistentChatPanel({
+               } catch {
+                 setError('دریافت گفتگو انجام نشد.');
+               }
+          -  }, [room]);
+          +  }, [room, name, role, gender]);
+           
+             const loadSupport = useCallback(async () => {
+               if (!staff) return;
+          @@ -186,8 +213,12 @@ export function PersistentChatPanel({
+             function resizeTextarea() {
+               const textarea = textareaRef.current;
+               if (!textarea) return;
+          +    const viewportLimit = typeof window === 'undefined' ? 260 : Math.round(window.innerHeight * 0.35);
+          +    const maxHeight = Math.min(300, Math.max(160, viewportLimit));
+               textarea.style.height = 'auto';
+          -    textarea.style.height = `${Math.min(112, Math.max(40, textarea.scrollHeight))}px`;
+          +    const nextHeight = Math.min(maxHeight, Math.max(40, textarea.scrollHeight));
+          +    textarea.style.height = `${nextHeight}px`;
+          +    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
+             }
+           
+             function insertEmoji(emoji: string) {
+          @@ -213,11 +244,15 @@ export function PersistentChatPanel({
+               setPending(true);
+               setError('');
+               try {
+          -      const response = await fetch('/api/chat', {
+          -        method: 'POST',
+          -        headers: { 'content-type': 'application/json' },
+          -        body: JSON.stringify({ room, name, gender, text: trimmed }),
+          -      });
+          +      const response = await fetchWithRoomAccess(
+          +        '/api/chat',
+          +        {
+          +          method: 'POST',
+          +          headers: { 'content-type': 'application/json' },
+          +          body: JSON.stringify({ room, name, gender, text: trimmed }),
+          +        },
+          +        accessContext,
+          +      );
+                 const data = await response.json();
+                 if (!response.ok) throw new Error(data.error || 'ارسال پیام انجام نشد.');
+                 if (data.message) setMessages((current) => [...current.filter((message) => message.id !== data.message.id), data.message].slice(-200));
+          @@ -442,7 +477,7 @@ export function PersistentChatPanel({
+                         {canModerate(role) && <button type="button" onClick={() => void deleteMessage(message.id)}>حذف</button>}
+                       </div>
+                     </div>
+          -            <p>{message.text}</p>
+          +            <p>{renderMessageText(message.text)}</p>
+                   </article>
+                 ))}
+               </div>
+          diff --git a/components/room-engagement-panel.tsx b/components/room-engagement-panel.tsx
+          index 3a102e8..b1d852f 100644
+          --- a/components/room-engagement-panel.tsx
+          +++ b/components/room-engagement-panel.tsx
+          @@ -2,6 +2,8 @@
+           
+           import { useCallback, useEffect, useRef, useState } from 'react';
+           import { canPresent, type AppRole } from '@/lib/access';
+          +import { fetchWithRoomAccess } from '@/lib/client-room-access';
+          +import type { Gender } from '@/lib/profile';
+           import styles from './room-engagement-panel.module.css';
+           
+           type PollOption = {
+          @@ -36,13 +38,24 @@ type EngagementResponse = {
+             error?: string;
+           };
+           
+          -export function RoomEngagementPanel({ room, role }: { room: string; role: AppRole }) {
+          +export function RoomEngagementPanel({
+          +  room,
+          +  name,
+          +  role,
+          +  gender,
+          +}: {
+          +  room: string;
+          +  name: string;
+          +  role: AppRole;
+          +  gender: Gender;
+          +}) {
+             const presenter = canPresent(role);
+             const [poll, setPoll] = useState<Poll | null>(null);
+             const [raffle, setRaffle] = useState<Raffle | null>(null);
+             const [pending, setPending] = useState('');
+             const [error, setError] = useState('');
+             const interactionVisibleRef = useRef(false);
+          +  const accessContext = { room, name, role, gender };
+           
+             useEffect(() => {
+               interactionVisibleRef.current = Boolean(poll || raffle);
+          @@ -55,7 +68,11 @@ export function RoomEngagementPanel({ room, role }: { room: string; role: AppRol
+           
+             const load = useCallback(async () => {
+               try {
+          -      const response = await fetch(`/api/engagement?room=${encodeURIComponent(room)}`, { cache: 'no-store' });
+          +      const response = await fetchWithRoomAccess(
+          +        `/api/engagement?room=${encodeURIComponent(room)}`,
+          +        { cache: 'no-store' },
+          +        accessContext,
+          +      );
+                 const data = await response.json() as EngagementResponse;
+                 if (!response.ok) {
+                   if (response.status !== 401 && response.status !== 403) setError(data.error || 'دریافت رای گیری انجام نشد.');
+          @@ -66,7 +83,7 @@ export function RoomEngagementPanel({ room, role }: { room: string; role: AppRol
+               } catch {
+                 // Chat keeps working if interaction polling has a temporary network failure.
+               }
+          -  }, [room, applyData]);
+          +  }, [room, name, role, gender, applyData]);
+           
+             useEffect(() => {
+               let cancelled = false;
+          @@ -91,11 +108,15 @@ export function RoomEngagementPanel({ room, role }: { room: string; role: AppRol
+               setPending(action);
+               setError('');
+               try {
+          -      const response = await fetch('/api/engagement', {
+          -        method: 'POST',
+          -        headers: { 'content-type': 'application/json' },
+          -        body: JSON.stringify({ action, room, ...payload }),
+          -      });
+          +      const response = await fetchWithRoomAccess(
+          +        '/api/engagement',
+          +        {
+          +          method: 'POST',
+          +          headers: { 'content-type': 'application/json' },
+          +          body: JSON.stringify({ action, room, ...payload }),
+          +        },
+          +        accessContext,
+          +      );
+                 const data = await response.json() as EngagementResponse;
+                 if (!response.ok) throw new Error(data.error || 'عملیات انجام نشد.');
+                 applyData(data);
+          diff --git a/components/room-entry.tsx b/components/room-entry.tsx
+          index eb2f7a7..80858dc 100644
+          --- a/components/room-entry.tsx
+          +++ b/components/room-entry.tsx
+          @@ -25,19 +25,38 @@ export function RoomEntry({
+             const [guestGender, setGuestGender] = useState<Gender | ''>('');
+             const [webinarPhone, setWebinarPhone] = useState('');
+             const [error, setError] = useState('');
+          +  const [guestPending, setGuestPending] = useState(false);
+             const [webinarPending, setWebinarPending] = useState(false);
+           
+          -  function joinGuest(event: FormEvent<HTMLFormElement>) {
+          +  async function joinGuest(event: FormEvent<HTMLFormElement>) {
+               event.preventDefault();
+          -    if (!guestAccess) return;
+          +    if (!guestAccess || guestPending) return;
+               const displayName = name.trim().slice(0, 64);
+               const mobile = normalizeIranMobile(guestPhone);
+               if (!displayName) { setError('نام و نام خانوادگی را وارد کنید.'); return; }
+               if (!mobile) { setError('شماره موبایل را به صورت 09121234567 وارد کنید.'); return; }
+               if (guestGender !== 'male' && guestGender !== 'female') { setError('جنسیت را انتخاب کنید.'); return; }
+          +
+          +    setGuestPending(true);
+               setError('');
+               rememberGuestProfile(guestGender, mobile);
+          -    router.push(`/room/${encodeURIComponent(room)}?role=guest&name=${encodeURIComponent(displayName)}&gender=${guestGender}`);
+          +
+          +    try {
+          +      const response = await fetch('/api/token', {
+          +        method: 'POST',
+          +        headers: { 'content-type': 'application/json' },
+          +        body: JSON.stringify({ room, name: displayName, role: 'guest', gender: guestGender }),
+          +        cache: 'no-store',
+          +      });
+          +      const data = await response.json();
+          +      if (!response.ok) throw new Error(data.error || 'ورود مهمان انجام نشد.');
+          +      router.push(`/room/${encodeURIComponent(room)}?role=guest&name=${encodeURIComponent(displayName)}&gender=${guestGender}`);
+          +    } catch (cause) {
+          +      setError(cause instanceof Error ? cause.message : 'ورود مهمان انجام نشد.');
+          +      setGuestPending(false);
+          +    }
+             }
+           
+             async function joinWebinar(event: FormEvent<HTMLFormElement>) {
+          @@ -118,7 +137,9 @@ export function RoomEntry({
+                         <button type="button" className={guestGender === 'female' ? 'selected' : ''} onClick={() => setGuestGender('female')}>👩 خانم</button>
+                       </div>
+                     </div>
+          -            <button className={webinarAuthEnabled ? 'secondary-button' : 'primary-button'} type="submit">ورود مهمان</button>
+          +            <button className={webinarAuthEnabled ? 'secondary-button' : 'primary-button'} type="submit" disabled={guestPending}>
+          +              {guestPending ? 'در حال ورود…' : 'ورود مهمان'}
+          +            </button>
+                   </form>
+                 )}
+           
+          diff --git a/lib/client-room-access.ts b/lib/client-room-access.ts
+          new file mode 100644
+          index 0000000..69fb398
+          --- /dev/null
+          +++ b/lib/client-room-access.ts
+          @@ -0,0 +1,53 @@
+          +'use client';
+          +
+          +import type { AppRole } from '@/lib/access';
+          +import type { Gender } from '@/lib/profile';
+          +
+          +type RoomAccessContext = {
+          +  room: string;
+          +  name: string;
+          +  role: AppRole;
+          +  gender: Gender;
+          +};
+          +
+          +const recoveries = new Map<string, Promise<boolean>>();
+          +
+          +function recoveryKey(context: RoomAccessContext) {
+          +  return `${context.room}:${context.role}:${context.name}`;
+          +}
+          +
+          +export function recoverRoomAccess(context: RoomAccessContext) {
+          +  const key = recoveryKey(context);
+          +  const active = recoveries.get(key);
+          +  if (active) return active;
+          +
+          +  const recovery = fetch('/api/token', {
+          +    method: 'POST',
+          +    headers: { 'content-type': 'application/json' },
+          +    body: JSON.stringify(context),
+          +    cache: 'no-store',
+          +  })
+          +    .then((response) => response.ok)
+          +    .catch(() => false)
+          +    .finally(() => {
+          +      if (recoveries.get(key) === recovery) recoveries.delete(key);
+          +    });
+          +
+          +  recoveries.set(key, recovery);
+          +  return recovery;
+          +}
+          +
+          +export async function fetchWithRoomAccess(
+          +  input: RequestInfo | URL,
+          +  init: RequestInit | undefined,
+          +  context: RoomAccessContext,
+          +) {
+          +  let response = await fetch(input, init);
+          +  if (response.status !== 401) return response;
+          +
+          +  const recovered = await recoverRoomAccess(context);
+          +  if (!recovered) return response;
+          +
+          +  response = await fetch(input, init);
+          +  return response;
+          +}
+          PATCH
+
+            # Remove YAML indentation from the embedded diff before applying it.
+            sed -i 's/^          //' /tmp/coursino-chat-fix.patch
+            patch -p1 --forward --batch < /tmp/coursino-chat-fix.patch
+          fi
+
+          test -f lib/client-room-access.ts
+          grep -q 'fetchWithRoomAccess' components/persistent-chat-panel.tsx
+          grep -q 'messageLink' components/persistent-chat-panel.module.css
+
+          timeout 600s docker compose build coursino-live
+          timeout 120s docker compose up -d --no-deps coursino-live
+
+          for attempt in $(seq 1 40); do
+            if timeout 5s curl --fail --silent --show-error http://127.0.0.1:18080/healthz | grep -qx 'ok'; then
+              echo 'Coursino Live application health check passed.'
+              break
+            fi
+            if [ "$attempt" -eq 40 ]; then
+              echo 'ERROR: application health check failed after emergency deploy.'
+              timeout 10s docker logs --tail=160 coursino-live 2>&1 || true
+              exit 1
+            fi
             sleep 2
           done
 
-          echo "Normal cancellation was not acknowledged; force-cancelling run ${STUCK_RUN_ID}."
-          gh api --method POST "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}/force-cancel" || true
+          printf '%s\n' "$TARGET_SHA" > data/deployed-commit
+          echo "after_deployed_commit=$(cat data/deployed-commit)"
 
-          for i in $(seq 1 30); do
-            STATUS=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.status')
-            CONCLUSION=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/runs/${STUCK_RUN_ID}" --jq '.conclusion // ""')
-            echo "force_cancel_attempt=$i status=$STATUS conclusion=$CONCLUSION"
-            [ "$STATUS" = "completed" ] && exit 0
-            sleep 2
-          done
+          echo 'Runner services containing coursino (best effort):'
+          systemctl list-units --type=service --all 2>/dev/null | grep -i 'actions.runner.*coursino' || true
+          SERVICE=$(systemctl list-unit-files --type=service 2>/dev/null | awk '/actions\.runner.*coursino/ {print $1; exit}')
+          if [ -n "${SERVICE:-}" ]; then
+            if sudo -n systemctl restart "$SERVICE"; then
+              echo "restarted_runner_service=$SERVICE"
+            else
+              echo "warning: could not restart $SERVICE without interactive sudo"
+            fi
+          fi
+          REMOTE
 
-          echo "ERROR: Workflow run ${STUCK_RUN_ID} remained active after force-cancel." >&2
-          exit 1
+      - name: Remove temporary SSH material
+        if: ${{ always() }}
+        run: rm -rf "$HOME/.ssh/webigram_deploy" "$HOME/.ssh/known_hosts"
