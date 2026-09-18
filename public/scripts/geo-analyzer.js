@@ -24,7 +24,7 @@
 
   const esc = (v='') => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
   const fa = n => new Intl.NumberFormat('fa-IR').format(n);
-  const statusMeta = { ok:{label:'خوب',icon:'✓'}, warn:{label:'نیاز به بهبود',icon:'!'}, error:{label:'مشکل',icon:'×'}, info:{label:'اطلاعات',icon:'i'} };
+  const statusMeta = { ok:{label:'خوب',icon:'✓'}, warn:{label:'نیاز به بهبود',icon:'!'}, error:{label:'مشکل',icon:'×'}, info:{label:'قابل تشخیص نیست',icon:'i'} };
   const priorityMeta = { urgent:['فوری','urgent'], high:['مهم','high'], medium:['پیشنهادی','medium'], low:['بهبود','low'] };
 
   function normalizeUrl(value) {
@@ -139,15 +139,15 @@
     const grade = score >= 85 ? {label:'خیلی خوب',tone:'excellent'} : score >= 70 ? {label:'خوب',tone:'good'} : score >= 50 ? {label:'نیاز به بهبود',tone:'warning'} : {label:'ضعیف',tone:'critical'};
 
     const checks = [
-      {status:reachable,category:'Discoverability',title:'دسترسی عمومی سایت',summary: reachable === 'ok' ? 'سایت از بیرون پاسخ قابل استفاده می‌دهد.' : 'AI و موتور جستجو برای خواندن سایت ابتدا باید بتوانند به آن دسترسی داشته باشند.'},
-      {status:robots,category:'Crawler Access',title:'Robots.txt',summary:'قواعد Robots نباید خزنده‌های موردنظر شما را ناخواسته مسدود کنند.'},
-      {status:sitemap,category:'Discovery',title:'XML Sitemap',summary:'Sitemap کشف صفحات مهم و تغییرات سایت را برای خزنده‌ها ساده‌تر می‌کند.'},
-      {status:canonical,category:'Source Identity',title:'Canonical URL',summary:'Canonical به موتور کمک می‌کند نسخه اصلی محتوا را از نسخه‌های تکراری تشخیص دهد.'},
-      {status:schema,category:'Machine Readability',title:'Structured Data / Schema',summary:'Schema نوع صفحه، موجودیت‌ها، نویسنده، سازمان، مقاله، دوره یا محصول را ماشین‌خوان‌تر می‌کند.'},
-      {status:title,category:'Content Clarity',title:'Page Title',summary:'عنوان واضح یکی از ساده‌ترین سیگنال‌ها برای فهم موضوع اصلی صفحه است.'},
-      {status:description,category:'Content Clarity',title:'Meta Description',summary:'توضیح دقیق صفحه به درک سریع موضوع و هدف محتوا کمک می‌کند.'},
-      {status:h1,category:'Semantic Structure',title:'H1 اصلی',summary:'یک H1 واضح باعث می‌شود موضوع اصلی صفحه بدون حدس زدن مشخص باشد.'},
-      {status:ssl,category:'Trust',title:'HTTPS و SSL',summary:'اتصال امن یک سیگنال پایه برای منبع قابل اعتماد و قابل دسترسی است.'},
+      {status:reachable,category:'کشف‌پذیری',title:'دسترسی عمومی سایت',summary: reachable === 'ok' ? 'سایت از بیرون پاسخ قابل استفاده می‌دهد.' : 'AI و موتور جستجو برای خواندن سایت ابتدا باید بتوانند به آن دسترسی داشته باشند.'},
+      {status:robots,category:'دسترسی خزنده‌ها',title:'Robots.txt',summary:'قواعد Robots نباید خزنده‌های موردنظر شما را ناخواسته مسدود کنند.'},
+      {status:sitemap,category:'کشف صفحات',title:'XML Sitemap',summary:'Sitemap کشف صفحات مهم و تغییرات سایت را برای خزنده‌ها ساده‌تر می‌کند.'},
+      {status:canonical,category:'هویت منبع',title:'Canonical URL',summary:'Canonical به موتور کمک می‌کند نسخه اصلی محتوا را از نسخه‌های تکراری تشخیص دهد.'},
+      {status:schema,category:'خوانایی ماشینی',title:'Structured Data / Schema',summary:'Schema نوع صفحه، موجودیت‌ها، نویسنده، سازمان، مقاله، دوره یا محصول را ماشین‌خوان‌تر می‌کند.'},
+      {status:title,category:'وضوح محتوا',title:'Page Title',summary:'عنوان واضح یکی از ساده‌ترین سیگنال‌ها برای فهم موضوع اصلی صفحه است.'},
+      {status:description,category:'وضوح محتوا',title:'Meta Description',summary:'توضیح دقیق صفحه به درک سریع موضوع و هدف محتوا کمک می‌کند.'},
+      {status:h1,category:'ساختار معنایی',title:'H1 اصلی',summary:'یک H1 واضح باعث می‌شود موضوع اصلی صفحه بدون حدس زدن مشخص باشد.'},
+      {status:ssl,category:'اعتماد فنی',title:'HTTPS و SSL',summary:'اتصال امن یک سیگنال پایه برای منبع قابل اعتماد و قابل دسترسی است.'},
     ];
 
     const actions = [];
