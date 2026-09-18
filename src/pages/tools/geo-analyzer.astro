@@ -1,0 +1,138 @@
+---
+import '../../styles/public-tools.css';
+import '../../styles/website-doctor.css';
+const base = import.meta.env.BASE_URL;
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f4f6fb" />
+  <meta name="description" content="تحلیل GEO وبیگرام؛ بررسی آمادگی سایت برای دیده‌شدن و خوانده‌شدن توسط موتورهای هوش مصنوعی، با گزارش ساده و اولویت‌بندی اقدامات." />
+  <link rel="icon" type="image/svg+xml" href="${base}favicon.svg" />
+  <link rel="canonical" href="https://webigram.ir/tools/geo-analyzer/" />
+  <title>تحلیل GEO | بررسی آمادگی سایت برای AI</title>
+</head>
+<body>
+  <header class="tools-header doctor-site-header">
+    <div class="shell tools-header-inner">
+      <a class="tools-brand" href="/" aria-label="وبیگرام"><svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9"/></svg><strong>Webigram</strong></a>
+      <nav class="tools-nav" aria-label="منوی ابزارها"><a href="/">خانه</a><a class="active" href="/tools/">ابزارها</a></nav>
+    </div>
+  </header>
+
+  <main class="doctor-main">
+    <section class="doctor-hero">
+      <div class="shell">
+        <div class="breadcrumb"><a href="/tools/">ابزارها</a><span>/</span><span>تحلیل GEO</span></div>
+        <div class="doctor-hero-copy">
+          <span class="eyebrow">WEBIGRAM GEO ANALYZER</span>
+          <h1>ببین سایتت برای <span>هوش مصنوعی چقدر قابل فهم</span> است</h1>
+          <p>آمادگی سایت برای موتورهای AI را از نظر Crawlability، ساختار محتوا، Schema، قابلیت استناد، اعتماد و کشف‌پذیری بررسی می‌کنیم.</p>
+        </div>
+
+        <form class="doctor-form" id="geoForm" novalidate>
+          <div class="doctor-form-head">
+            <div><strong>آدرس سایت را وارد کن</strong><span>مثلا updateshid.ir</span></div>
+            <span class="doctor-free-badge">رایگان</span>
+          </div>
+          <div class="doctor-input-row">
+            <div class="doctor-input-wrap"><span aria-hidden="true">↗</span><input id="geoUrl" name="url" dir="ltr" inputmode="url" autocomplete="url" placeholder="https://example.com" required /></div>
+            <button id="geoSubmit" type="submit">تحلیل GEO</button>
+          </div>
+          <div class="doctor-form-foot"><span>فقط اطلاعات عمومی سایت بررسی می‌شود؛ نیازی به دسترسی هاست نیست.</span><span class="doctor-form-error" id="geoFormError" role="alert"></span></div>
+        </form>
+
+        <div class="doctor-hero-mini">
+          <span>AI Crawlability</span><span>Schema</span><span>Entity Clarity</span><span>Answerability</span><span>Trust Signals</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="doctor-stage shell" id="geoIntro">
+      <div class="doctor-section-kicker">
+        <div><span>GEO READINESS</span><h2>آیا AI می‌تواند سایتت را بفهمد، پیدا کند و به آن استناد کند؟</h2></div>
+        <p>این ابزار یک ارزیابی فنی و محتوایی سریع است؛ تضمین نمی‌کند ChatGPT، Gemini یا موتور دیگری حتما سایت را در پاسخ‌ها نمایش دهد.</p>
+      </div>
+      <div class="doctor-feature-grid">
+        <article><div class="feature-icon">01</div><h3>دسترسی ربات‌ها</h3><p>Robots، Sitemap، وضعیت HTTP و امکان Crawl شدن صفحات.</p></article>
+        <article><div class="feature-icon">02</div><h3>ساختار و Schema</h3><p>نشانه‌های ساختاری که فهم موضوع، نوع صفحه و موجودیت‌ها را آسان‌تر می‌کنند.</p></article>
+        <article><div class="feature-icon">03</div><h3>وضوح محتوا</h3><p>Title، Description، H1 و نشانه‌های محتوایی که جواب صفحه را واضح می‌کنند.</p></article>
+        <article><div class="feature-icon">04</div><h3>اعتماد و قابلیت استناد</h3><p>HTTPS، Canonical و سیگنال‌هایی که منبع را منظم و قابل اتکاتر می‌کنند.</p></article>
+      </div>
+      <div class="doctor-expectation"><strong>GEO چیست؟</strong><span>Generative Engine Optimization یعنی آماده‌سازی سایت برای اینکه موتورهای هوش مصنوعی بتوانند محتوا را بهتر کشف، درک، بازیابی و در صورت مناسب بودن به آن استناد کنند.</span></div>
+    </section>
+
+    <section class="doctor-loading shell" id="geoLoading" hidden aria-live="polite">
+      <div class="doctor-loading-card">
+        <div class="doctor-loading-top"><div class="doctor-loader"><span></span><span></span><span></span></div><div><h2>در حال تحلیل GEO</h2><p id="geoProgressText">دسترسی سایت را بررسی می‌کنیم…</p></div></div>
+        <div class="doctor-progress"><span id="geoProgressBar"></span></div>
+        <small>گزارش بر اساس اطلاعات عمومی قابل مشاهده از بیرون سایت ساخته می‌شود.</small>
+      </div>
+    </section>
+
+    <section class="doctor-results shell" id="geoResults" hidden>
+      <div class="doctor-report-head">
+        <div class="doctor-report-title">
+          <span class="doctor-result-label">گزارش GEO <b id="geoScannedUrl"></b></span>
+          <h1 id="geoHeadline">گزارش آماده است</h1>
+          <p id="geoSummaryText"></p>
+        </div>
+        <div class="doctor-result-buttons">
+          <button class="doctor-button secondary" id="geoCopyLink" type="button">کپی لینک</button>
+          <button class="doctor-button" id="geoRescan" type="button">تحلیل سایت دیگر</button>
+        </div>
+      </div>
+
+      <nav class="doctor-report-tabs" aria-label="بخش‌های گزارش">
+        <a class="active" href="#geo-summary">خلاصه</a>
+        <a href="#geo-pillars">محورها</a>
+        <a href="#geo-checks">جزئیات</a>
+        <a href="#geo-actions">اقدامات</a>
+      </nav>
+
+      <section class="doctor-dashboard" id="geo-summary">
+        <div class="doctor-score-panel">
+          <div class="doctor-score-ring" id="geoScoreRing" data-tone="good"><div><strong id="geoScore">—</strong><span>از ۱۰۰</span></div></div>
+          <div class="doctor-score-copy"><span>امتیاز آمادگی GEO</span><div class="doctor-grade">وضعیت کلی <strong id="geoGrade">—</strong></div><p>این امتیاز نشان می‌دهد سایت از نظر نشانه‌های فنی و ساختاری چقدر برای بازیابی توسط AI آماده است.</p></div>
+        </div>
+        <div class="doctor-summary-stats" id="geoSummaryStats"></div>
+      </section>
+
+      <section class="doctor-metrics-panel" id="geo-pillars">
+        <div class="doctor-panel-head"><div><span>GEO PILLARS</span><h2>محورهای اصلی</h2></div><p>هر محور بخشی از قابلیت کشف، فهم و استناد به سایت را نشان می‌دهد.</p></div>
+        <div class="doctor-metrics" id="geoMetrics"></div>
+      </section>
+
+      <section class="doctor-report-section" id="geo-checks">
+        <div class="doctor-panel-head"><div><span>DETAILS</span><h2>جزئیات تحلیل</h2></div><p>سیگنال‌هایی که مستقیما از گزارش فنی سایت قابل بررسی هستند.</p></div>
+        <div class="doctor-checks" id="geoChecks"></div>
+      </section>
+
+      <section class="doctor-report-section" id="geo-actions">
+        <div class="doctor-panel-head"><div><span>ACTION PLAN</span><h2>برای GEO از کجا شروع کنم؟</h2></div><p>اقدامات بر اساس تاثیر احتمالی و فوریت مرتب شده‌اند.</p></div>
+        <div class="doctor-actions" id="geoActions"></div>
+      </section>
+
+      <section class="doctor-support-card">
+        <div class="doctor-support-copy"><span class="eyebrow">AI-READY CHECKLIST</span><h2>گزارش قابل ارسال برای تیم فنی و محتوا</h2><p>این خروجی را کپی کن تا توسعه‌دهنده، SEO یا تیم محتوا دقیقا بداند چه چیزی باید اصلاح شود.</p><button class="doctor-button" id="copyGeoReport" type="button">کپی گزارش GEO</button></div>
+        <pre id="geoTechnicalReport" dir="ltr"></pre>
+      </section>
+    </section>
+
+    <section class="doctor-faq shell">
+      <div class="doctor-section-kicker"><div><span>FAQ</span><h2>چند نکته درباره GEO</h2></div></div>
+      <div class="doctor-faq-grid">
+        <details><summary>آیا GEO جای SEO را می‌گیرد؟</summary><p>نه. SEO فنی و محتوای باکیفیت پایه GEO هستند. GEO بیشتر روی قابل فهم، قابل بازیابی و قابل استناد بودن محتوا برای موتورهای مولد تمرکز دارد.</p></details>
+        <details><summary>امتیاز ۱۰۰ یعنی حتما در ChatGPT دیده می‌شوم؟</summary><p>خیر. هیچ ابزار مستقلی نمی‌تواند چنین تضمینی بدهد. این امتیاز فقط میزان آمادگی سایت بر اساس سیگنال‌های قابل مشاهده را نشان می‌دهد.</p></details>
+        <details><summary>llms.txt را هم باید داشته باشم؟</summary><p>می‌تواند به عنوان فایل راهنما اضافه شود، اما آن را جایگزین robots.txt، Sitemap، Schema، HTML خوب و محتوای معتبر نکن.</p></details>
+        <details><summary>برای نتیجه بهتر چه چیزی مهم‌تر است؟</summary><p>دسترسی درست ربات‌ها، محتوای روشن و مستقیم، ساختار معنایی خوب، موجودیت‌های واضح، نویسنده و منابع معتبر و لینک‌سازی داخلی منظم.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="tools-footer"><div class="shell">Webigram GEO Analyzer · سایتت را برای عصر AI آماده کن</div></footer>
+  <script is:inline src="/scripts/geo-analyzer.js"></script>
+</body>
+</html>
