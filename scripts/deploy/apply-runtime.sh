@@ -20,8 +20,8 @@ if [ "$SERVER_CHANGED" = "true" ] && [ "$COMPOSE_CHANGED" != "true" ]; then
   docker compose up -d --no-deps --force-recreate website-doctor-api brand-checker-api
 fi
 
-if [ "$DIRECTUS_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
-  echo "Directus/compose changed: entering CMS slow path"
+if [ "$DIRECTUS_CHANGED" = "true" ]; then
+  echo "Directus changed: entering CMS slow path"
   bash scripts/deploy/reconcile-directus.sh
 fi
 
