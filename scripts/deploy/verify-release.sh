@@ -24,6 +24,21 @@ if [ "$SERVER_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
     docker logs --tail 120 webigram-website-doctor-api || true
     exit 1
   }
+
+  brand_api_ready=0
+  for _ in $(seq 1 20); do
+    if docker exec webigram-brand-checker-api node -e \
+      "fetch('http://127.0.0.1:8788/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" \
+      >/dev/null 2>&1; then
+      brand_api_ready=1
+      break
+    fi
+    sleep 1
+  done
+  [ "$brand_api_ready" -eq 1 ] || {
+    docker logs --tail 120 webigram-brand-checker-api || true
+    exit 1
+  }
 fi
 
 if [ "$DIRECTUS_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
