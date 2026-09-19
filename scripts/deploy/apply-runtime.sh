@@ -16,12 +16,8 @@ if [ "$COMPOSE_CHANGED" = "true" ]; then
 fi
 
 if [ "$SERVER_CHANGED" = "true" ] && [ "$COMPOSE_CHANGED" != "true" ]; then
-  echo "server code changed: restarting only Website Doctor API"
-  if docker inspect webigram-website-doctor-api >/dev/null 2>&1; then
-    docker compose restart website-doctor-api
-  else
-    docker compose up -d website-doctor-api
-  fi
+  echo "server code changed: recreating API services"
+  docker compose up -d --no-deps --force-recreate website-doctor-api brand-checker-api
 fi
 
 if [ "$DIRECTUS_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
