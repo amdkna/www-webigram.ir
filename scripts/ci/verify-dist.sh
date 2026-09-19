@@ -11,6 +11,7 @@ required=(
   dist/contact/index.html
   dist/blog/index.html
   dist/tools/website-doctor/index.html
+  dist/tools/brand-checker/index.html
   dist/downloads/webigram-website-doctor-chrome.zip
 )
 
