@@ -170,3 +170,4 @@ volumes:
   directus-uploads:
   directus-extensions:
   directus-secrets:
+# deploy bundle marker: brand-checker-v1
