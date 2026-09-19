@@ -34,6 +34,8 @@ services:
       BRAND_CHECK_MAX_NAMES: "20"
       BRAND_CHECK_CACHE_TTL_MS: "120000"
       BRAND_CHECK_REQUEST_TIMEOUT_MS: "6500"
+      CHECKMARKS_API_USERNAME: "${CHECKMARKS_API_USERNAME:-}"
+      CHECKMARKS_API_PASSWORD: "${CHECKMARKS_API_PASSWORD:-}"
     volumes:
       - ./server:/app/server:ro
     expose:
@@ -170,4 +172,4 @@ volumes:
   directus-uploads:
   directus-extensions:
   directus-secrets:
-# deploy bundle marker: brand-checker-v3
+# deploy bundle marker: brand-checker-checkmarks-v1
