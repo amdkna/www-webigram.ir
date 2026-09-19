@@ -50,6 +50,24 @@ jobs:
           cat "$RUNNER_TEMP/website-doctor-api.log" || true
           exit 1
 
+      - name: Brand Checker API smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          PORT=8788 node server/brand-checker-api.mjs >"$RUNNER_TEMP/brand-checker-api.log" 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+
+          for _ in $(seq 1 20); do
+            if curl -fsS --connect-timeout 1 --max-time 2 http://127.0.0.1:8788/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 0.25
+          done
+
+          cat "$RUNNER_TEMP/brand-checker-api.log" || true
+          exit 1
+
       - name: Build production site
         run: bash scripts/ci/build-site.sh
 
