@@ -41,7 +41,7 @@ if [ "$SERVER_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
   }
 fi
 
-if [ "$DIRECTUS_CHANGED" = "true" ] || [ "$COMPOSE_CHANGED" = "true" ]; then
+if [ "$DIRECTUS_CHANGED" = "true" ]; then
   cms_ready=0
   for _ in $(seq 1 60); do
     if docker exec webigram-directus node -e \
