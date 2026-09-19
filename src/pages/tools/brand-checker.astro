@@ -53,14 +53,14 @@ const base = import.meta.env.BASE_URL;
     <section class="brand-stage shell" id="brandIntro">
       <div class="brand-section-head">
         <div><span>یک نگاه سریع</span><h2>قرار است چه چیزی ببینی؟</h2></div>
-        <p>برای هر اسم، شش نتیجه مستقل می‌گیری. سبز یعنی در بررسی فعلی آزاد دیده شده، قرمز یعنی استفاده شده و خاکستری یعنی پلتفرم نتیجه قطعی نداده.</p>
+        <p>برای هر اسم، شش نتیجه مستقل می‌گیری. دامنه‌ها از رجیستری بررسی می‌شوند و Instagram و YouTube از طریق Checkmarks.</p>
       </div>
       <div class="brand-explain-grid">
         <article><b class="status-dot available"></b><h3>آزاد</h3><p>رجیستری یا صفحه عمومی، مورد ثبت‌شده‌ای برای آن نام پیدا نکرده است.</p></article>
         <article><b class="status-dot taken"></b><h3>گرفته شده</h3><p>دامنه ثبت شده یا پروفایل عمومی با آن نام پیدا شده است.</p></article>
         <article><b class="status-dot unknown"></b><h3>نامشخص</h3><p>پلتفرم پاسخ قطعی نداده یا بررسی خودکار را محدود کرده است.</p></article>
       </div>
-      <div class="brand-note"><strong>نکته:</strong><span>نتیجه شبکه‌های اجتماعی «best effort» است. Instagram، LinkedIn و YouTube ممکن است درخواست‌های خودکار را محدود کنند؛ در این حالت ابزار عمدا نتیجه را نامشخص نشان می‌دهد.</span></div>
+      <div class="brand-note"><strong>نکته:</strong><span>Instagram و YouTube از طریق سرویس Checkmarks بررسی می‌شوند تا محدودیت دسترسی مستقیم از سرور ایران مشکلی ایجاد نکند. LinkedIn فعلا به صورت مستقیم بررسی می‌شود.</span></div>
     </section>
 
     <section class="brand-loading shell" id="brandLoading" hidden aria-live="polite">
@@ -93,7 +93,7 @@ const base = import.meta.env.BASE_URL;
       <div class="brand-section-head"><div><span>FAQ</span><h2>چند نکته مهم</h2></div></div>
       <div class="brand-faq-grid">
         <details><summary>آیا آزاد بودن دامنه قطعی است؟</summary><p>برای .com و .net از RDAP رجیستری و برای .ir از WHOIS ایرنیک استفاده می‌شود. با این حال بین بررسی و ثبت واقعی ممکن است شخص دیگری دامنه را ثبت کند.</p></details>
-        <details><summary>چرا بعضی شبکه‌های اجتماعی «نامشخص» می‌شوند؟</summary><p>این پلتفرم‌ها API عمومی مخصوص بررسی آزاد بودن نام ارائه نمی‌کنند و گاهی درخواست خودکار را با محدودیت ضدربات متوقف می‌کنند. در این وضعیت ابزار حدس نمی‌زند.</p></details>
+        <details><summary>چرا بعضی شبکه‌های اجتماعی «نامشخص» می‌شوند؟</summary><p>Instagram و YouTube از طریق Checkmarks بررسی می‌شوند. اگر سرویس واسط پاسخ قطعی ندهد یا در دسترس نباشد، ابزار حدس نمی‌زند و نتیجه را نامشخص نشان می‌دهد. LinkedIn فعلا مستقیم بررسی می‌شود.</p></details>
         <details><summary>می‌توانم چند اسم را همزمان بررسی کنم؟</summary><p>بله. هر خط یک اسم بنویس؛ در نسخه فعلی تا ۲۰ اسم در هر بررسی پشتیبانی می‌شود.</p></details>
         <details><summary>اسم‌ها ذخیره می‌شوند؟</summary><p>خیر. ابزار برای این بررسی تاریخچه‌ای از نام‌های واردشده ایجاد نمی‌کند. یک cache کوتاه‌مدت برای جلوگیری از فشار تکراری روی سرویس‌های بیرونی استفاده می‌شود.</p></details>
       </div>
@@ -104,4 +104,4 @@ const base = import.meta.env.BASE_URL;
   <script is:inline src="/scripts/brand-checker.js"></script>
 </body>
 </html>
-<!-- deploy bundle marker: brand-checker-v2 -->
+<!-- deploy bundle marker: brand-checker-checkmarks-v1 -->
