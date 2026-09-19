@@ -1,0 +1,106 @@
+---
+import '../../styles/public-tools.css';
+import '../../styles/brand-checker.css';
+const base = import.meta.env.BASE_URL;
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f5f6fb" />
+  <meta name="description" content="بررسی همزمان آزاد بودن نام برند در دامنه‌های ir، com و net و پروفایل‌های Instagram، LinkedIn و YouTube." />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <link rel="canonical" href="https://webigram.ir/tools/brand-checker/" />
+  <title>بررسی نام برند | Brand Checker وبیگرام</title>
+</head>
+<body>
+  <header class="tools-header brand-site-header">
+    <div class="shell tools-header-inner">
+      <a class="tools-brand" href="/" aria-label="وبیگرام"><svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9"/></svg><strong>Webigram</strong></a>
+      <nav class="tools-nav" aria-label="منوی ابزارها"><a href="/">خانه</a><a class="active" href="/tools/">ابزارها</a></nav>
+    </div>
+  </header>
+
+  <main class="brand-main">
+    <section class="brand-hero">
+      <div class="shell brand-hero-grid">
+        <div class="brand-hero-copy">
+          <div class="breadcrumb"><a href="/tools/">ابزارها</a><span>/</span><span>بررسی نام برند</span></div>
+          <span class="eyebrow">WEBIGRAM BRAND CHECKER</span>
+          <h1>اسم برندت را بده؛ <span>همه جا یکجا چکش کن.</span></h1>
+          <p>هر خط یک نام وارد کن. دامنه‌های <b>.ir</b>، <b>.com</b> و <b>.net</b> و همین‌طور Instagram، LinkedIn و YouTube را همزمان بررسی می‌کنیم.</p>
+          <div class="brand-service-pills" aria-label="سرویس‌های قابل بررسی">
+            <span>.ir</span><span>.com</span><span>.net</span><span>Instagram</span><span>LinkedIn</span><span>YouTube</span>
+          </div>
+        </div>
+
+        <form class="brand-form" id="brandForm" novalidate>
+          <div class="brand-form-head">
+            <div><strong>نام‌های پیشنهادی</strong><span>هر خط یک اسم؛ حداکثر ۲۰ مورد</span></div>
+            <span class="brand-free-badge">رایگان</span>
+          </div>
+          <textarea id="brandNames" name="names" dir="ltr" rows="9" spellcheck="false" placeholder="updateshid&#10;webigram&#10;mybrand"></textarea>
+          <div class="brand-form-bottom">
+            <div class="brand-form-meta"><span id="brandCount">۰ نام</span><span>فاصله‌های داخل نام به صورت خودکار حذف می‌شوند.</span></div>
+            <button id="brandSubmit" type="submit">بررسی همه نام‌ها</button>
+          </div>
+          <div class="brand-form-error" id="brandFormError" role="alert"></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="brand-stage shell" id="brandIntro">
+      <div class="brand-section-head">
+        <div><span>یک نگاه سریع</span><h2>قرار است چه چیزی ببینی؟</h2></div>
+        <p>برای هر اسم، شش نتیجه مستقل می‌گیری. سبز یعنی در بررسی فعلی آزاد دیده شده، قرمز یعنی استفاده شده و خاکستری یعنی پلتفرم نتیجه قطعی نداده.</p>
+      </div>
+      <div class="brand-explain-grid">
+        <article><b class="status-dot available"></b><h3>آزاد</h3><p>رجیستری یا صفحه عمومی، مورد ثبت‌شده‌ای برای آن نام پیدا نکرده است.</p></article>
+        <article><b class="status-dot taken"></b><h3>گرفته شده</h3><p>دامنه ثبت شده یا پروفایل عمومی با آن نام پیدا شده است.</p></article>
+        <article><b class="status-dot unknown"></b><h3>نامشخص</h3><p>پلتفرم پاسخ قطعی نداده یا بررسی خودکار را محدود کرده است.</p></article>
+      </div>
+      <div class="brand-note"><strong>نکته:</strong><span>نتیجه شبکه‌های اجتماعی «best effort» است. Instagram، LinkedIn و YouTube ممکن است درخواست‌های خودکار را محدود کنند؛ در این حالت ابزار عمدا نتیجه را نامشخص نشان می‌دهد.</span></div>
+    </section>
+
+    <section class="brand-loading shell" id="brandLoading" hidden aria-live="polite">
+      <div class="brand-loading-card">
+        <div class="brand-loader" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div><h2>در حال بررسی نام‌ها</h2><p id="brandProgressText">دامنه‌ها و پروفایل‌ها را همزمان بررسی می‌کنیم…</p></div>
+      </div>
+    </section>
+
+    <section class="brand-results shell" id="brandResults" hidden>
+      <div class="brand-results-head">
+        <div><span>نتیجه بررسی</span><h2>وضعیت نام‌های پیشنهادی</h2><p id="brandSummary"></p></div>
+        <div class="brand-result-actions"><button class="brand-secondary-button" id="brandCopyAvailable" type="button">کپی موارد آزاد</button><button class="brand-secondary-button" id="brandReset" type="button">بررسی لیست جدید</button></div>
+      </div>
+
+      <div class="brand-summary-cards" id="brandSummaryCards"></div>
+
+      <div class="brand-table-wrap">
+        <table class="brand-table">
+          <thead><tr><th>نام</th><th>.ir</th><th>.com</th><th>.net</th><th>Instagram</th><th>LinkedIn</th><th>YouTube</th></tr></thead>
+          <tbody id="brandTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="brand-mobile-results" id="brandMobileResults"></div>
+      <p class="brand-result-note" id="brandResultNote"></p>
+    </section>
+
+    <section class="brand-faq shell">
+      <div class="brand-section-head"><div><span>FAQ</span><h2>چند نکته مهم</h2></div></div>
+      <div class="brand-faq-grid">
+        <details><summary>آیا آزاد بودن دامنه قطعی است؟</summary><p>برای .com و .net از RDAP رجیستری و برای .ir از WHOIS ایرنیک استفاده می‌شود. با این حال بین بررسی و ثبت واقعی ممکن است شخص دیگری دامنه را ثبت کند.</p></details>
+        <details><summary>چرا بعضی شبکه‌های اجتماعی «نامشخص» می‌شوند؟</summary><p>این پلتفرم‌ها API عمومی مخصوص بررسی آزاد بودن نام ارائه نمی‌کنند و گاهی درخواست خودکار را با محدودیت ضدربات متوقف می‌کنند. در این وضعیت ابزار حدس نمی‌زند.</p></details>
+        <details><summary>می‌توانم چند اسم را همزمان بررسی کنم؟</summary><p>بله. هر خط یک اسم بنویس؛ در نسخه فعلی تا ۲۰ اسم در هر بررسی پشتیبانی می‌شود.</p></details>
+        <details><summary>اسم‌ها ذخیره می‌شوند؟</summary><p>خیر. ابزار برای این بررسی تاریخچه‌ای از نام‌های واردشده ایجاد نمی‌کند. یک cache کوتاه‌مدت برای جلوگیری از فشار تکراری روی سرویس‌های بیرونی استفاده می‌شود.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="tools-footer"><div class="shell">Webigram Brand Checker · قبل از اینکه عاشق اسم برندت شوی، ببین اصلا آزاد هست یا نه :)</div></footer>
+  <script is:inline src="/scripts/brand-checker.js"></script>
+</body>
+</html>
