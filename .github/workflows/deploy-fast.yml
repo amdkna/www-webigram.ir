@@ -68,7 +68,7 @@ jobs:
     name: Fast production deploy
     needs: prepare
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     concurrency:
       group: webigram-production-v4
       cancel-in-progress: false
@@ -184,7 +184,7 @@ jobs:
           test -s "$SOURCE_DIR/Dockerfile"
           test -s "$SOURCE_DIR/scripts/deploy/remote-deploy.sh"
 
-          timeout --signal=TERM --kill-after=10s 360s \
+          timeout --signal=TERM --kill-after=10s 600s \
             bash "$SOURCE_DIR/scripts/deploy/remote-deploy.sh"
           REMOTE
 

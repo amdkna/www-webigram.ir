@@ -61,7 +61,7 @@ if [ "$SITE_CHANGED" = "true" ]; then
   echo "Building static release on wbg-001 using the persistent Docker cache..."
   image="webigram-build:deploy"
   cd "$SOURCE_DIR"
-  timeout 120s docker build --target build --tag "$image" .
+  timeout 300s docker build --target build --tag "$image" .
 
   cid=$(docker create "$image")
   timeout 30s docker cp "$cid:/app/dist/." "$RELEASE_DIR/"
