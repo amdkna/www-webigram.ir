@@ -2,7 +2,9 @@
 set -euo pipefail
 
 node --check server/website-doctor-api.mjs
+node --check server/brand-checker-api.mjs
 node --check public/scripts/website-doctor.js
+node --check public/scripts/brand-checker.js
 node --check extension/website-doctor/popup.js
 node -e "JSON.parse(require('fs').readFileSync('extension/website-doctor/manifest.json', 'utf8'))"
 
