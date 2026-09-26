@@ -1,0 +1,57 @@
+name: Repair Updateshid Learn gateway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/repair-updateshid-learn-gateway.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repair:
+    name: Repair Learn gateway on server
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 8
+
+    steps:
+      - name: Recreate gateway and verify Learn
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ROOT=/opt/apps/www-learn-updateshid
+          APP="$ROOT/app"
+
+          echo "host=$(hostname)"
+          test -d "$APP"
+          test -f "$APP/docker-compose.yml"
+          test -f "$ROOT/.env"
+
+          cd "$APP"
+
+          test "$(docker inspect -f '{{.State.Health.Status}}' learn-updateshid-legacy)" = "healthy"
+          docker exec learn-updateshid-legacy grep -q 'id="view-contact-detail"' /app/server.mjs
+          docker exec learn-updateshid-legacy grep -q 'crmContactDetailMatch=' /app/server.mjs
+          docker exec learn-updateshid-legacy grep -q 'adminContactDetailMatch=' /app/server.mjs
+          docker exec learn-updateshid-legacy grep -q 'Number(raw).toLocaleString("en-US")' /app/server.mjs
+
+          docker rm -f learn-updateshid-gateway >/dev/null 2>&1 || true
+          docker compose --env-file "$ROOT/.env" up -d --no-deps gateway
+
+          for i in $(seq 1 30); do
+            status="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' learn-updateshid-gateway 2>/dev/null || true)"
+            echo "gateway=$status"
+            [ "$status" = "healthy" ] && break
+            sleep 2
+          done
+          test "$(docker inspect -f '{{.State.Health.Status}}' learn-updateshid-gateway)" = "healthy"
+
+          docker exec learn-updateshid-gateway wget -qO- http://127.0.0.1:8080/healthz | grep -q 'enrollments-live-v2'
+
+          curl -kfsS --connect-timeout 3 --max-time 8 \
+            --resolve learn.updateshid.ir:443:127.0.0.1 \
+            https://learn.updateshid.ir/healthz | grep -q 'enrollments-live-v2'
+
+          echo LEARN_GATEWAY_RECOVERY_OK
