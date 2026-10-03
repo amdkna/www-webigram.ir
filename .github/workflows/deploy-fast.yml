@@ -9,6 +9,8 @@ on:
       - '.github/workflows/unstick-production-run.yml'
       - '.github/workflows/release-stale-deploy-lock.yml'
       - '.github/workflows/recover-stale-deploy.yml'
+      - '.github/workflows/deploy-network-diagnostic.yml'
+      - '.github/workflows/deploy-fast.yml'
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,44 @@
+name: Diagnose Webigram Deployment Network
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-network-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Resolve production host
+        shell: bash
+        run: |
+          set -x
+          getent ahostsv4 webigram.ir || true
+          python3 - <<'PY'
+          import socket
+          try:
+              print("socket.gethostbyname_ex:", socket.gethostbyname_ex("webigram.ir"))
+          except Exception as e:
+              print("DNS_ERROR:", repr(e))
+          PY
+
+      - name: Test production SSH port
+        shell: bash
+        run: |
+          set -x
+          timeout 8s bash -c 'cat < /dev/null > /dev/tcp/webigram.ir/34822'             && echo "SSH_PORT_OPEN"             || echo "SSH_PORT_CLOSED_OR_FILTERED"
+
+      - name: Inspect repository self-hosted runners
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "/repos/${GITHUB_REPOSITORY}/actions/runners"             --jq '.runners[] | {id, name, os, status, busy, labels: [.labels[].name]}'
