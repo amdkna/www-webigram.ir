@@ -29,13 +29,15 @@ jobs:
               print("DNS_ERROR:", repr(e))
           PY
 
-      - name: Test production SSH port
+      - name: Test production SSH ports
         shell: bash
         run: |
           set -x
-          timeout 8s bash -c 'cat < /dev/null > /dev/tcp/webigram.ir/34822'             && echo "SSH_PORT_OPEN"             || echo "SSH_PORT_CLOSED_OR_FILTERED"
+          timeout 8s bash -c 'cat < /dev/null > /dev/tcp/webigram.ir/34822'             && echo "DOMAIN_SSH_PORT_OPEN"             || echo "DOMAIN_SSH_PORT_CLOSED_OR_FILTERED"
+          timeout 8s bash -c 'cat < /dev/null > /dev/tcp/31.171.100.23/34822'             && echo "ORIGIN_SSH_PORT_OPEN"             || echo "ORIGIN_SSH_PORT_CLOSED_OR_FILTERED"
 
       - name: Inspect repository self-hosted runners
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
