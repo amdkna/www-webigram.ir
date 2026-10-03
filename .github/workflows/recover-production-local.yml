@@ -115,6 +115,18 @@ jobs:
           echo "Calendar tool did not become reachable." >&2
           exit 1
 
+      - name: Report origin deployment address
+        shell: bash
+        run: |
+          set +e
+          echo "Local addresses:"
+          hostname -I
+          echo "Public IPv4:"
+          curl -4 -fsS --connect-timeout 4 --max-time 10 https://api.ipify.org
+          echo
+          echo "SSH listeners:"
+          ss -lnt | grep -E '(:22|:34822)[[:space:]]' || true
+
       - name: Clean temporary files
         if: ${{ always() }}
         continue-on-error: true
