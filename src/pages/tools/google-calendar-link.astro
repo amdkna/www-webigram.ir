@@ -1,0 +1,131 @@
+---
+import '../../styles/public-tools.css';
+import '../../styles/google-calendar-link.css';
+const base = import.meta.env.BASE_URL;
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f5f6fb" />
+  <meta name="description" content="ساخت لینک آماده Google Calendar برای اشتراک‌گذاری رویداد با عنوان، تاریخ، ساعت ایران، توضیحات و یادآوری‌های پیشنهادی." />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <link rel="canonical" href="https://webigram.ir/tools/google-calendar-link/" />
+  <title>لینک ساز Google Calendar | ابزار رایگان وبیگرام</title>
+</head>
+<body>
+  <header class="tools-header">
+    <div class="shell tools-header-inner">
+      <a class="tools-brand" href="/" aria-label="وبیگرام"><svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9"/></svg><strong>Webigram</strong></a>
+      <nav class="tools-nav" aria-label="منوی ابزارها"><a href="/">خانه</a><a class="active" href="/tools/">ابزارها</a></nav>
+    </div>
+  </header>
+
+  <main class="calendar-main">
+    <div class="shell calendar-shell">
+      <div class="breadcrumb"><a href="/tools/">ابزارها</a><span>/</span><span>لینک ساز Google Calendar</span></div>
+
+      <section class="calendar-hero">
+        <div>
+          <span class="eyebrow">GOOGLE CALENDAR LINK BUILDER</span>
+          <h1>یک رویداد بساز؛ <span>لینکش را برای همه بفرست.</span></h1>
+          <p>اطلاعات رویداد را وارد کن و یک لینک آماده Google Calendar بگیر. هرکس لینک را باز کند، فرم اضافه‌کردن همان رویداد برایش آماده می‌شود.</p>
+        </div>
+        <div class="timezone-badge" aria-label="منطقه زمانی ایران">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span><b>Asia/Tehran</b><small>ساعت ایران · UTC +03:30</small></span>
+        </div>
+      </section>
+
+      <section class="calendar-card">
+        <form id="calendarLinkForm" novalidate>
+          <div class="calendar-form-grid">
+            <label class="calendar-field calendar-field-wide">
+              <span>اسم ایونت <b>*</b></span>
+              <input id="eventTitle" name="eventTitle" type="text" maxlength="160" placeholder="مثلا: جلسه اول کلاس آنلاین گروهی" required />
+            </label>
+
+            <label class="calendar-field">
+              <span>تاریخ ایونت <b>*</b></span>
+              <input id="eventDate" name="eventDate" type="date" required />
+            </label>
+
+            <label class="calendar-field">
+              <span>ساعت ایونت به وقت ایران <b>*</b></span>
+              <input id="eventTime" name="eventTime" type="time" step="60" required />
+            </label>
+
+            <label class="calendar-field">
+              <span>مدت ایونت</span>
+              <div class="duration-input">
+                <input id="eventDuration" name="eventDuration" type="number" min="1" max="1440" step="1" value="60" inputmode="numeric" />
+                <span>دقیقه</span>
+              </div>
+            </label>
+
+            <label class="calendar-field calendar-field-wide">
+              <span>توضیحات <small>(می‌تواند شامل لینک ورود به ایونت باشد؛ مثلا Google Meet، Zoom و ...)</small></span>
+              <textarea id="eventDetails" name="eventDetails" rows="6" maxlength="5000" placeholder="اطلاعات پیوستن به جلسه، لینک ورود، توضیحات تکمیلی و ..."></textarea>
+            </label>
+          </div>
+
+          <div class="reminders-panel">
+            <div class="reminders-head">
+              <div>
+                <span class="section-kicker">یادآوری‌ها</span>
+                <h2>چند مرحله یادآوری لازم داری؟</h2>
+                <p>حداکثر ۵ یادآوری تعریف کن. روش‌های قابل انتخاب: اعلان (Popup) و ایمیل.</p>
+              </div>
+              <button id="addReminder" class="secondary-action" type="button">+ افزودن یادآوری</button>
+            </div>
+
+            <div class="reminder-table" role="table" aria-label="یادآوری‌های رویداد">
+              <div class="reminder-table-head" role="row">
+                <span role="columnheader">زمان قبل از رویداد</span>
+                <span role="columnheader">واحد</span>
+                <span role="columnheader">روش</span>
+                <span aria-hidden="true"></span>
+              </div>
+              <div id="reminderRows" class="reminder-rows"></div>
+            </div>
+
+            <div class="calendar-note">
+              <strong>نکته درباره Google Calendar:</strong>
+              <span>لینک عمومی Google Calendar تنظیم یادآوری سفارشی را مستقیما دریافت نمی‌کند. یادآوری‌های انتخابی داخل توضیحات لینک قرار می‌گیرند تا گیرنده آن‌ها را ببیند و در صورت نیاز همان‌ها را روی تقویمش تنظیم کند.</span>
+            </div>
+          </div>
+
+          <div id="calendarFormError" class="calendar-error" role="alert"></div>
+          <button id="generateCalendarLink" class="primary-action" type="submit">ساخت لینک Google Calendar</button>
+        </form>
+      </section>
+
+      <section id="calendarResult" class="calendar-result" hidden aria-live="polite">
+        <div class="result-head">
+          <div><span class="section-kicker">لینک آماده است</span><h2>حالا فقط کپی و ارسالش کن.</h2></div>
+          <span class="result-badge">قابل اشتراک‌گذاری</span>
+        </div>
+        <div class="result-link-row">
+          <textarea id="calendarLinkOutput" dir="ltr" rows="4" readonly aria-label="لینک Google Calendar"></textarea>
+          <button id="copyCalendarLink" class="copy-action" type="button">کپی لینک</button>
+        </div>
+        <div class="result-actions">
+          <a id="openCalendarLink" class="primary-action link-action" href="#" target="_blank" rel="noopener noreferrer">تست لینک در Google Calendar</a>
+          <button id="resetCalendarForm" class="secondary-action" type="button">ساخت لینک جدید</button>
+        </div>
+        <p id="copyMessage" class="copy-message"></p>
+      </section>
+
+      <section class="calendar-how">
+        <div class="calendar-how-card"><b>۱</b><h3>رویداد را تعریف کن</h3><p>عنوان، تاریخ، ساعت ایران، مدت و توضیحات را وارد کن.</p></div>
+        <div class="calendar-how-card"><b>۲</b><h3>لینک را بساز</h3><p>اطلاعات به فرمت استاندارد لینک Google Calendar تبدیل می‌شود.</p></div>
+        <div class="calendar-how-card"><b>۳</b><h3>برای بقیه بفرست</h3><p>گیرنده لینک را باز می‌کند و رویداد آماده ذخیره در تقویم اوست.</p></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="tools-footer"><div class="shell">Webigram Calendar Link Builder · جلسه را هماهنگ کن، نه اینکه ده بار تاریخ و ساعت را تایپ کنی :)</div></footer>
+  <script is:inline src="/scripts/google-calendar-link.js"></script>
+</body>
+</html>
