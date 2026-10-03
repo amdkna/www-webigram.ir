@@ -1,0 +1,86 @@
+name: Recover Webigram Production via Local Runner
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/recover-production-local.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Local production recovery
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 10
+    env:
+      APP_DIR: /opt/apps/www-webigram.ir
+      SITE_CHANGED: 'true'
+      SERVER_CHANGED: 'false'
+      DIRECTUS_CHANGED: 'false'
+      COMPOSE_CHANGED: 'false'
+      NGINX_CHANGED: 'false'
+      PUBLIC_HEALTH_URL: https://webigram.ir/healthz
+      EDGE_CONTAINER: edge-nginx
+    steps:
+      - name: Prepare exact source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_dir="$RUNNER_TEMP/webigram-recovery-source"
+          release_dir="$RUNNER_TEMP/webigram-recovery-dist"
+          rm -rf "$source_dir" "$release_dir"
+          mkdir -p "$source_dir" "$release_dir"
+
+          test -d "$APP_DIR/.git"
+          timeout 45s git -C "$APP_DIR" fetch --no-tags origin "$GITHUB_SHA"
+          git -C "$APP_DIR" cat-file -e "$GITHUB_SHA^{commit}"
+          git -C "$APP_DIR" archive "$GITHUB_SHA" | tar -x -C "$source_dir"
+
+          echo "SOURCE_DIR=$source_dir" >> "$GITHUB_ENV"
+          echo "RELEASE_DIR=$release_dir" >> "$GITHUB_ENV"
+
+      - name: Build static release
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SOURCE_DIR"
+          timeout 180s docker build --target build --tag webigram-build:recovery .
+          cid=$(docker create webigram-build:recovery)
+          trap 'docker rm -f "$cid" >/dev/null 2>&1 || true' EXIT
+          timeout 30s docker cp "$cid:/app/dist/." "$RELEASE_DIR/"
+          docker rm -f "$cid" >/dev/null
+          trap - EXIT
+          test -s "$RELEASE_DIR/index.html"
+          test -s "$RELEASE_DIR/tools/google-calendar-link/index.html"
+
+      - name: Publish release
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$SOURCE_DIR"
+          bash scripts/deploy/sync-release.sh
+          printf '%s\n' "$GITHUB_SHA" > "$APP_DIR/.last-successful-deploy"
+
+      - name: Verify calendar tool
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$APP_DIR/dist/tools/google-calendar-link/index.html"
+          for i in $(seq 1 12); do
+            if curl -fsS --connect-timeout 3 --max-time 8               "https://webigram.ir/tools/google-calendar-link/?deploy=$GITHUB_SHA"               | grep -Fq 'GOOGLE CALENDAR LINK BUILDER'; then
+              echo "Calendar tool is live."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Calendar tool did not become reachable." >&2
+          exit 1
+
+      - name: Clean temporary files
+        if: ${{ always() }}
+        continue-on-error: true
+        shell: bash
+        run: rm -rf "${SOURCE_DIR:-}" "${RELEASE_DIR:-}"

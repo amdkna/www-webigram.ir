@@ -10,6 +10,7 @@ on:
       - '.github/workflows/release-stale-deploy-lock.yml'
       - '.github/workflows/recover-stale-deploy.yml'
       - '.github/workflows/deploy-network-diagnostic.yml'
+      - '.github/workflows/recover-production-local.yml'
       - '.github/workflows/deploy-fast.yml'
   workflow_dispatch:
 
