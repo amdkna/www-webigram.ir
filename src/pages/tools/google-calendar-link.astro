@@ -46,10 +46,34 @@ const base = import.meta.env.BASE_URL;
               <input id="eventTitle" name="eventTitle" type="text" maxlength="160" placeholder="مثلا: جلسه اول کلاس آنلاین گروهی" required />
             </label>
 
-            <label class="calendar-field">
+            <div class="calendar-field date-calendar-field">
               <span>تاریخ ایونت <b>*</b></span>
-              <input id="eventDate" name="eventDate" type="date" required />
-            </label>
+
+              <div class="date-calendar-switch" role="group" aria-label="نوع تقویم">
+                <button class="date-calendar-option active" type="button" data-calendar-type="gregorian" aria-pressed="true">میلادی</button>
+                <button class="date-calendar-option" type="button" data-calendar-type="persian" aria-pressed="false">شمسی</button>
+              </div>
+
+              <div id="gregorianDatePicker" class="date-picker-panel">
+                <input id="eventDate" name="eventDate" type="date" required aria-label="تاریخ میلادی ایونت" />
+                <small id="gregorianEquivalent" class="date-equivalent"></small>
+              </div>
+
+              <div id="persianDatePicker" class="date-picker-panel persian-date-picker" hidden>
+                <div class="persian-date-selects">
+                  <select id="persianDay" aria-label="روز شمسی">
+                    <option value="">روز</option>
+                  </select>
+                  <select id="persianMonth" aria-label="ماه شمسی">
+                    <option value="">ماه</option>
+                  </select>
+                  <select id="persianYear" aria-label="سال شمسی">
+                    <option value="">سال</option>
+                  </select>
+                </div>
+                <small id="persianEquivalent" class="date-equivalent"></small>
+              </div>
+            </div>
 
             <label class="calendar-field">
               <span>ساعت ایونت به وقت ایران <b>*</b></span>

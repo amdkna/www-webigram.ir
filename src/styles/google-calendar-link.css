@@ -211,3 +211,76 @@
   .result-actions > * { width: 100%; }
   .calendar-how { grid-template-columns: 1fr; }
 }
+
+
+/* Calendar type switch + Persian (Jalali) date picker */
+.date-calendar-field { min-width: 0; }
+.date-calendar-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: fit-content;
+  padding: 4px;
+  border: 1px solid rgba(31,40,86,.11);
+  border-radius: 13px;
+  background: rgba(239,241,249,.8);
+}
+.date-calendar-option {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  min-width: 88px;
+  min-height: 36px;
+  padding: 0 15px;
+  border-radius: 10px;
+  background: transparent;
+  color: #71788e;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 800;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.date-calendar-option.active {
+  background: #fff;
+  color: var(--accent);
+  box-shadow: 0 5px 16px rgba(31,40,86,.09);
+}
+.date-picker-panel { display: grid; gap: 7px; }
+.date-picker-panel[hidden] { display: none !important; }
+.date-equivalent {
+  min-height: 20px;
+  color: #858b9d;
+  font-size: .75rem;
+  line-height: 1.5;
+}
+.persian-date-selects {
+  display: grid;
+  grid-template-columns: .8fr 1.25fr 1fr;
+  gap: 8px;
+}
+.persian-date-selects select {
+  width: 100%;
+  min-width: 0;
+  min-height: 49px;
+  padding: 0 11px;
+  border: 1px solid rgba(31,40,86,.13);
+  outline: none;
+  border-radius: 15px;
+  background: rgba(248,249,253,.92);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.persian-date-selects select:focus {
+  border-color: rgba(74,100,255,.48);
+  box-shadow: 0 0 0 4px rgba(74,100,255,.08);
+  background: #fff;
+}
+
+@media (max-width: 480px) {
+  .date-calendar-switch { width: 100%; }
+  .date-calendar-option { min-width: 0; }
+  .persian-date-selects { grid-template-columns: .75fr 1.35fr 1fr; gap: 6px; }
+  .persian-date-selects select { padding-inline: 7px; font-size: .84rem; }
+}
