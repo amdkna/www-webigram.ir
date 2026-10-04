@@ -1,0 +1,156 @@
+---
+import '../../styles/public-tools.css';
+import '../../styles/website-doctor.css';
+import '../../styles/wordpress-doctor.css';
+const base = import.meta.env.BASE_URL;
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f4f6fb" />
+  <meta name="description" content="دکتر وردپرس وبیگرام؛ تست امنیت، نسخه‌ها، REST API، Cron، Cache، ایمیل، WooCommerce، SEO و سلامت WordPress با Quick Scan و Deep Scan." />
+  <link rel="icon" type="image/svg+xml" href={base + 'favicon.svg'} />
+  <link rel="canonical" href="https://webigram.ir/tools/wordpress-doctor/" />
+  <title>دکتر وردپرس | تست امنیت و سلامت WordPress</title>
+</head>
+<body class="wpd-page">
+<header class="tools-header doctor-site-header">
+  <div class="shell tools-header-inner">
+    <a class="tools-brand" href="/" aria-label="وبیگرام"><svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9"/></svg><strong>Webigram</strong></a>
+    <nav class="tools-nav" aria-label="منوی ابزارها"><a href="/">خانه</a><a class="active" href="/tools/">ابزارها</a></nav>
+  </div>
+</header>
+
+<main class="doctor-main">
+<section class="doctor-hero wpd-hero">
+  <div class="shell">
+    <div class="breadcrumb"><a href="/tools/">ابزارها</a><span>/</span><span>دکتر وردپرس</span></div>
+    <div class="doctor-hero-copy">
+      <span class="eyebrow">WEBIGRAM WORDPRESS DOCTOR</span>
+      <h1>وردپرس را فقط باز نکن؛ <span>واقعا معاینه‌اش کن.</span></h1>
+      <p>امنیت، WordPress Core، افزونه‌ها و قالب‌ها، REST API، WP-Cron، Cache، ایمیل، WooCommerce و SEO را یکجا بررسی کن. Quick Scan بدون نصب؛ Deep Scan با Connector امن.</p>
+    </div>
+
+    <form class="doctor-form wpd-form" id="wpdForm" novalidate>
+      <div class="doctor-form-head"><div><strong>آدرس سایت WordPress</strong><span>مثلا example.com</span></div><span class="doctor-free-badge">رایگان</span></div>
+      <div class="wpd-mode" role="radiogroup" aria-label="نوع اسکن">
+        <label class="active"><input type="radio" name="mode" value="quick" checked /><span><b>Quick Scan</b><small>بدون نصب افزونه</small></span></label>
+        <label><input type="radio" name="mode" value="deep" /><span><b>Deep Scan</b><small>با Webigram Connector</small></span></label>
+      </div>
+      <div class="doctor-input-row">
+        <div class="doctor-input-wrap"><span aria-hidden="true">↗</span><input id="wpdUrl" name="url" dir="ltr" inputmode="url" autocomplete="url" placeholder="https://example.com" required /></div>
+        <button id="wpdSubmit" type="submit">معاینه وردپرس</button>
+      </div>
+      <div class="wpd-deep-fields" id="wpdDeepFields" hidden>
+        <div class="wpd-deep-help"><div><strong>Deep Scan</strong><span>افزونه Connector را نصب کن، از Tools → Webigram Connector توکن را کپی کن.</span></div><a class="doctor-button secondary" href="/downloads/webigram-wordpress-connector.zip">دانلود Connector</a></div>
+        <label><span>Connector Token</span><input id="wpdToken" type="password" dir="ltr" autocomplete="off" placeholder="64-character connector token" /></label>
+      </div>
+      <label class="wpd-owner"><input id="wpdOwner" type="checkbox" required /><span>تأیید می‌کنم مالک این سایت هستم یا برای بررسی آن اجازه دارم.</span></label>
+      <div class="doctor-form-foot"><span>بدون Password Guessing، Exploit یا تست مخرب.</span><span class="doctor-form-error" id="wpdFormError" role="alert"></span></div>
+    </form>
+
+    <div class="doctor-hero-mini"><span>WordPress Core</span><span>Plugins & Themes</span><span>Security</span><span>Cache & Cron</span><span>Email</span><span>WooCommerce</span></div>
+  </div>
+</section>
+
+<section class="doctor-stage shell" id="wpdIntro">
+  <div class="doctor-section-kicker"><div><span>دو سطح بررسی</span><h2>از بیرون سایت تا داخل WordPress</h2></div><p>Quick Scan فقط داده عمومی را می‌بیند. Deep Scan با یک توکن اختصاصی، اطلاعات واقعی نسخه‌ها، Updateها، Cron، Cache، Autoload و WooCommerce را می‌خواند.</p></div>
+  <div class="doctor-feature-grid wpd-feature-grid">
+    <article><div class="feature-icon">01</div><h3>امنیت WordPress</h3><p>REST users، XML-RPC، debug leak، directory listing، backup/config exposure و vulnerability lookup.</p></article>
+    <article><div class="feature-icon">02</div><h3>نسخه و Update</h3><p>Core، Plugin و Themeها؛ در Deep Scan با وضعیت واقعی Update.</p></article>
+    <article><div class="feature-icon">03</div><h3>Performance</h3><p>Page Cache، Compression، Static Cache، Object Cache و Autoload Options.</p></article>
+    <article><div class="feature-icon">04</div><h3>WordPress Services</h3><p>REST API، WP-Cron، Loopback، SMTP plugin و wp_mail() test.</p></article>
+    <article><div class="feature-icon">05</div><h3>WooCommerce</h3><p>تشخیص فروشگاه، Cart/Checkout cache و Action Scheduler در Deep Scan.</p></article>
+    <article><div class="feature-icon">06</div><h3>SEO پایه</h3><p>Sitemap، robots.txt، noindex، Title و Meta Description.</p></article>
+  </div>
+  <div class="doctor-expectation"><strong>محدوده امنیت:</strong><span>این ابزار فقط بررسی‌های دفاعی و غیرمخرب انجام می‌دهد. هیچ Brute Force، Password Guessing یا Exploit اجرا نمی‌شود.</span></div>
+</section>
+
+<section class="doctor-loading shell" id="wpdLoading" hidden aria-live="polite">
+  <div class="doctor-loading-card">
+    <div class="doctor-loading-top"><div class="doctor-loader"><span></span><span></span><span></span></div><div><h2>در حال معاینه WordPress</h2><p id="wpdProgressText">WordPress و REST API را شناسایی می‌کنیم…</p></div></div>
+    <div class="doctor-progress"><span id="wpdProgressBar"></span></div>
+    <small>Deep Scan ممکن است کمی بیشتر طول بکشد چون اطلاعات داخل WordPress هم خوانده می‌شود.</small>
+  </div>
+</section>
+
+<section class="doctor-results shell" id="wpdResults" hidden>
+  <div class="doctor-report-head">
+    <div class="doctor-report-title"><span class="doctor-result-label">گزارش WordPress <b id="wpdScannedUrl"></b></span><h1 id="wpdHeadline">گزارش آماده است</h1><p id="wpdSummaryText"></p></div>
+    <div class="doctor-result-buttons"><button class="doctor-button secondary" id="wpdCopyLink" type="button">کپی لینک</button><button class="doctor-button" id="wpdRescan" type="button">تست سایت دیگر</button></div>
+  </div>
+
+  <nav class="doctor-report-tabs" aria-label="بخش‌های گزارش"><a class="active" href="#summary">خلاصه</a><a href="#checks">بررسی‌ها</a><a href="#components">اجزا</a><a href="#actions">پیشنهادها</a><a href="#deep">Deep Scan</a></nav>
+
+  <section class="doctor-dashboard" id="summary">
+    <div class="doctor-score-panel">
+      <div class="doctor-score-ring" id="wpdScoreRing" data-tone="good"><div><strong id="wpdScore">—</strong><span>از ۱۰۰</span></div></div>
+      <div class="doctor-score-copy"><span>WordPress Health Score</span><div class="doctor-grade">وضعیت کلی <strong id="wpdGrade">—</strong></div><p>امتیاز از تست‌های WordPress، Security، Performance، SEO، Email و WooCommerce ساخته می‌شود.</p></div>
+    </div>
+    <div class="doctor-summary-stats" id="wpdSummaryStats"></div>
+  </section>
+
+  <section class="wpd-category-panel">
+    <div class="doctor-panel-head"><div><span>CATEGORY SCORES</span><h2>کدام بخش سالم‌تر است؟</h2></div><p>برای پیدا کردن اولویت، امتیاز هر بخش را جدا ببین.</p></div>
+    <div class="wpd-category-grid" id="wpdCategoryScores"></div>
+  </section>
+
+  <section class="doctor-metrics-panel">
+    <div class="doctor-panel-head"><div><span>WORDPRESS OVERVIEW</span><h2>وضعیت WordPress</h2></div><p>نسخه، REST، Cron، Plugin و Themeهای قابل تشخیص.</p></div>
+    <div class="doctor-metrics" id="wpdMetrics"></div>
+  </section>
+
+  <section class="doctor-report-section" id="checks">
+    <div class="doctor-panel-head"><div><span>DIAGNOSTICS</span><h2>جزئیات بررسی</h2></div><p>فیلتر کن و فقط بخش موردنظر را ببین.</p></div>
+    <div class="wpd-filter-row" id="wpdFilters"></div>
+    <div class="doctor-checks" id="wpdChecks"></div>
+  </section>
+
+  <section class="doctor-report-section" id="components">
+    <div class="doctor-panel-head"><div><span>COMPONENTS</span><h2>Plugin و Themeها</h2></div><p>Quick Scan اجزای قابل مشاهده در HTML/Assetها را نشان می‌دهد؛ Deep Scan لیست واقعی نصب‌شده‌ها را می‌خواند.</p></div>
+    <div class="wpd-component-columns"><div class="wpd-component-card"><h3>Plugins</h3><div id="wpdPlugins"></div></div><div class="wpd-component-card"><h3>Themes</h3><div id="wpdThemes"></div></div></div>
+  </section>
+
+  <section class="doctor-report-section" id="wpdVulnerabilitySection">
+    <div class="doctor-panel-head"><div><span>VULNERABILITIES</span><h2>آسیب‌پذیری‌های شناخته‌شده</h2></div><p id="wpdVulnNote">نتیجه بر اساس نسخه‌های قابل تشخیص و provider آسیب‌پذیری است.</p></div>
+    <div id="wpdVulnerabilities"></div>
+  </section>
+
+  <section class="doctor-report-section" id="actions">
+    <div class="doctor-panel-head"><div><span>FIX FIRST</span><h2>اول چه چیزی را درست کنم؟</h2></div><p>پیشنهادها بر اساس ریسک مرتب شده‌اند.</p></div>
+    <div class="doctor-actions" id="wpdActions"></div>
+  </section>
+
+  <section class="doctor-report-section wpd-deep-result" id="deep">
+    <div class="doctor-panel-head"><div><span>DEEP SCAN</span><h2>اطلاعات داخل WordPress</h2></div><p id="wpdDeepStatus">برای دیدن اطلاعات داخلی، اسکن را در حالت Deep اجرا کن.</p></div>
+    <div class="wpd-deep-content" id="wpdDeepContent"></div>
+  </section>
+
+  <section class="wpd-mail-card" id="wpdMailTest" hidden>
+    <div><span class="eyebrow">WORDPRESS MAIL TEST</span><h2>یک ایمیل واقعی با wp_mail() بفرست</h2><p>این تست فقط می‌گوید WordPress پیام را برای ارسال پذیرفته یا نه؛ رسیدن به Inbox تضمین نمی‌شود.</p></div>
+    <form id="wpdMailForm"><input id="wpdMailEmail" type="email" dir="ltr" placeholder="you@example.com" required /><button class="doctor-button" type="submit">ارسال تست</button></form>
+    <div class="wpd-mail-result" id="wpdMailResult"></div>
+  </section>
+
+  <section class="doctor-support-card" id="technical">
+    <div class="doctor-support-copy"><span class="eyebrow">TECHNICAL REPORT</span><h2>برای تیم فنی آماده است</h2><p>گزارش را کپی و برای طراح، هاست یا DevOps بفرست. Connector Token داخل گزارش قرار نمی‌گیرد.</p><button class="doctor-button" id="wpdCopyReport" type="button">کپی گزارش فنی</button></div>
+    <pre id="wpdTechnicalReport" dir="ltr"></pre>
+  </section>
+</section>
+
+<section class="doctor-faq shell">
+  <div class="doctor-section-kicker"><div><span>FAQ</span><h2>Quick Scan یا Deep Scan؟</h2></div></div>
+  <div class="doctor-faq-grid">
+    <details><summary>Quick Scan چه چیزهایی را می‌بیند؟</summary><p>اطلاعات عمومی WordPress مثل REST API، XML-RPC، Cron reachability، user enumeration، debug leak، directory listing، cache headers، sitemap، robots و Plugin/Themeهایی که در Assetها دیده می‌شوند.</p></details>
+    <details><summary>Deep Scan به wp-admin دسترسی می‌گیرد؟</summary><p>خیر. Connector یک REST endpoint جدا با توکن ۶۴ کاراکتری می‌سازد. Webigram نام کاربری یا رمز WordPress را دریافت نمی‌کند.</p></details>
+    <details><summary>تست آسیب‌پذیری چطور کار می‌کند؟</summary><p>اگر سرویس WPScan API روی سرور Webigram تنظیم شده باشد، نسخه‌های قابل تشخیص با دیتابیس آسیب‌پذیری مقایسه می‌شوند. بدون آن، سایر تست‌ها همچنان اجرا می‌شوند.</p></details>
+    <details><summary>Mail Test یعنی ایمیل حتما رسیده؟</summary><p>خیر. wp_mail() موفق فقط یعنی WordPress ارسال را پذیرفته است. برای تحویل واقعی باید SMTP، SPF، DKIM، DMARC و Spam filtering هم درست باشند.</p></details>
+  </div>
+</section>
+</main>
+<footer class="tools-footer"><div class="shell">Webigram WordPress Doctor · وردپرس را قبل از دردسر معاینه کن</div></footer>
+<script is:inline src="/scripts/wordpress-doctor.js"></script>
+</body>
+</html>
