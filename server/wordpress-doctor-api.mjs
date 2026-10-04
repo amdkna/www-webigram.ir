@@ -18,6 +18,8 @@ const MAIL_RATE_WINDOW=Number(process.env.WORDPRESS_DOCTOR_MAIL_RATE_WINDOW_MS||
 const MAIL_MAX_SENDS=Number(process.env.WORDPRESS_DOCTOR_MAIL_MAX_SENDS||3);
 const GLOBAL_FRESH_WINDOW=Number(process.env.WORDPRESS_DOCTOR_GLOBAL_FRESH_WINDOW_MS||60000);
 const GLOBAL_MAX_FRESH=Number(process.env.WORDPRESS_DOCTOR_GLOBAL_MAX_FRESH||30);
+const DEST_IP_RATE_WINDOW=Number(process.env.WORDPRESS_DOCTOR_DEST_IP_RATE_WINDOW_MS||60000);
+const DEST_IP_MAX_FRESH=Number(process.env.WORDPRESS_DOCTOR_DEST_IP_MAX_FRESH||12);
 const WPSCAN_TOKEN=String(process.env.WPSCAN_API_TOKEN||'').trim();
 const UA='Webigram-WordPress-Doctor/1.1 (+https://webigram.ir/tools/wordpress-doctor/)';
 const rate=new Map(), targetRate=new Map(), quickCache=new Map(), inflightQuick=new Map(); let active=0, globalFresh=[];
@@ -138,6 +140,8 @@ const server=http.createServer(async(req,res)=>{
       if(cached&&Date.now()-cached.at<QUICK_CACHE_TTL)return send(res,200,{...cached.data,cached:true});
       if(inflightQuick.has(hostKey)){const shared=await inflightQuick.get(hostKey);return send(res,200,{...shared,sharedResult:true})}
       if(targetLimited('quick:'+hostKey,TARGET_MAX_FRESH,TARGET_RATE_WINDOW))return send(res,429,{ok:false,error:'برای محافظت از سایت مقصد، اسکن تازه این دامنه موقتاً محدود شده است. نتیجه قبلی در صورت موجود بودن استفاده می‌شود.'},{'Retry-After':String(Math.ceil(TARGET_RATE_WINDOW/1000))});
+      const resolved=await resolveSafe(u.hostname),destIp=resolved[0]?.address||'unknown';
+      if(targetLimited('dest:'+destIp,DEST_IP_MAX_FRESH,DEST_IP_RATE_WINDOW))return send(res,429,{ok:false,error:'برای محافظت از سرور مقصد، تعداد اسکن تازه به این IP موقتاً محدود شده است.'},{'Retry-After':String(Math.ceil(DEST_IP_RATE_WINDOW/1000))});
       if(globalLimited())return send(res,429,{ok:false,error:'ظرفیت اسکن تازه موقتاً پر شده است. این محدودیت برای محافظت از IP خروجی Webigram و سایت‌های مقصد است.'},{'Retry-After':String(Math.ceil(GLOBAL_FRESH_WINDOW/1000))});
       if(active>=MAX_ACTIVE)return send(res,503,{ok:false,error:'تعداد اسکن همزمان زیاد است. کمی بعد دوباره امتحان کنید.'},{'Retry-After':'15'});
       active++;
