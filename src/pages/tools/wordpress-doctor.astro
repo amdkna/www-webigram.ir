@@ -36,8 +36,8 @@ const base = import.meta.env.BASE_URL;
     <form class="doctor-form wpd-form" id="wpdForm" novalidate>
       <div class="doctor-form-head"><div><strong>آدرس سایت WordPress</strong><span>مثلا example.com</span></div><span class="doctor-free-badge">رایگان</span></div>
       <div class="wpd-mode" role="radiogroup" aria-label="نوع اسکن">
-        <label class="active"><input type="radio" name="mode" value="quick" checked /><span><b>Quick Scan</b><small>بدون نصب افزونه</small></span></label>
-        <label><input type="radio" name="mode" value="deep" /><span><b>Deep Scan</b><small>با Webigram Connector</small></span></label>
+        <label class="active"><input type="radio" name="mode" value="quick" checked /><span><b>Quick Scan</b><small>کم‌اثر؛ بدون probing حساس</small></span></label>
+        <label><input type="radio" name="mode" value="deep" /><span><b>Deep Scan</b><small>با Connector و اثبات مالکیت</small></span></label>
       </div>
       <div class="doctor-input-row">
         <div class="doctor-input-wrap"><span aria-hidden="true">↗</span><input id="wpdUrl" name="url" dir="ltr" inputmode="url" autocomplete="url" placeholder="https://example.com" required /></div>
@@ -48,7 +48,7 @@ const base = import.meta.env.BASE_URL;
         <label><span>Connector Token</span><input id="wpdToken" type="password" dir="ltr" autocomplete="off" placeholder="64-character connector token" /></label>
       </div>
       <label class="wpd-owner"><input id="wpdOwner" type="checkbox" required /><span>تأیید می‌کنم مالک این سایت هستم یا برای بررسی آن اجازه دارم.</span></label>
-      <div class="doctor-form-foot"><span>بدون Password Guessing، Exploit یا تست مخرب.</span><span class="doctor-form-error" id="wpdFormError" role="alert"></span></div>
+      <div class="doctor-form-foot"><span>Quick Scan فقط درخواست‌های عادی و کم‌اثر می‌فرستد؛ تست‌های حساس فقط بعد از تأیید Connector اجرا می‌شوند.</span><span class="doctor-form-error" id="wpdFormError" role="alert"></span></div>
     </form>
 
     <div class="doctor-hero-mini"><span>WordPress Core</span><span>Plugins & Themes</span><span>Security</span><span>Cache & Cron</span><span>Email</span><span>WooCommerce</span></div>
@@ -56,16 +56,16 @@ const base = import.meta.env.BASE_URL;
 </section>
 
 <section class="doctor-stage shell" id="wpdIntro">
-  <div class="doctor-section-kicker"><div><span>دو سطح بررسی</span><h2>از بیرون سایت تا داخل WordPress</h2></div><p>Quick Scan فقط داده عمومی را می‌بیند. Deep Scan با یک توکن اختصاصی، اطلاعات واقعی نسخه‌ها، Updateها، Cron، Cache، Autoload و WooCommerce را می‌خواند.</p></div>
+  <div class="doctor-section-kicker"><div><span>دو سطح بررسی</span><h2>از بیرون سایت تا داخل WordPress</h2></div><p>Quick Scan عمداً کم‌اثر است و فقط صفحه اصلی، REST، robots و sitemap را بررسی می‌کند. Deep Scan فقط بعد از اثبات کنترل سایت با Connector، تست‌های امنیتی فعال و اطلاعات داخلی را اجرا می‌کند.</p></div>
   <div class="doctor-feature-grid wpd-feature-grid">
-    <article><div class="feature-icon">01</div><h3>امنیت WordPress</h3><p>REST users، XML-RPC، debug leak، directory listing، backup/config exposure و vulnerability lookup.</p></article>
+    <article><div class="feature-icon">01</div><h3>امنیت WordPress</h3><p>Quick Scan فقط نشانه‌های عمومی را می‌بیند؛ REST users، XML-RPC، debug.log، directory listing و backup/config exposure فقط در Deep Scan تأییدشده بررسی می‌شوند.</p></article>
     <article><div class="feature-icon">02</div><h3>نسخه و Update</h3><p>Core، Plugin و Themeها؛ در Deep Scan با وضعیت واقعی Update.</p></article>
     <article><div class="feature-icon">03</div><h3>Performance</h3><p>Page Cache، Compression، Static Cache، Object Cache و Autoload Options.</p></article>
     <article><div class="feature-icon">04</div><h3>WordPress Services</h3><p>REST API، WP-Cron، Loopback، SMTP plugin و wp_mail() test.</p></article>
     <article><div class="feature-icon">05</div><h3>WooCommerce</h3><p>تشخیص فروشگاه، Cart/Checkout cache و Action Scheduler در Deep Scan.</p></article>
     <article><div class="feature-icon">06</div><h3>SEO پایه</h3><p>Sitemap، robots.txt، noindex، Title و Meta Description.</p></article>
   </div>
-  <div class="doctor-expectation"><strong>محدوده امنیت:</strong><span>این ابزار فقط بررسی‌های دفاعی و غیرمخرب انجام می‌دهد. هیچ Brute Force، Password Guessing یا Exploit اجرا نمی‌شود.</span></div>
+  <div class="doctor-expectation"><strong>محدوده امنیت:</strong><span>Checkbox مالکیت یک تأیید حقوقی است، نه مکانیزم امنیتی. سرور برای Quick Scan محدودیت مقصد، Cache و Rate Limit مستقل دارد و تست‌های حساس بدون Connector اجرا نمی‌شوند.</span></div>
 </section>
 
 <section class="doctor-loading shell" id="wpdLoading" hidden aria-live="polite">
@@ -143,7 +143,7 @@ const base = import.meta.env.BASE_URL;
 <section class="doctor-faq shell">
   <div class="doctor-section-kicker"><div><span>FAQ</span><h2>Quick Scan یا Deep Scan؟</h2></div></div>
   <div class="doctor-faq-grid">
-    <details><summary>Quick Scan چه چیزهایی را می‌بیند؟</summary><p>اطلاعات عمومی WordPress مثل REST API، XML-RPC، Cron reachability، user enumeration، debug leak، directory listing، cache headers، sitemap، robots و Plugin/Themeهایی که در Assetها دیده می‌شوند.</p></details>
+    <details><summary>Quick Scan چه چیزهایی را می‌بیند؟</summary><p>فقط داده‌های عمومی و کم‌اثر: صفحه اصلی، REST API، robots.txt، sitemap، Headerها و Plugin/Themeهایی که در Assetهای همان صفحه دیده می‌شوند. هیچ XML-RPC POST، user enumeration، wp-admin/wp-login probe، debug.log، directory listing یا جستجوی backup/config در Quick Scan انجام نمی‌شود.</p></details>
     <details><summary>Deep Scan به wp-admin دسترسی می‌گیرد؟</summary><p>خیر. Connector یک REST endpoint جدا با توکن ۶۴ کاراکتری می‌سازد. Webigram نام کاربری یا رمز WordPress را دریافت نمی‌کند.</p></details>
     <details><summary>تست آسیب‌پذیری چطور کار می‌کند؟</summary><p>اگر سرویس WPScan API روی سرور Webigram تنظیم شده باشد، نسخه‌های قابل تشخیص با دیتابیس آسیب‌پذیری مقایسه می‌شوند. بدون آن، سایر تست‌ها همچنان اجرا می‌شوند.</p></details>
     <details><summary>Mail Test یعنی ایمیل حتما رسیده؟</summary><p>خیر. wp_mail() موفق فقط یعنی WordPress ارسال را پذیرفته است. برای تحویل واقعی باید SMTP، SPF، DKIM، DMARC و Spam filtering هم درست باشند.</p></details>
