@@ -20,7 +20,30 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
-
+  wordpress-doctor-api:
+    image: node:24-alpine
+    container_name: webigram-wordpress-doctor-api
+    restart: unless-stopped
+    command: ["node", "/app/server/wordpress-doctor-api.mjs"]
+    environment:
+      PORT: "8789"
+      WORDPRESS_DOCTOR_RATE_LIMIT: "8"
+      WORDPRESS_DOCTOR_MAX_ACTIVE: "8"
+      WORDPRESS_DOCTOR_TIMEOUT_MS: "9000"
+      WORDPRESS_DOCTOR_MAX_BYTES: "900000"
+      WPSCAN_API_TOKEN: "${WPSCAN_API_TOKEN:-}"
+    volumes:
+      - ./server:/app/server:ro
+    expose:
+      - "8789"
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8789/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   brand-checker-api:
     image: node:24-alpine
@@ -58,6 +81,8 @@ services:
       website-doctor-api:
         condition: service_healthy
       brand-checker-api:
+        condition: service_healthy
+      wordpress-doctor-api:
         condition: service_healthy
     expose:
       - "80"
