@@ -3,14 +3,22 @@ set -euo pipefail
 
 node --check server/website-doctor-api.mjs
 node --check server/brand-checker-api.mjs
+node --check server/wordpress-doctor-api.mjs
 node --check public/scripts/website-doctor.js
 node --check public/scripts/brand-checker.js
+node --check public/scripts/wordpress-doctor.js
 node --check extension/website-doctor/popup.js
 node -e "JSON.parse(require('fs').readFileSync('extension/website-doctor/manifest.json', 'utf8'))"
 
 while IFS= read -r -d '' migration; do
   node --check "$migration"
 done < <(find directus/migrations -type f \( -name '*.js' -o -name '*.mjs' \) -print0 2>/dev/null || true)
+
+if command -v php >/dev/null 2>&1; then
+  php -l wordpress-plugin/webigram-wordpress-connector/webigram-wordpress-connector.php >/dev/null
+fi
+
+test -s public/downloads/webigram-wordpress-connector.zip
 
 docker compose config -q
 
