@@ -85,7 +85,7 @@
     right: 0;
     top: 0;
     width: 100%;
-    height: 58%;
+    height: 50%;
     min-height: 0;
     overflow: hidden;
     padding:
@@ -100,9 +100,9 @@
   .visual {
     position: absolute;
     left: 0;
-    top: 58%;
+    top: 50%;
     width: 100%;
-    height: 42%;
+    height: 50%;
     min-height: 0;
     margin: 0;
     overflow: hidden;
@@ -122,22 +122,36 @@
     background: #f8f8fb;
   }
 
-  /* Services need slightly more vertical copy space than the other stages. */
+  /* Current mobile stages use the same compact copy footprint.
+     Short phones get a roomier text panel in the dedicated rule below. */
   .slide-color .right {
-    height: 63%;
+    height: 50%;
   }
 
   .slide-color .visual {
-    top: 63%;
-    height: 37%;
+    top: 50%;
+    height: 50%;
   }
 
-  .real-composition-shell,
-  .sketch-composition {
+  .real-composition-shell {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+  }
+
+  /* The composition is authored against a larger logical canvas.
+     Scale both axes back to the visible mobile canvas. Previously only the
+     width was compensated, leaving the artwork at ~57% height (and stage 1
+     was also reduced to ~57% width because of a later cascade override). */
+  .sketch-composition,
+  .real-composition-shell > .sketch-composition {
+    position: absolute;
+    inset: 0;
+    width: 176%;
+    height: 176%;
+    transform: scale(.568);
+    transform-origin: top left;
   }
 
   /* Compact mobile header. The whole navigation stays visible, no horizontal clipping. */
