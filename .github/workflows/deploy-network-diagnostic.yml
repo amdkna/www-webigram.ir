@@ -11,11 +11,11 @@ permissions:
 
 jobs:
   inspect:
-    name: Inspect CMS content schema
+    name: Inspect CMS public media usage
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 5
     steps:
-      - name: Inspect content tables and publication state
+      - name: Inspect public content media references
         working-directory: /opt/apps/www-webigram.ir
         shell: bash
         run: |
@@ -23,38 +23,25 @@ jobs:
           docker compose exec -T directus-db sh -s <<'DB'
           set -eu
           export PGPASSWORD="$(cat /run/directus-secrets/db_password)"
-
-          for table in services services_page portfolio portfolio_page portfolio_gallery blog_posts blog_categories blog_tags blog_page; do
-            echo "=== columns: $table ==="
-            psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
-              SELECT column_name,data_type,udt_name,is_nullable
-              FROM information_schema.columns
-              WHERE table_schema='public' AND table_name='$table'
-              ORDER BY ordinal_position;
-            "
-          done
-
-          echo '=== blog-like tables ==='
+          echo '=== portfolio cover refs ==='
           psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_schema='public' AND table_name LIKE 'blog%'
-            ORDER BY table_name;
+            SELECT id,slug,status,cover_image FROM portfolio ORDER BY id;
           "
-
-          echo '=== content status counts ==='
-          for table in services portfolio blog_posts; do
-            if psql -h 127.0.0.1 -U directus -d directus -Atqc "SELECT to_regclass('public.$table') IS NOT NULL" | grep -qx t; then
-              echo "--- $table ---"
-              psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "SELECT status, count(*) FROM $table GROUP BY status ORDER BY status;"
-            fi
-          done
-
-          echo '=== blog relations ==='
+          echo '=== gallery refs ==='
           psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
-            SELECT many_collection,many_field,one_collection,one_field,junction_field
-            FROM directus_relations
-            WHERE many_collection LIKE 'blog%' OR one_collection LIKE 'blog%'
-            ORDER BY many_collection,many_field;
+            SELECT g.id,g.portfolio_id,p.slug,p.status,g.directus_files_id,g.sort
+            FROM portfolio_gallery g JOIN portfolio p ON p.id=g.portfolio_id
+            ORDER BY g.portfolio_id,g.sort;
+          "
+          echo '=== blog media refs ==='
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
+            SELECT id,slug,status,cover_image FROM blog_posts ORDER BY id;
+          "
+          echo '=== directus_files public permission ==='
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -x -c "
+            SELECT id,policy,collection,action,permissions,fields
+            FROM directus_permissions
+            WHERE policy='abf8a154-5b1c-4a46-ac9c-7300570f4f17'
+              AND collection='directus_files';
           "
           DB
