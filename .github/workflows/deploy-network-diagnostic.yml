@@ -11,61 +11,40 @@ permissions:
 
 jobs:
   inspect:
-    name: Inspect live Directus public policy
+    name: Inspect Directus authorization internals
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 5
     steps:
-      - name: Inspect public policy and API accountability
+      - name: Locate runtime auth modules and inspect permission storage
         working-directory: /opt/apps/www-webigram.ir
         shell: bash
         run: |
           set -euo pipefail
 
+          echo '=== runtime module paths ==='
+          docker exec webigram-directus sh -lc "find /directus -type f \( -name 'fetch-policies.js' -o -name 'fetch-raw-permissions.js' -o -name 'create-default-accountability.js' \) 2>/dev/null | head -40"
+
+          echo '=== permission schema and public rows ==='
           docker compose exec -T directus-db sh -s <<'DB'
           set -eu
           export PGPASSWORD="$(cat /run/directus-secrets/db_password)"
-          echo '=== public policy ==='
-          psql -h 127.0.0.1 -U directus -d directus -P pager=off -x -c "
-            SELECT id,name,icon,description,ip_access,enforce_tfa,admin_access,app_access
-            FROM directus_policies
-            WHERE id='abf8a154-5b1c-4a46-ac9c-7300570f4f17';
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
+            SELECT column_name,data_type,is_nullable,column_default
+            FROM information_schema.columns
+            WHERE table_schema='public' AND table_name='directus_permissions'
+            ORDER BY ordinal_position;
           "
-          echo '=== public access link ==='
           psql -h 127.0.0.1 -U directus -d directus -P pager=off -x -c "
-            SELECT *
-            FROM directus_access
-            WHERE policy='abf8a154-5b1c-4a46-ac9c-7300570f4f17';
+            SELECT id,policy,collection,action,permissions,validation,presets,fields
+            FROM directus_permissions
+            WHERE policy='abf8a154-5b1c-4a46-ac9c-7300570f4f17'
+            ORDER BY collection,action;
           "
           DB
 
-          echo '=== requests from inside Directus container ==='
-          docker exec webigram-directus node - <<'NODE'
-          const urls = [
-            'http://127.0.0.1:8055/items/services?limit=1&fields=id',
-            'http://127.0.0.1:8055/items/portfolio?limit=1&fields=id',
-            'http://127.0.0.1:8055/permissions/me/services',
-            'http://127.0.0.1:8055/permissions/me/portfolio'
-          ];
-          for (const url of urls) {
-            try {
-              const r = await fetch(url, { headers: { Accept: 'application/json' } });
-              console.log('---', url, r.status, '---');
-              console.log(await r.text());
-            } catch (e) {
-              console.log('---', url, 'ERROR ---');
-              console.log(String(e));
-            }
-          }
-          NODE
-
-          echo '=== same requests through public hostname ==='
-          for path in \
-            '/items/services?limit=1&fields=id' \
-            '/items/portfolio?limit=1&fields=id' \
-            '/permissions/me/services' \
-            '/permissions/me/portfolio'
-          do
-            out=/tmp/directus-public-diag.txt
+          echo '=== public API after fresh request ==='
+          for path in '/items/services?limit=1&fields=id' '/items/portfolio?limit=1&fields=id'; do
+            out=/tmp/directus-auth-diag.txt
             code=$(curl -sS -o "$out" -w '%{http_code}' --connect-timeout 3 --max-time 10 -H 'Accept: application/json' "https://cms.webigram.ir$path" || true)
             echo "--- $path HTTP $code ---"
             cat "$out" || true
