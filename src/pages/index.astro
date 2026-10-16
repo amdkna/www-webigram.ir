@@ -213,7 +213,7 @@ const nav = [
       const esc=(value='')=>String(value).replace(/[&<>'\"]/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[ch]));
       const asset=(id)=>id?`${cmsUrl}/assets/${encodeURIComponent(id)}?width=900&height=520&fit=cover&quality=86`:'';
       const fields='id,slug,title,summary,client,year,service,cover_image,featured';
-      fetch(`${cmsUrl}/items/portfolio?sort=-featured,sort,title&limit=4&fields=${encodeURIComponent(fields)}`,{headers:{Accept:'application/json'},cache:'no-store'})
+      fetch(`${cmsUrl}/items/portfolio?filter[status][_eq]=published&sort=-featured,sort,title&limit=4&fields=${encodeURIComponent(fields)}`,{headers:{Accept:'application/json'},cache:'no-store'})
         .then((response)=>{if(!response.ok)throw new Error(`CMS ${response.status}`);return response.json();})
         .then(({data})=>{
           const items=Array.isArray(data)?data:[];

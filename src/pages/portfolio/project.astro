@@ -37,7 +37,7 @@ const cmsUrl = 'https://cms.webigram.ir';
       const fail = () => { document.querySelector('[data-project-title]').textContent='پروژه پیدا نشد'; document.querySelector('[data-project-summary]').textContent='ممکن است این نمونه کار منتشر نشده باشد یا آدرس آن تغییر کرده باشد.'; };
       if (!slug || slug === 'project') { fail(); return; }
       const fields = 'id,slug,title,summary,description,client,year,service,duration,client_request,approach,outcome,technologies,cover_image,project_url,seo_title,seo_description,gallery.id,gallery.sort,gallery.directus_files_id';
-      fetch(`${cmsUrl}/items/portfolio?filter[slug][_eq]=${encodeURIComponent(slug)}&limit=1&fields=${encodeURIComponent(fields)}`, {headers:{Accept:'application/json'},cache:'no-store'})
+      fetch(`${cmsUrl}/items/portfolio?filter[_and][0][status][_eq]=published&filter[_and][1][slug][_eq]=${encodeURIComponent(slug)}&limit=1&fields=${encodeURIComponent(fields)}`, {headers:{Accept:'application/json'},cache:'no-store'})
         .then((r)=>{if(!r.ok)throw new Error();return r.json();}).then(({data})=>{
           const item=data?.[0]; if(!item){fail();return;}
           document.title=item.seo_title||`${item.title} | Webigram`;
