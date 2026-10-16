@@ -11,61 +11,50 @@ permissions:
 
 jobs:
   inspect:
-    name: Inspect Directus authorization resolution
+    name: Inspect CMS content schema
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 5
     steps:
-      - name: Resolve public policies and permissions with Directus code
+      - name: Inspect content tables and publication state
         working-directory: /opt/apps/www-webigram.ir
         shell: bash
         run: |
           set -euo pipefail
+          docker compose exec -T directus-db sh -s <<'DB'
+          set -eu
+          export PGPASSWORD="$(cat /run/directus-secrets/db_password)"
 
-          docker exec webigram-directus sh -lc 'ls -ld /directus/node_modules/@directus/api || true'
+          for table in services services_page portfolio portfolio_page portfolio_gallery blog_posts blog_categories blog_tags blog_page; do
+            echo "=== columns: $table ==="
+            psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
+              SELECT column_name,data_type,udt_name,is_nullable
+              FROM information_schema.columns
+              WHERE table_schema='public' AND table_name='$table'
+              ORDER BY ordinal_position;
+            "
+          done
 
-          docker exec -i webigram-directus node --input-type=module - <<'NODE'
-          try {
-            const [{ default: getDatabase }, { getSchema }, { _fetchPolicies }, { _fetchRawPermissions }, { createDefaultAccountability }] = await Promise.all([
-              import('/directus/node_modules/@directus/api/dist/database/index.js'),
-              import('/directus/node_modules/@directus/api/dist/utils/get-schema.js'),
-              import('/directus/node_modules/@directus/api/dist/permissions/lib/fetch-policies.js'),
-              import('/directus/node_modules/@directus/api/dist/permissions/utils/fetch-raw-permissions.js'),
-              import('/directus/node_modules/@directus/api/dist/permissions/utils/create-default-accountability.js'),
-            ]);
+          echo '=== blog-like tables ==='
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema='public' AND table_name LIKE 'blog%'
+            ORDER BY table_name;
+          "
 
-            const knex = getDatabase();
-            const schema = await getSchema();
-            const context = { knex, schema };
-            const accountability = createDefaultAccountability({ ip: '127.0.0.1' });
+          echo '=== content status counts ==='
+          for table in services portfolio blog_posts; do
+            if psql -h 127.0.0.1 -U directus -d directus -Atqc "SELECT to_regclass('public.$table') IS NOT NULL" | grep -qx t; then
+              echo "--- $table ---"
+              psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "SELECT status, count(*) FROM $table GROUP BY status ORDER BY status;"
+            fi
+          done
 
-            const policies = await _fetchPolicies(accountability, context);
-            console.log('POLICIES', JSON.stringify(policies));
-
-            const permissions = await _fetchRawPermissions(
-              { policies, accountability, collections: ['services','services_page','portfolio','portfolio_page'], action: 'read' },
-              context,
-            );
-
-            console.log('PERMISSIONS', JSON.stringify(permissions.map((p) => ({
-              id: p.id,
-              policy: p.policy,
-              collection: p.collection,
-              action: p.action,
-              fields: p.fields,
-              permissions: p.permissions,
-            }))));
-
-            await knex.destroy();
-          } catch (error) {
-            console.error('DIAGNOSTIC_ERROR', error?.stack || String(error));
-            process.exitCode = 1;
-          }
-          NODE
-
-          echo '=== internal HTTP from Directus container ==='
-          docker exec -i webigram-directus node --input-type=module - <<'NODE'
-          for (const path of ['/items/services?limit=1&fields=id','/items/portfolio?limit=1&fields=id']) {
-            const response = await fetch('http://127.0.0.1:8055' + path, { headers: { Accept: 'application/json' } });
-            console.log(path, response.status, await response.text());
-          }
-          NODE
+          echo '=== blog relations ==='
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
+            SELECT many_collection,many_field,one_collection,one_field,junction_field
+            FROM directus_relations
+            WHERE many_collection LIKE 'blog%' OR one_collection LIKE 'blog%'
+            ORDER BY many_collection,many_field;
+          "
+          DB
