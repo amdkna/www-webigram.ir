@@ -11,42 +11,61 @@ permissions:
 
 jobs:
   inspect:
-    name: Inspect Directus authorization internals
+    name: Inspect Directus authorization resolution
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 5
     steps:
-      - name: Locate runtime auth modules and inspect permission storage
+      - name: Resolve public policies and permissions with Directus code
         working-directory: /opt/apps/www-webigram.ir
         shell: bash
         run: |
           set -euo pipefail
 
-          echo '=== runtime module paths ==='
-          docker exec webigram-directus sh -lc "find /directus -type f \( -name 'fetch-policies.js' -o -name 'fetch-raw-permissions.js' -o -name 'create-default-accountability.js' \) 2>/dev/null | head -40"
+          docker exec webigram-directus sh -lc 'ls -ld /directus/node_modules/@directus/api || true'
 
-          echo '=== permission schema and public rows ==='
-          docker compose exec -T directus-db sh -s <<'DB'
-          set -eu
-          export PGPASSWORD="$(cat /run/directus-secrets/db_password)"
-          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
-            SELECT column_name,data_type,is_nullable,column_default
-            FROM information_schema.columns
-            WHERE table_schema='public' AND table_name='directus_permissions'
-            ORDER BY ordinal_position;
-          "
-          psql -h 127.0.0.1 -U directus -d directus -P pager=off -x -c "
-            SELECT id,policy,collection,action,permissions,validation,presets,fields
-            FROM directus_permissions
-            WHERE policy='abf8a154-5b1c-4a46-ac9c-7300570f4f17'
-            ORDER BY collection,action;
-          "
-          DB
+          docker exec -i webigram-directus node --input-type=module - <<'NODE'
+          try {
+            const [{ default: getDatabase }, { getSchema }, { _fetchPolicies }, { _fetchRawPermissions }, { createDefaultAccountability }] = await Promise.all([
+              import('/directus/node_modules/@directus/api/dist/database/index.js'),
+              import('/directus/node_modules/@directus/api/dist/utils/get-schema.js'),
+              import('/directus/node_modules/@directus/api/dist/permissions/lib/fetch-policies.js'),
+              import('/directus/node_modules/@directus/api/dist/permissions/utils/fetch-raw-permissions.js'),
+              import('/directus/node_modules/@directus/api/dist/permissions/utils/create-default-accountability.js'),
+            ]);
 
-          echo '=== public API after fresh request ==='
-          for path in '/items/services?limit=1&fields=id' '/items/portfolio?limit=1&fields=id'; do
-            out=/tmp/directus-auth-diag.txt
-            code=$(curl -sS -o "$out" -w '%{http_code}' --connect-timeout 3 --max-time 10 -H 'Accept: application/json' "https://cms.webigram.ir$path" || true)
-            echo "--- $path HTTP $code ---"
-            cat "$out" || true
-            echo
-          done
+            const knex = getDatabase();
+            const schema = await getSchema();
+            const context = { knex, schema };
+            const accountability = createDefaultAccountability({ ip: '127.0.0.1' });
+
+            const policies = await _fetchPolicies(accountability, context);
+            console.log('POLICIES', JSON.stringify(policies));
+
+            const permissions = await _fetchRawPermissions(
+              { policies, accountability, collections: ['services','services_page','portfolio','portfolio_page'], action: 'read' },
+              context,
+            );
+
+            console.log('PERMISSIONS', JSON.stringify(permissions.map((p) => ({
+              id: p.id,
+              policy: p.policy,
+              collection: p.collection,
+              action: p.action,
+              fields: p.fields,
+              permissions: p.permissions,
+            }))));
+
+            await knex.destroy();
+          } catch (error) {
+            console.error('DIAGNOSTIC_ERROR', error?.stack || String(error));
+            process.exitCode = 1;
+          }
+          NODE
+
+          echo '=== internal HTTP from Directus container ==='
+          docker exec -i webigram-directus node --input-type=module - <<'NODE'
+          for (const path of ['/items/services?limit=1&fields=id','/items/portfolio?limit=1&fields=id']) {
+            const response = await fetch('http://127.0.0.1:8055' + path, { headers: { Accept: 'application/json' } });
+            console.log(path, response.status, await response.text());
+          }
+          NODE
