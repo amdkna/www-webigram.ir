@@ -182,21 +182,20 @@ body.section-exiting .persistent-stage-header * {
     margin-top: 0;
   }
 
-  .slide-real .visual-real {
-    transform:
-      translate3d(var(--exit-left), 0, 0)
-      rotate(var(--exit-rotate-left))
-      scale(var(--exit-scale)) !important;
+  /*
+   * The desktop handoff sends the two halves roughly one viewport sideways.
+   * On phones that reads as horizontal page drift and clips the hero while
+   * the next section is already appearing. Keep the mobile geometry locked
+   * and cross-fade the last stage into the projects section instead.
+   */
+  .slide-real .visual-real,
+  .slide-real .copy {
+    transform: none !important;
+    opacity: calc(1 - var(--section-exit));
   }
 
   .slide-real .right {
     transform: none !important;
-  }
-
-  .slide-real .copy {
-    transform:
-      translate3d(var(--exit-right), var(--exit-copy-y), 0)
-      rotate(var(--exit-rotate-right)) !important;
   }
 
   .persistent-stage-header {
