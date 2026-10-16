@@ -1,0 +1,66 @@
+name: Directus Permission Diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/deploy-network-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    name: Inspect live Directus permissions
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 5
+    steps:
+      - name: Inspect anonymous policy and content permissions
+        working-directory: /opt/apps/www-webigram.ir
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose exec -T directus-db sh -s <<'DB'
+          set -eu
+          export PGPASSWORD="$(cat /run/directus-secrets/db_password)"
+
+          echo '=== anonymous access policies ==='
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
+            SELECT da.id AS access_id, da.policy, p.name AS policy_name, da.role, da."user", da.sort
+            FROM directus_access da
+            LEFT JOIN directus_policies p ON p.id = da.policy
+            WHERE da.role IS NULL AND da."user" IS NULL
+            ORDER BY da.sort NULLS LAST, da.id;
+          "
+
+          echo '=== relevant public content permissions ==='
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
+            SELECT p.name AS policy_name, dp.policy, dp.collection, dp.action, dp.fields, dp.permissions
+            FROM directus_permissions dp
+            LEFT JOIN directus_policies p ON p.id = dp.policy
+            WHERE dp.collection IN (
+              'services','services_page','portfolio','portfolio_page',
+              'blog_posts','blog_categories','blog_tags','blog_page'
+            )
+            ORDER BY dp.collection, dp.action, p.name;
+          "
+
+          echo '=== migration tables ==='
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema='public' AND table_name ILIKE '%migration%'
+            ORDER BY table_name;
+          "
+
+          if psql -h 127.0.0.1 -U directus -d directus -Atqc "SELECT to_regclass('public.directus_migrations') IS NOT NULL" | grep -qx t; then
+            echo '=== recent migration records ==='
+            psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
+              SELECT *
+              FROM directus_migrations
+              ORDER BY 1 DESC
+              LIMIT 30;
+            " || true
+          fi
+          DB
