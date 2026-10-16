@@ -41,11 +41,6 @@ PGPASSWORD="$CURRENT_PASSWORD" psql \
   -v ON_ERROR_STOP=1 -Atqc "SELECT 1" >/dev/null
 DB_SYNC
 
-# Custom migrations are not guaranteed to run just because the API container is
-# recreated. Run them explicitly so schema/permission changes committed under
-# ./directus/migrations are applied before Directus starts serving requests.
-docker compose stop directus >/dev/null 2>&1 || true
-echo "Applying Directus core and custom database migrations."
-docker compose run --rm --no-deps directus npx directus database migrate:latest
-
+# The official Directus image runs `node cli.js bootstrap` before starting the
+# API, so recreating the container applies outstanding core/custom migrations.
 docker compose up -d --no-deps --force-recreate directus

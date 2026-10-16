@@ -1,3 +1,4 @@
+// Production repair for anonymous Services API access.
 const PUBLIC_POLICY_ID = 'abf8a154-5b1c-4a46-ac9c-7300570f4f17';
 
 async function upsertPublicRead(knex, collection, fields, permissions = null) {
