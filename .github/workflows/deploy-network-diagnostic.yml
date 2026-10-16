@@ -11,57 +11,63 @@ permissions:
 
 jobs:
   inspect:
-    name: Inspect live Directus API path
+    name: Inspect live Directus public policy
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 5
     steps:
-      - name: Compare database, internal API and public API
+      - name: Inspect public policy and API accountability
         working-directory: /opt/apps/www-webigram.ir
         shell: bash
         run: |
           set -euo pipefail
 
-          echo '=== database collection state ==='
           docker compose exec -T directus-db sh -s <<'DB'
           set -eu
           export PGPASSWORD="$(cat /run/directus-secrets/db_password)"
-          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
-            SELECT c.collection, c.hidden, c.singleton,
-                   to_regclass('public.' || quote_ident(c.collection)) AS physical_table
-            FROM directus_collections c
-            WHERE c.collection IN ('services','services_page','portfolio','portfolio_page')
-            ORDER BY c.collection;
+          echo '=== public policy ==='
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -x -c "
+            SELECT id,name,icon,description,ip_access,enforce_tfa,admin_access,app_access
+            FROM directus_policies
+            WHERE id='abf8a154-5b1c-4a46-ac9c-7300570f4f17';
           "
-          psql -h 127.0.0.1 -U directus -d directus -P pager=off -c "
-            SELECT p.name AS policy_name, dp.policy, dp.collection, dp.action, dp.fields, dp.permissions
-            FROM directus_permissions dp
-            LEFT JOIN directus_policies p ON p.id = dp.policy
-            WHERE dp.collection IN ('services','services_page','portfolio','portfolio_page')
-            ORDER BY dp.collection, dp.action;
+          echo '=== public access link ==='
+          psql -h 127.0.0.1 -U directus -d directus -P pager=off -x -c "
+            SELECT *
+            FROM directus_access
+            WHERE policy='abf8a154-5b1c-4a46-ac9c-7300570f4f17';
           "
           DB
 
-          check() {
-            local label="$1"
-            local url="$2"
-            local out="/tmp/webigram-diag-$(echo "$label" | tr -cd 'a-zA-Z0-9').txt"
-            local code
-            code=$(curl -sS -o "$out" -w '%{http_code}' --connect-timeout 3 --max-time 10 -H 'Accept: application/json' "$url" || true)
-            echo "--- $label HTTP $code ---"
+          echo '=== requests from inside Directus container ==='
+          docker exec webigram-directus node - <<'NODE'
+          const urls = [
+            'http://127.0.0.1:8055/items/services?limit=1&fields=id',
+            'http://127.0.0.1:8055/items/portfolio?limit=1&fields=id',
+            'http://127.0.0.1:8055/permissions/me/services',
+            'http://127.0.0.1:8055/permissions/me/portfolio'
+          ];
+          for (const url of urls) {
+            try {
+              const r = await fetch(url, { headers: { Accept: 'application/json' } });
+              console.log('---', url, r.status, '---');
+              console.log(await r.text());
+            } catch (e) {
+              console.log('---', url, 'ERROR ---');
+              console.log(String(e));
+            }
+          }
+          NODE
+
+          echo '=== same requests through public hostname ==='
+          for path in \
+            '/items/services?limit=1&fields=id' \
+            '/items/portfolio?limit=1&fields=id' \
+            '/permissions/me/services' \
+            '/permissions/me/portfolio'
+          do
+            out=/tmp/directus-public-diag.txt
+            code=$(curl -sS -o "$out" -w '%{http_code}' --connect-timeout 3 --max-time 10 -H 'Accept: application/json' "https://cms.webigram.ir$path" || true)
+            echo "--- $path HTTP $code ---"
             cat "$out" || true
             echo
-          }
-
-          echo '=== API comparison ==='
-          check internal-services 'http://127.0.0.1:8055/items/services?limit=1&fields=id'
-          check internal-services-page 'http://127.0.0.1:8055/items/services_page?limit=1&fields=id'
-          check internal-portfolio 'http://127.0.0.1:8055/items/portfolio?limit=1&fields=id'
-          check internal-portfolio-page 'http://127.0.0.1:8055/items/portfolio_page?limit=1&fields=id'
-
-          check public-services 'https://cms.webigram.ir/items/services?limit=1&fields=id'
-          check public-services-page 'https://cms.webigram.ir/items/services_page?limit=1&fields=id'
-          check public-portfolio 'https://cms.webigram.ir/items/portfolio?limit=1&fields=id'
-          check public-portfolio-page 'https://cms.webigram.ir/items/portfolio_page?limit=1&fields=id'
-
-          echo '=== Directus container tail ==='
-          docker logs --tail 120 webigram-directus 2>&1 || true
+          done
