@@ -105,7 +105,9 @@ pipeline {
                     EDGE_CONTAINER=edge-nginx
 
                     export APP_DIR RELEASE_DIR PUBLIC_HEALTH_URL EDGE_CONTAINER
-                    export GITHUB_SHA="$GIT_COMMIT"
+                    CURRENT_SHA="$(git rev-parse HEAD)"
+                    export CURRENT_SHA
+                    export GITHUB_SHA="$CURRENT_SHA"
                     export GITHUB_RUN_ID="$BUILD_NUMBER"
                     export GITHUB_RUN_ATTEMPT=1
 
@@ -120,7 +122,7 @@ pipeline {
 
                     change_file="$(mktemp)"
                     trap 'rm -f "$change_file"' EXIT
-                    bash scripts/deploy/classify-changes.sh "$before_sha" "$GIT_COMMIT" jenkins "$change_file"
+                    bash scripts/deploy/classify-changes.sh "$before_sha" "$CURRENT_SHA" jenkins "$change_file"
                     cat "$change_file"
                     # shellcheck disable=SC1090
                     source "$change_file"
@@ -143,8 +145,8 @@ pipeline {
                       exit 1
                     fi
 
-                    printf '%s\n' "$GIT_COMMIT" > "$APP_DIR/.last-successful-deploy"
-                    echo "Successful production revision: $GIT_COMMIT"
+                    printf '%s\n' "$CURRENT_SHA" > "$APP_DIR/.last-successful-deploy"
+                    echo "Successful production revision: $CURRENT_SHA"
                 '''
             }
         }
