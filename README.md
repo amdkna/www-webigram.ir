@@ -1,6 +1,6 @@
 # وبیگرام — Webigram
 
-وب‌سایت فارسی و استاتیک وبیگرام، ساخته‌شده با Astro و آماده انتشار روی GitHub Pages.
+وب‌سایت فارسی Webigram، ساخته‌شده با Astro و مستقر روی سرور `wbg-001`.
 
 ## اجرای محلی
 
@@ -16,12 +16,37 @@ npm run check
 npm run build
 ```
 
-## انتشار
+## CI/CD
 
-هر Push روی شاخه `main`، Workflow موجود در `.github/workflows/deploy.yml` را اجرا می‌کند و خروجی استاتیک را روی GitHub Pages منتشر می‌کند.
+GitHub Actions برای این پروژه استفاده نمی‌شود.
 
-آدرس پیش‌فرض پروژه:
+هر Push روی شاخه `main` توسط Jenkins در `https://ci.webigram.ir` پردازش می‌شود:
 
-`https://amdkna.github.io/www-webigram.ir/`
+```text
+GitHub main push
+  -> Jenkins
+  -> build-docker-01
+     -> syntax/config checks
+     -> npm install/check
+     -> API smoke tests
+     -> Astro production build
+  -> deploy-wbg001
+     -> /opt/apps/www-webigram.ir
+     -> change-aware runtime update
+     -> public health check
+     -> automatic rollback on failure
+```
 
-> برای اتصال دامنه اصلی، مقدار `site` و `base` در `astro.config.mjs` را تغییر دهید، فایل `public/CNAME` اضافه کنید و DNS دامنه را تنظیم کنید.
+Pipeline definition: `Jenkinsfile`
+
+Production application path:
+
+```text
+/opt/apps/www-webigram.ir
+```
+
+Production URL:
+
+```text
+https://webigram.ir
+```
