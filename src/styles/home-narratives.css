@@ -42,7 +42,8 @@
   .narrative-row{grid-template-columns:2.2rem minmax(0,1fr);gap:1rem;padding:1.4rem 0 2rem}
   .narrative-index{grid-column:1;grid-row:1}
   .narrative-main{grid-column:2;grid-row:1}
-  .narrative-cover{grid-column:1/3;grid-row:2;height:56vw;max-height:310px}
-  .narrative-cta{grid-column:2;grid-row:3;justify-content:flex-start;margin-top:.15rem}
+  /* On phones keep every textual element together first, then the project visual. */
+  .narrative-cta{grid-column:2;grid-row:2;justify-content:flex-start;margin-top:.15rem}
+  .narrative-cover{grid-column:1/3;grid-row:3;height:56vw;max-height:310px}
   .narrative-main p{-webkit-line-clamp:3}
 }
