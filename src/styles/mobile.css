@@ -82,6 +82,7 @@
   /* Copy occupies the upper part of the phone; artwork becomes the lower canvas. */
   .right {
     position: absolute;
+    z-index: 2;
     right: 0;
     top: 0;
     width: 100%;
@@ -99,6 +100,7 @@
 
   .visual {
     position: absolute;
+    z-index: 1;
     left: 0;
     top: 50%;
     width: 100%;
@@ -120,6 +122,16 @@
 
   .slide-real .visual {
     background: #f8f8fb;
+  }
+
+  /* Mobile composition is intentionally vertical:
+     all copy stays above the visual canvas and artwork can never overlap it. */
+  .slide .right {
+    isolation: isolate;
+  }
+
+  .slide .visual {
+    contain: layout paint;
   }
 
   /* Current mobile stages use the same compact copy footprint.
