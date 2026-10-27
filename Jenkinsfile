@@ -108,6 +108,13 @@ pipeline {
                     CURRENT_SHA="$(git rev-parse HEAD)"
                     export CURRENT_SHA
                     export GITHUB_SHA="$CURRENT_SHA"
+
+                    # Production checkout is bind-mounted into the Jenkins deploy agent
+                    # and is owned by a different host user. Trust only this application
+                    # directory for Git commands executed by this deployment process.
+                    export GIT_CONFIG_COUNT=1
+                    export GIT_CONFIG_KEY_0=safe.directory
+                    export GIT_CONFIG_VALUE_0="$APP_DIR"
                     export GITHUB_RUN_ID="$BUILD_NUMBER"
                     export GITHUB_RUN_ATTEMPT=1
 
