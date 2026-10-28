@@ -43,7 +43,8 @@ button{font:inherit}
 .copy h1,.copy h2{margin:0;line-height:1.12;letter-spacing:-.055em;font-size:clamp(2.8rem,4.15vw,5rem);font-weight:900}
 .copy p{margin:2.1rem 0 0;color:var(--copy-muted);font-size:clamp(.9rem,1.12vw,1.28rem);line-height:2;max-width:95%}
 .slide-sketch{--copy-muted:#4e4e4e}
-.slide-sketch .copy h1{font-family:'Lalezar','Vazirmatn',sans-serif;font-weight:400;filter:url(#pencil-rough);text-shadow:1px 0 #111,-1px 1px rgba(0,0,0,.2)}
+.copy h1,.copy h2{font-family:'Lalezar','Vazirmatn',sans-serif;font-weight:400}
+.slide-sketch .copy h1{filter:url(#pencil-rough);text-shadow:1px 0 #111,-1px 1px rgba(0,0,0,.2)}
 .slide-sketch .copy:before{content:'';position:absolute;inset:-7% -3% auto auto;width:88%;height:2px;background:repeating-linear-gradient(90deg,#111 0 4px,transparent 4px 7px);opacity:.08;transform:rotate(-.4deg)}
 .slide-color{--copy-muted:#66708c}
 .slide-color .copy{top:19%}
