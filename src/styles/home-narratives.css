@@ -4,7 +4,7 @@
 .narrative-heading{max-width:760px}
 .narrative-kicker{display:inline-flex;align-items:center;gap:.55rem;margin-bottom:1.1rem;color:#6f46f3;font-size:.82rem;font-weight:800;letter-spacing:.02em}
 .narrative-kicker:before{content:'';width:2rem;height:2px;background:linear-gradient(90deg,#2457ff,#9a3cff);border-radius:2px}
-.narrative-head h2{margin:0;font-size:clamp(2.7rem,5.6vw,5.6rem);line-height:1.05;letter-spacing:-.06em;font-weight:900}
+.narrative-head h2{font-family:'Lalezar','Vazirmatn',sans-serif;font-weight:400;margin:0;font-size:clamp(2.7rem,5.6vw,5.6rem);line-height:1.05;letter-spacing:-.06em;font-weight:900}
 .narrative-head h2 em{font-style:normal;background:linear-gradient(135deg,#205aff 5%,#9f34ef 80%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .narrative-head p{max-width:660px;margin:1.4rem 0 0;color:#697087;font-size:clamp(.95rem,1.15vw,1.15rem);line-height:2}
 .narrative-all{display:inline-flex;align-items:center;gap:.8rem;padding:.8rem 0;font-size:.92rem;font-weight:800;white-space:nowrap;border-bottom:1px solid #c8ccda;transition:border-color .2s,color .2s}
