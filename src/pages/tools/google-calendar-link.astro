@@ -1,27 +1,10 @@
 ---
+import SiteLayout from '../../layouts/SiteLayout.astro';
 import '../../styles/public-tools.css';
 import '../../styles/google-calendar-link.css';
 const base = import.meta.env.BASE_URL;
 ---
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#f5f6fb" />
-  <meta name="description" content="ساخت لینک آماده Google Calendar برای اشتراک‌گذاری رویداد با عنوان، تاریخ، ساعت ایران، توضیحات و یادآوری‌های پیشنهادی." />
-  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  <link rel="canonical" href="https://webigram.ir/tools/google-calendar-link/" />
-  <title>لینک ساز Google Calendar | ابزار رایگان وبیگرام</title>
-</head>
-<body>
-  <header class="tools-header">
-    <div class="shell tools-header-inner">
-      <a class="tools-brand" href="/" aria-label="وبیگرام"><svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9"/></svg><strong>Webigram</strong></a>
-      <nav class="tools-nav" aria-label="منوی ابزارها"><a href="/">خانه</a><a class="active" href="/tools/">ابزارها</a></nav>
-    </div>
-  </header>
-
+<SiteLayout title={"لینک ساز Google Calendar | ابزار رایگان وبیگرام"} description="ساخت لینک آماده Google Calendar برای اشتراک‌گذاری رویداد با عنوان، تاریخ، ساعت ایران، توضیحات و یادآوری‌های پیشنهادی." current="tools">
   <main class="calendar-main">
     <div class="shell calendar-shell">
       <div class="breadcrumb"><a href="/tools/">ابزارها</a><span>/</span><span>لینک ساز Google Calendar</span></div>
@@ -149,7 +132,5 @@ const base = import.meta.env.BASE_URL;
     </div>
   </main>
 
-  <footer class="tools-footer"><div class="shell">Webigram Calendar Link Builder · جلسه را هماهنگ کن، نه اینکه ده بار تاریخ و ساعت را تایپ کنی :)</div></footer>
   <script is:inline src="/scripts/google-calendar-link.js"></script>
-</body>
-</html>
+</SiteLayout>

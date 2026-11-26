@@ -1,5 +1,5 @@
 ---
-import '../styles/base.css';
+import SiteLayout from '../layouts/SiteLayout.astro';
 import '../styles/content-pages.css';
 const base = import.meta.env.BASE_URL;
 const cmsUrl = 'https://cms.webigram.ir';
@@ -11,23 +11,7 @@ const fallbackPage = {
   seo_description: 'نمونه پروژه های وبیگرام در حوزه DevOps، اتوماسیون، طراحی پلتفرم، پنل سازمانی و توسعه وب.',
 };
 ---
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content={fallbackPage.seo_description} data-page-description />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://webigram.ir/portfolio/" />
-  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  <title>{fallbackPage.seo_title}</title>
-</head>
-<body>
-  <header class="cp-header"><div class="cp-shell cp-nav">
-    <a class="cp-brand" href={`${base}`}><svg viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"/></svg><span>Webigram</span></a>
-    <nav><a href={`${base}`}>خانه</a><a href={`${base}services/`}>خدمات</a><a class="active" href={`${base}portfolio/`}>نمونه کارها</a><a href={`${base}blog/`}>بلاگ</a><a href={`${base}contact/`}>تماس با ما</a></nav>
-  </div></header>
-
+<SiteLayout title={fallbackPage.seo_title} description={fallbackPage.seo_description} current="portfolio">
   <main>
     <section class="cp-shell cp-hero">
       <div class="cp-kicker" data-field="hero_kicker">{fallbackPage.hero_kicker}</div>
@@ -40,8 +24,6 @@ const fallbackPage = {
       <div class="portfolio-grid" data-portfolio-grid><div class="cp-empty">در حال دریافت نمونه کارها…</div></div>
     </section>
   </main>
-
-  <footer class="cp-shell cp-footer"><span>Webigram</span><span>Portfolio · Platforms · Automation · DevOps</span></footer>
 
   <script define:vars={{ cmsUrl }} is:inline>
     (() => {
@@ -86,5 +68,4 @@ const fallbackPage = {
         .catch(() => { grid.innerHTML = '<div class="cp-empty" style="grid-column:1/-1">فعلا امکان دریافت نمونه کارها نیست. کمی بعد دوباره امتحان کنید.</div>'; });
     })();
   </script>
-</body>
-</html>
+</SiteLayout>

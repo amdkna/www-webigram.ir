@@ -1,27 +1,10 @@
 ---
+import SiteLayout from '../../layouts/SiteLayout.astro';
 import '../../styles/public-tools.css';
 import '../../styles/brand-checker.css';
 const base = import.meta.env.BASE_URL;
 ---
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#f5f6fb" />
-  <meta name="description" content="بررسی همزمان آزاد بودن نام برند در دامنه‌های ir، com و net و پروفایل‌های Instagram، LinkedIn و YouTube." />
-  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  <link rel="canonical" href="https://webigram.ir/tools/brand-checker/" />
-  <title>بررسی نام برند | Brand Checker وبیگرام</title>
-</head>
-<body>
-  <header class="tools-header brand-site-header">
-    <div class="shell tools-header-inner">
-      <a class="tools-brand" href="/" aria-label="وبیگرام"><svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9"/></svg><strong>Webigram</strong></a>
-      <nav class="tools-nav" aria-label="منوی ابزارها"><a href="/">خانه</a><a class="active" href="/tools/">ابزارها</a></nav>
-    </div>
-  </header>
-
+<SiteLayout title={"بررسی نام برند | Brand Checker وبیگرام"} description="بررسی همزمان آزاد بودن نام برند در دامنه‌های ir، com و net و پروفایل‌های Instagram، LinkedIn و YouTube." current="tools">
   <main class="brand-main">
     <section class="brand-hero">
       <div class="shell brand-hero-grid">
@@ -100,8 +83,6 @@ const base = import.meta.env.BASE_URL;
     </section>
   </main>
 
-  <footer class="tools-footer"><div class="shell">Webigram Brand Checker · قبل از اینکه عاشق اسم برندت شوی، ببین اصلا آزاد هست یا نه :)</div></footer>
   <script is:inline src="/scripts/brand-checker.js"></script>
-</body>
-</html>
+</SiteLayout>
 <!-- deploy bundle marker: brand-checker-checkmarks-v1 -->

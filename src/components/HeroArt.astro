@@ -1,0 +1,222 @@
+---
+/**
+ * Homepage hero artwork: the same composition shown as a pencil sketch,
+ * a colour design and the real product. It cycles through the three stages
+ * on its own (no scroll hijacking) and scales to any screen width.
+ */
+import '../styles/composition.css';
+import Composition from './Composition.astro';
+
+const stages = [
+  { key: 'sketch', label: 'طرح اولیه', caption: 'ایده شما، نقطه آغاز است' },
+  { key: 'color', label: 'طراحی', caption: 'مسیر اجرای آن را طراحی می‌کنیم' },
+  { key: 'real', label: 'نسخه واقعی', caption: 'و آن را به واقعیت تبدیل می‌کنیم' },
+] as const;
+---
+<figure class="hero-art" data-stage="0" data-hero-art>
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <filter id="pencil-rough"><feTurbulence type="fractalNoise" baseFrequency=".014" numOctaves="2" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale=".65"/></filter>
+  </svg>
+
+  <div class="hero-art__frame" data-hero-frame>
+    <div class="hero-art__canvas" data-hero-canvas>
+      <div class="hero-art__layer slide slide-sketch is-active" data-layer="0">
+        <div class="visual visual-sketch"><Composition variant="sketch" /></div>
+      </div>
+      <div class="hero-art__layer slide slide-color" data-layer="1" aria-hidden="true">
+        <div class="visual visual-color"><Composition variant="color" /></div>
+      </div>
+      <div class="hero-art__layer slide slide-real" data-layer="2" aria-hidden="true">
+        <div class="visual visual-real">
+          <div class="real-composition-shell"><Composition variant="real" live /></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <figcaption class="hero-art__controls">
+    <div class="hero-art__tabs" role="tablist" aria-label="مراحل اجرای پروژه">
+      {stages.map((stage, index) => (
+        <button type="button" role="tab" data-stage-tab={index} aria-selected={index === 0 ? 'true' : 'false'}>
+          <span class="hero-art__step">{['۱', '۲', '۳'][index]}</span>{stage.label}
+          <i class="hero-art__progress" aria-hidden="true"></i>
+        </button>
+      ))}
+    </div>
+    <p class="hero-art__caption" aria-live="polite" data-stage-caption>{stages[0].caption}</p>
+  </figcaption>
+</figure>
+
+<script define:vars={{ captions: stages.map((s) => s.caption) }} is:inline>
+  (() => {
+    const root = document.querySelector('[data-hero-art]');
+    if (!root) return;
+    const frame = root.querySelector('[data-hero-frame]');
+    const canvas = root.querySelector('[data-hero-canvas]');
+    const layers = [...root.querySelectorAll('[data-layer]')];
+    const tabs = [...root.querySelectorAll('[data-stage-tab]')];
+    const caption = root.querySelector('[data-stage-caption]');
+    const live = root.querySelector('.live-composition');
+    const DESIGN_WIDTH = 1162;
+    const INTERVAL = 4800;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+
+    // Scale the fixed-size artwork to the frame.
+    const fit = () => canvas.style.setProperty('--hero-scale', String(frame.clientWidth / DESIGN_WIDTH));
+    new ResizeObserver(fit).observe(frame);
+    fit();
+
+    let current = 0, timer = 0, visible = true, paused = false, prevTimer = 0;
+
+    const show = (next) => {
+      if (next === current) return;
+      const prev = layers[current];
+      layers.forEach((layer) => layer.classList.remove('is-prev'));
+      prev.classList.remove('is-active');
+      prev.classList.add('is-prev');
+      clearTimeout(prevTimer);
+      prevTimer = setTimeout(() => prev.classList.remove('is-prev'), 1000);
+      current = next;
+      layers.forEach((layer, index) => {
+        if (index === current) layer.classList.add('is-active');
+        layer.setAttribute('aria-hidden', index === current ? 'false' : 'true');
+      });
+      tabs.forEach((tab, index) => tab.setAttribute('aria-selected', String(index === current)));
+      root.dataset.stage = String(current);
+      caption.textContent = captions[current];
+      live?.toggleAttribute('data-live-playing', current === 2 && !reduced.matches);
+    };
+
+    const schedule = () => {
+      clearTimeout(timer);
+      root.classList.remove('is-running');
+      if (reduced.matches || paused || !visible || document.hidden) return;
+      void root.offsetWidth; // restart the progress bar animation
+      root.classList.add('is-running');
+      timer = setTimeout(() => { show((current + 1) % layers.length); schedule(); }, INTERVAL);
+    };
+
+    tabs.forEach((tab, index) => tab.addEventListener('click', () => { show(index); schedule(); }));
+    root.addEventListener('pointerenter', () => { paused = true; schedule(); });
+    root.addEventListener('pointerleave', () => { paused = false; schedule(); });
+    root.addEventListener('focusin', () => { paused = true; schedule(); });
+    root.addEventListener('focusout', () => { paused = false; schedule(); });
+    document.addEventListener('visibilitychange', schedule);
+    new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); }, { threshold: .25 }).observe(root);
+
+    if (reduced.matches) show(2);
+    schedule();
+  })();
+</script>
+
+<style is:global>
+  .hero-art { margin: 0; }
+
+  .hero-art__frame {
+    position: relative;
+    aspect-ratio: 1162 / 1080;
+    overflow: hidden;
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius-lg);
+    background: #fbfaf7;
+    box-shadow: var(--shadow-lg);
+    isolation: isolate;
+  }
+
+  .hero-art__canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1162px;
+    height: 1080px;
+    transform: scale(var(--hero-scale, .5));
+    transform-origin: top left;
+    direction: ltr;
+  }
+
+  /* Each stage is a full layer; the incoming one wipes in from the top. */
+  .hero-art__layer.slide {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path .95s cubic-bezier(.65, 0, .25, 1);
+    pointer-events: none;
+  }
+  .hero-art__layer.is-prev { z-index: 2; clip-path: inset(0); transition: none; }
+  .hero-art__layer.is-active { z-index: 3; clip-path: inset(0); }
+
+  .hero-art__layer .visual {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .hero-art__controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-3);
+    margin-top: var(--sp-4);
+  }
+
+  .hero-art__tabs {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--c-line);
+    border-radius: var(--radius-pill);
+    background: var(--c-surface);
+    box-shadow: var(--shadow-sm);
+  }
+  .hero-art__tabs button {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--c-muted);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    transition: color var(--t-fast), background var(--t-fast);
+  }
+  .hero-art__tabs button:hover { color: var(--c-ink); }
+  .hero-art__tabs button[aria-selected='true'] { background: var(--c-ink); color: #fff; }
+  .hero-art__step {
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--c-bg-soft);
+    color: var(--c-ink);
+    font-size: .72rem;
+  }
+  .hero-art__tabs button[aria-selected='true'] .hero-art__step { background: rgba(255, 255, 255, .16); color: #fff; }
+
+  .hero-art__progress {
+    position: absolute;
+    inset-inline: 14px;
+    bottom: 3px;
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, .7);
+    transform: scaleX(0);
+    transform-origin: right;
+  }
+  .hero-art.is-running [aria-selected='true'] .hero-art__progress { animation: hero-progress 4.8s linear forwards; }
+  @keyframes hero-progress { to { transform: scaleX(1); } }
+
+  .hero-art__caption { color: var(--c-muted); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
+
+  @media (max-width: 480px) {
+    .hero-art__tabs button { padding: 7px 11px; font-size: .8rem; }
+    .hero-art__step { display: none; }
+  }
+</style>

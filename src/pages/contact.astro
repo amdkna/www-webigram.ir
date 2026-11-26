@@ -1,26 +1,10 @@
 ---
-import '../styles/base.css';
+import SiteLayout from '../layouts/SiteLayout.astro';
 import '../styles/content-pages.css';
 const base = import.meta.env.BASE_URL;
 const cmsUrl = 'https://cms.webigram.ir';
 ---
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="درخواست تماس و مشاوره با وبیگرام برای DevOps، اتوماسیون، پلتفرم، پنل سازمانی و توسعه وب." />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://webigram.ir/contact/" />
-  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  <title>درخواست تماس | Webigram</title>
-</head>
-<body>
-  <header class="cp-header"><div class="cp-shell cp-nav">
-    <a class="cp-brand" href={`${base}`}><svg viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"/></svg><span>Webigram</span></a>
-    <nav><a href={`${base}`}>خانه</a><a href={`${base}services/`}>خدمات</a><a href={`${base}portfolio/`}>نمونه کارها</a><a href={`${base}blog/`}>بلاگ</a><a class="active" href={`${base}contact/`}>تماس با ما</a></nav>
-  </div></header>
-
+<SiteLayout title={"درخواست تماس | Webigram"} description="درخواست تماس و مشاوره با وبیگرام برای DevOps، اتوماسیون، پلتفرم، پنل سازمانی و توسعه وب." current="contact">
   <main>
     <section class="cp-shell cp-hero"><div class="cp-kicker">شروع یک گفتگو</div><h1>مسئله را بگویید؛ مسیر فنی را با هم پیدا می کنیم.</h1><p>لازم نیست اسم تکنولوژی یا راه حل را بدانید. کافی است بگویید الان چه مشکلی دارید و دوست دارید در نهایت چه اتفاقی بیفتد.</p></section>
     <section class="cp-shell contact-layout">
@@ -41,7 +25,6 @@ const cmsUrl = 'https://cms.webigram.ir';
       </form>
     </section>
   </main>
-  <footer class="cp-shell cp-footer"><span>Webigram</span><span>Build · Automate · Operate</span></footer>
 
   <script define:vars={{ cmsUrl }} is:inline>
     (() => {
@@ -58,5 +41,4 @@ const cmsUrl = 'https://cms.webigram.ir';
       });
     })();
   </script>
-</body>
-</html>
+</SiteLayout>

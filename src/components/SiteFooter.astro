@@ -1,0 +1,37 @@
+---
+import BrandMark from './BrandMark.astro';
+import { mainNav, contactLink, services, toolLinks, site } from '../data/site';
+
+const year = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric' }).format(new Date());
+const pageLinks = [...mainNav.filter((item) => item.key !== 'home'), contactLink];
+---
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div class="site-footer__about">
+        <BrandMark id="footer-brand" />
+        <p>{site.description}</p>
+      </div>
+
+      <nav aria-labelledby="footer-pages">
+        <h2 id="footer-pages">وبیگرام</h2>
+        <ul>{pageLinks.map((item) => <li><a href={item.href}>{item.label}</a></li>)}</ul>
+      </nav>
+
+      <nav aria-labelledby="footer-services">
+        <h2 id="footer-services">خدمات</h2>
+        <ul>{services.map((service) => <li><a href={`/services/#${service.slug}`}>{service.title}</a></li>)}</ul>
+      </nav>
+
+      <nav aria-labelledby="footer-tools">
+        <h2 id="footer-tools">ابزارهای رایگان</h2>
+        <ul>{toolLinks.map((tool) => <li><a href={tool.href}>{tool.label}</a></li>)}</ul>
+      </nav>
+    </div>
+
+    <div class="site-footer__bottom">
+      <span>© {year} وبیگرام. همه حقوق محفوظ است.</span>
+      <span dir="ltr">Build · Automate · Operate</span>
+    </div>
+  </div>
+</footer>

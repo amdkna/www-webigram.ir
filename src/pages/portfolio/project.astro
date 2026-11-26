@@ -1,32 +1,16 @@
 ---
-import '../../styles/base.css';
+import SiteLayout from '../../layouts/SiteLayout.astro';
 import '../../styles/content-pages.css';
 const base = import.meta.env.BASE_URL;
 const cmsUrl = 'https://cms.webigram.ir';
 ---
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="robots" content="index, follow" />
-  <meta name="description" content="نمونه کار وبیگرام" data-page-description />
-  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  <title>نمونه کار | Webigram</title>
-</head>
-<body>
-  <header class="cp-header"><div class="cp-shell cp-nav">
-    <a class="cp-brand" href={`${base}`}><svg viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"/></svg><span>Webigram</span></a>
-    <nav><a href={`${base}`}>خانه</a><a href={`${base}services/`}>خدمات</a><a class="active" href={`${base}portfolio/`}>نمونه کارها</a><a href={`${base}blog/`}>بلاگ</a><a href={`${base}contact/`}>تماس</a></nav>
-  </div></header>
-
+<SiteLayout title={"نمونه کار | Webigram"} description="نمونه کار وبیگرام" current="portfolio">
   <main class="cp-shell" data-project-root>
     <section class="detail-hero"><div class="cp-kicker">CASE STUDY</div><h1 data-project-title>در حال دریافت پروژه…</h1><p data-project-summary></p><div class="detail-meta" data-project-meta></div></section>
     <img class="detail-cover" data-project-cover alt="" hidden />
     <section class="detail-layout"><article class="detail-copy" data-project-description></article><aside class="detail-side"><dl data-project-side></dl><div class="portfolio-tech" data-project-tech></div><a class="cp-button" data-project-url hidden target="_blank" rel="noopener noreferrer">مشاهده پروژه ↗</a></aside></section>
     <section class="gallery-grid" data-project-gallery></section>
   </main>
-  <footer class="cp-shell cp-footer"><span>Webigram</span><span><a href="/portfolio/">← همه نمونه کارها</a></span></footer>
 
   <script define:vars={{ cmsUrl }} is:inline>
     (() => {
@@ -64,5 +48,4 @@ const cmsUrl = 'https://cms.webigram.ir';
         }).catch(fail);
     })();
   </script>
-</body>
-</html>
+</SiteLayout>

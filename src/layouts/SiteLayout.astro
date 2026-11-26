@@ -1,0 +1,63 @@
+---
+/**
+ * The one page shell for webigram.ir: <head>, shared header and footer,
+ * and the central stylesheet. Every public page renders through this layout.
+ */
+import '../styles/site.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { site, type NavKey } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  current?: NavKey;
+  canonical?: string;
+  bodyClass?: string;
+  /** Extra attributes for <body>, e.g. data-cms-collection. */
+  bodyAttrs?: Record<string, string>;
+}
+
+const {
+  title,
+  description = site.description,
+  current,
+  canonical,
+  bodyClass,
+  bodyAttrs = {},
+} = Astro.props;
+
+// Titles that already name the brand are used as-is; others get the brand suffix.
+const fullTitle = !title
+  ? `${site.name} | ${site.tagline}`
+  : /وبیگرام|Webigram/i.test(title) ? title : `${title} | ${site.name}`;
+const canonicalUrl = canonical ?? new URL(Astro.url.pathname, site.url).href;
+---
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content={description} data-page-description data-cms-meta="description" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href={canonicalUrl} />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="fa_IR" />
+  <meta property="og:site_name" content={site.name} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonicalUrl} />
+  <title>{fullTitle}</title>
+  <slot name="head" />
+</head>
+<body class={bodyClass} {...bodyAttrs}>
+  <a class="skip-link" href="#main">رفتن به محتوای اصلی</a>
+  <SiteHeader current={current} />
+  <div class="site-main" id="main">
+    <slot />
+  </div>
+  <SiteFooter />
+</body>
+</html>
