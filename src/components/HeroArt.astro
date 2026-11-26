@@ -1,16 +1,17 @@
 ---
 /**
  * Homepage hero artwork: the same composition shown as a pencil sketch,
- * a colour design and the real product. It cycles through the three stages
- * on its own (no scroll hijacking) and scales to any screen width.
+ * a colour design and the real product. Scrolling through the parent
+ * [data-story] section wipes from one stage to the next, and the matching
+ * [data-story-copy] block is shown beside it. The artwork scales to any width.
  */
 import '../styles/composition.css';
 import Composition from './Composition.astro';
 
 const stages = [
-  { key: 'sketch', label: 'طرح اولیه', caption: 'ایده شما، نقطه آغاز است' },
-  { key: 'color', label: 'طراحی', caption: 'مسیر اجرای آن را طراحی می‌کنیم' },
-  { key: 'real', label: 'نسخه واقعی', caption: 'و آن را به واقعیت تبدیل می‌کنیم' },
+  { key: 'sketch', label: 'طرح اولیه' },
+  { key: 'color', label: 'طراحی' },
+  { key: 'real', label: 'نسخه واقعی' },
 ] as const;
 ---
 <figure class="hero-art" data-stage="0" data-hero-art>
@@ -20,7 +21,7 @@ const stages = [
 
   <div class="hero-art__frame" data-hero-frame>
     <div class="hero-art__canvas" data-hero-canvas>
-      <div class="hero-art__layer slide slide-sketch is-active" data-layer="0">
+      <div class="hero-art__layer slide slide-sketch" data-layer="0">
         <div class="visual visual-sketch"><Composition variant="sketch" /></div>
       </div>
       <div class="hero-art__layer slide slide-color" data-layer="1" aria-hidden="true">
@@ -35,77 +36,92 @@ const stages = [
   </div>
 
   <figcaption class="hero-art__controls">
-    <div class="hero-art__tabs" role="tablist" aria-label="مراحل اجرای پروژه">
+    <div class="hero-art__steps" aria-label="مراحل اجرای پروژه">
       {stages.map((stage, index) => (
-        <button type="button" role="tab" data-stage-tab={index} aria-selected={index === 0 ? 'true' : 'false'}>
+        <a href={['#sketch', '#color', '#real'][index]} data-story-jump={index} aria-current={index === 0 ? 'step' : undefined}>
           <span class="hero-art__step">{['۱', '۲', '۳'][index]}</span>{stage.label}
-          <i class="hero-art__progress" aria-hidden="true"></i>
-        </button>
+        </a>
       ))}
+      <i class="hero-art__bar" aria-hidden="true"><b data-story-bar></b></i>
     </div>
-    <p class="hero-art__caption" aria-live="polite" data-stage-caption>{stages[0].caption}</p>
   </figcaption>
 </figure>
 
-<script define:vars={{ captions: stages.map((s) => s.caption) }} is:inline>
+<script is:inline>
   (() => {
     const root = document.querySelector('[data-hero-art]');
     if (!root) return;
+    const story = root.closest('[data-story]');
     const frame = root.querySelector('[data-hero-frame]');
     const canvas = root.querySelector('[data-hero-canvas]');
     const layers = [...root.querySelectorAll('[data-layer]')];
-    const tabs = [...root.querySelectorAll('[data-stage-tab]')];
-    const caption = root.querySelector('[data-stage-caption]');
+    const steps = [...root.querySelectorAll('.hero-art__steps [data-story-jump]')];
+    const bar = root.querySelector('[data-story-bar]');
+    const copies = story ? [...story.querySelectorAll('[data-story-copy]')] : [];
     const live = root.querySelector('.live-composition');
-    const DESIGN_WIDTH = 1162;
-    const INTERVAL = 4800;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const DESIGN_WIDTH = 1162;
+    const LAST = layers.length - 1;
+    // Transitions happen over the first 80% of the scroll distance; the rest holds the real product.
+    const TRANSITION_END = .8;
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
     // Scale the fixed-size artwork to the frame.
     const fit = () => canvas.style.setProperty('--hero-scale', String(frame.clientWidth / DESIGN_WIDTH));
     new ResizeObserver(fit).observe(frame);
     fit();
 
-    let current = 0, timer = 0, visible = true, paused = false, prevTimer = 0;
+    const scrollRange = () => {
+      const pin = story.firstElementChild;
+      return Math.max(1, story.offsetHeight - pin.offsetHeight);
+    };
 
-    const show = (next) => {
-      if (next === current) return;
-      const prev = layers[current];
-      layers.forEach((layer) => layer.classList.remove('is-prev'));
-      prev.classList.remove('is-active');
-      prev.classList.add('is-prev');
-      clearTimeout(prevTimer);
-      prevTimer = setTimeout(() => prev.classList.remove('is-prev'), 1000);
-      current = next;
-      layers.forEach((layer, index) => {
-        if (index === current) layer.classList.add('is-active');
-        layer.setAttribute('aria-hidden', index === current ? 'false' : 'true');
+    let stage = -1;
+    const setStage = (next) => {
+      if (next === stage) return;
+      stage = next;
+      root.dataset.stage = story.dataset.stage = String(stage);
+      steps.forEach((step, index) => { if (index === stage) step.setAttribute('aria-current', 'step'); else step.removeAttribute('aria-current'); });
+      copies.forEach((copy, index) => {
+        const active = index === stage;
+        copy.classList.toggle('is-active', active);
+        copy.toggleAttribute('inert', !active);
+        copy.setAttribute('aria-hidden', active ? 'false' : 'true');
       });
-      tabs.forEach((tab, index) => tab.setAttribute('aria-selected', String(index === current)));
-      root.dataset.stage = String(current);
-      caption.textContent = captions[current];
-      live?.toggleAttribute('data-live-playing', current === 2 && !reduced.matches);
+      layers.forEach((layer, index) => layer.setAttribute('aria-hidden', index === stage ? 'false' : 'true'));
+      live?.toggleAttribute('data-live-playing', stage === LAST && !reduced.matches);
     };
 
-    const schedule = () => {
-      clearTimeout(timer);
-      root.classList.remove('is-running');
-      if (reduced.matches || paused || !visible || document.hidden) return;
-      void root.offsetWidth; // restart the progress bar animation
-      root.classList.add('is-running');
-      timer = setTimeout(() => { show((current + 1) % layers.length); schedule(); }, INTERVAL);
+    let raf = 0;
+    const render = () => {
+      raf = 0;
+      if (!story) { setStage(LAST); return; }
+      const raw = clamp(-story.getBoundingClientRect().top / scrollRange(), 0, 1);
+      const progress = clamp(raw / TRANSITION_END, 0, 1) * LAST;
+      // Each layer sits on top of the next one and is wiped away from the bottom up.
+      layers.forEach((layer, index) => {
+        const cover = index < LAST ? clamp(progress - index, 0, 1) : 0;
+        layer.style.clipPath = `inset(0 0 ${(cover * 100).toFixed(2)}% 0)`;
+        layer.style.zIndex = String(layers.length - index);
+      });
+      bar.style.transform = `scaleX(${(progress / LAST).toFixed(4)})`;
+      setStage(Math.round(progress));
     };
+    const queue = () => { if (!raf) raf = requestAnimationFrame(render); };
+    addEventListener('scroll', queue, { passive: true });
+    addEventListener('resize', queue);
+    window.visualViewport?.addEventListener('resize', queue);
+    render();
 
-    tabs.forEach((tab, index) => tab.addEventListener('click', () => { show(index); schedule(); }));
-    root.addEventListener('pointerenter', () => { paused = true; schedule(); });
-    root.addEventListener('pointerleave', () => { paused = false; schedule(); });
-    root.addEventListener('focusin', () => { paused = true; schedule(); });
-    root.addEventListener('focusout', () => { paused = false; schedule(); });
-    document.addEventListener('visibilitychange', schedule);
-    new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); }, { threshold: .25 }).observe(root);
-
-    if (reduced.matches) show(2);
-    schedule();
+    // Buttons and step labels jump to the scroll position of that stage.
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest('[data-story-jump]');
+      if (!link || !story) return;
+      event.preventDefault();
+      const n = clamp(Number(link.dataset.storyJump), 0, LAST);
+      const top = story.getBoundingClientRect().top + scrollY + scrollRange() * TRANSITION_END * (n / LAST);
+      scrollTo({ top: Math.ceil(top) + 1, behavior: reduced.matches ? 'auto' : 'smooth' });
+    });
   })();
 </script>
 
@@ -134,18 +150,12 @@ const stages = [
     direction: ltr;
   }
 
-  /* Each stage is a full layer; the incoming one wipes in from the top. */
   .hero-art__layer.slide {
     position: absolute;
     inset: 0;
-    z-index: 1;
-    clip-path: inset(0 0 100% 0);
-    transition: clip-path .95s cubic-bezier(.65, 0, .25, 1);
     pointer-events: none;
+    will-change: clip-path;
   }
-  .hero-art__layer.is-prev { z-index: 2; clip-path: inset(0); transition: none; }
-  .hero-art__layer.is-active { z-index: 3; clip-path: inset(0); }
-
   .hero-art__layer .visual {
     position: absolute;
     inset: 0;
@@ -154,15 +164,10 @@ const stages = [
     overflow: hidden;
   }
 
-  .hero-art__controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--sp-3);
-    margin-top: var(--sp-4);
-  }
+  .hero-art__controls { display: flex; justify-content: center; margin-top: var(--sp-4); }
 
-  .hero-art__tabs {
+  .hero-art__steps {
+    position: relative;
     display: inline-flex;
     gap: 4px;
     padding: 4px;
@@ -170,24 +175,23 @@ const stages = [
     border-radius: var(--radius-pill);
     background: var(--c-surface);
     box-shadow: var(--shadow-sm);
-  }
-  .hero-art__tabs button {
-    position: relative;
     overflow: hidden;
+  }
+  .hero-art__steps a {
+    position: relative;
+    z-index: 1;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 16px;
-    border: 0;
+    padding: 7px 15px;
     border-radius: var(--radius-pill);
-    background: transparent;
     color: var(--c-muted);
     font-size: var(--fs-sm);
     font-weight: var(--fw-bold);
     transition: color var(--t-fast), background var(--t-fast);
   }
-  .hero-art__tabs button:hover { color: var(--c-ink); }
-  .hero-art__tabs button[aria-selected='true'] { background: var(--c-ink); color: #fff; }
+  .hero-art__steps a:hover { color: var(--c-ink); }
+  .hero-art__steps a[aria-current='step'] { background: var(--c-ink); color: #fff; }
   .hero-art__step {
     display: inline-grid;
     place-items: center;
@@ -198,25 +202,22 @@ const stages = [
     color: var(--c-ink);
     font-size: .72rem;
   }
-  .hero-art__tabs button[aria-selected='true'] .hero-art__step { background: rgba(255, 255, 255, .16); color: #fff; }
+  .hero-art__steps a[aria-current='step'] .hero-art__step { background: rgba(255, 255, 255, .16); color: #fff; }
 
-  .hero-art__progress {
-    position: absolute;
-    inset-inline: 14px;
-    bottom: 3px;
-    height: 2px;
+  /* Thin progress line along the bottom of the step control. */
+  .hero-art__bar { position: absolute; inset-inline: 14px; bottom: 1px; height: 2px; }
+  .hero-art__bar b {
+    display: block;
+    height: 100%;
     border-radius: 2px;
-    background: rgba(255, 255, 255, .7);
+    background: var(--gradient-brand);
     transform: scaleX(0);
     transform-origin: right;
   }
-  .hero-art.is-running [aria-selected='true'] .hero-art__progress { animation: hero-progress 4.8s linear forwards; }
-  @keyframes hero-progress { to { transform: scaleX(1); } }
-
-  .hero-art__caption { color: var(--c-muted); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
 
   @media (max-width: 480px) {
-    .hero-art__tabs button { padding: 7px 11px; font-size: .8rem; }
+    .hero-art__controls { margin-top: var(--sp-3); }
+    .hero-art__steps a { padding: 6px 11px; font-size: .8rem; }
     .hero-art__step { display: none; }
   }
 </style>

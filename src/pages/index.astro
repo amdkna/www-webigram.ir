@@ -3,20 +3,6 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import HeroArt from '../components/HeroArt.astro';
 import { services, site } from '../data/site';
 
-const steps = [
-  {
-    title: 'ایده شما، نقطه آغاز است',
-    text: 'هر پروژه از یک نیاز، مسئله یا ایده آغاز می‌شود. شما ایده را مطرح می‌کنید؛ ما آن را بررسی می‌کنیم تا مسیر تبدیل آن به یک راهکار واقعی مشخص شود.',
-  },
-  {
-    title: 'مسیر اجرا را طراحی می‌کنیم',
-    text: 'نیازها را تحلیل می‌کنیم، ساختار و تجربه کاربری را شکل می‌دهیم و ایده را به یک طرح روشن، منسجم و قابل اجرا تبدیل می‌کنیم.',
-  },
-  {
-    title: 'آن را به واقعیت تبدیل می‌کنیم',
-    text: 'از طراحی و توسعه تا استقرار و بهبود، طرح نهایی را به یک وب‌سایت، اپلیکیشن، سامانه یا ابزار اختصاصی واقعی و قابل استفاده تبدیل می‌کنیم.',
-  },
-];
 
 const principles = [
   { title: 'اول مسئله، بعد تکنولوژی', text: 'لازم نیست بدانید چه نرم‌افزاری می‌خواهید. مسئله و نتیجه مورد انتظار را می‌شنویم و مسیر فنی را ما طراحی می‌کنیم.' },
@@ -27,47 +13,44 @@ const principles = [
 <SiteLayout description={site.description} current="home" canonical="https://webigram.ir/">
   <main>
   <!-- Hero -->
-  <section class="home-hero">
-    <div class="container home-hero__grid">
-      <div class="home-hero__copy">
-        <span class="eyebrow">وبیگرام · از ایده تا اجرای واقعی</span>
-        <h1>ایده شما را به <em class="text-gradient">واقعیت</em> تبدیل می‌کنیم</h1>
-        <p>از طراحی و توسعه تا استقرار و بهبود؛ ایده شما را به یک وب‌سایت، اپلیکیشن، سامانه یا ابزار اختصاصی واقعی و قابل استفاده تبدیل می‌کنیم.</p>
-        <div class="home-hero__actions">
-          <a class="btn btn--primary" href="/contact/">شروع همکاری <span class="arrow">←</span></a>
-          <a class="btn btn--secondary" href="/portfolio/">مشاهده نمونه‌کارها</a>
+  <!-- Scroll story: the page scrolls through sketch -> design -> real while the hero stays pinned. -->
+  <section class="home-hero" data-story aria-label="از ایده تا اجرای واقعی">
+    <div class="home-hero__pin">
+      <div class="container home-hero__grid">
+        <div class="home-hero__copy">
+          <div class="hero-copy is-active" data-story-copy="0">
+            <span class="eyebrow">مرحله ۱ · طرح اولیه</span>
+            <h1>ایده شما،<br />نقطه آغاز است</h1>
+            <p>هر پروژه از یک نیاز، مسئله یا ایده آغاز می‌شود. شما ایده را مطرح می‌کنید؛ ما آن را بررسی می‌کنیم تا مسیر تبدیل آن به یک راهکار واقعی مشخص شود.</p>
+            <div class="home-hero__actions">
+              <a class="btn btn--primary" href="#color" data-story-jump="1">مشاهده مسیر اجرا <span class="arrow">←</span></a>
+              <a class="btn btn--secondary" href="/services/">آشنایی با خدمات ما</a>
+            </div>
+          </div>
+          <div class="hero-copy" data-story-copy="1" aria-hidden="true">
+            <span class="eyebrow">مرحله ۲ · طراحی</span>
+            <h2>ما مسیر اجرای آن را<br /><em class="text-gradient">طراحی می‌کنیم</em></h2>
+            <p>نیازها را تحلیل می‌کنیم، ساختار و تجربه کاربری را شکل می‌دهیم و ایده را به یک طرح روشن، منسجم و قابل اجرا تبدیل می‌کنیم.</p>
+            <div class="home-hero__actions">
+              <a class="btn btn--primary" href="#real" data-story-jump="2">مشاهده نتیجه <span class="arrow">←</span></a>
+              <a class="btn btn--secondary" href="/services/">آشنایی با خدمات ما</a>
+            </div>
+          </div>
+          <div class="hero-copy" data-story-copy="2" aria-hidden="true">
+            <span class="eyebrow">مرحله ۳ · نسخه واقعی</span>
+            <h2>ایده شما را به<br /><em class="text-gradient">واقعیت تبدیل می‌کنیم</em></h2>
+            <p>از طراحی و توسعه تا استقرار و بهبود، طرح نهایی را به یک وب‌سایت، اپلیکیشن، سامانه یا ابزار اختصاصی واقعی و قابل استفاده تبدیل می‌کنیم.</p>
+            <div class="home-hero__actions">
+              <a class="btn btn--primary" href="/contact/">شروع همکاری <span class="arrow">←</span></a>
+              <a class="btn btn--secondary" href="/portfolio/">مشاهده نمونه‌کارها</a>
+            </div>
+          </div>
         </div>
-        <ul class="home-hero__facts" aria-label="حوزه‌های کاری">
-          <li>DevOps و زیرساخت</li>
-          <li>اتوماسیون</li>
-          <li>پلتفرم و وب</li>
-          <li>هوش مصنوعی</li>
-        </ul>
-      </div>
-      <div class="home-hero__art">
-        <HeroArt />
-      </div>
-    </div>
-  </section>
-
-  <!-- Process -->
-  <section class="section section--soft" id="process" aria-labelledby="process-title">
-    <div class="container">
-      <header class="section-head">
-        <div>
-          <span class="eyebrow">مسیر اجرا</span>
-          <h2 id="process-title">از ایده تا محصول، در سه قدم روشن</h2>
+        <div class="home-hero__art">
+          <HeroArt />
         </div>
-      </header>
-      <ol class="steps">
-        {steps.map((step, index) => (
-          <li class="card step">
-            <span class="step__num">{String(index + 1).padStart(2, '0')}</span>
-            <h3>{step.title}</h3>
-            <p>{step.text}</p>
-          </li>
-        ))}
-      </ol>
+      </div>
+      <span class="home-hero__hint" aria-hidden="true">اسکرول کنید</span>
     </div>
   </section>
 
@@ -181,48 +164,6 @@ const principles = [
 </SiteLayout>
 
 <style>
-  /* Hero */
-  .home-hero { padding-block: clamp(32px, 6vw, 80px) clamp(56px, 8vw, 104px); overflow: hidden; }
-  .home-hero__grid {
-    display: grid;
-    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
-    align-items: center;
-    gap: clamp(32px, 5vw, 72px);
-  }
-  .home-hero__copy h1 { font-size: var(--fs-h1); line-height: 1.2; }
-  .home-hero__copy p { max-width: 520px; margin-top: var(--sp-5); font-size: var(--fs-md); }
-  .home-hero__actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-top: var(--sp-6); }
-  .home-hero__facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--sp-2) var(--sp-5);
-    margin: var(--sp-7) 0 0;
-    padding: var(--sp-5) 0 0;
-    border-top: 1px solid var(--c-line);
-    list-style: none;
-    color: var(--c-muted);
-    font-size: var(--fs-sm);
-    font-weight: var(--fw-bold);
-  }
-  .home-hero__facts li { display: inline-flex; align-items: center; gap: var(--sp-2); }
-  .home-hero__facts li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--gradient-brand); }
-
-  /* Process */
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); margin: 0; padding: 0; list-style: none; }
-  .step { padding: var(--sp-6); }
-  .step__num {
-    display: inline-grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    margin-bottom: var(--sp-5);
-    border-radius: var(--radius);
-    background: var(--c-primary-soft);
-    color: var(--c-primary);
-    font-weight: var(--fw-black);
-  }
-  .step h3 { font-size: var(--fs-h3); margin-bottom: var(--sp-3); }
-
   /* Services */
   .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); }
   .service-tile { display: flex; flex-direction: column; padding: var(--sp-6); }
@@ -290,19 +231,105 @@ const principles = [
     .service-grid, .project-grid { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 900px) {
-    .home-hero__grid { grid-template-columns: 1fr; }
-    .home-hero__copy { text-align: center; }
-    .home-hero__copy p { margin-inline: auto; }
-    .home-hero__actions, .home-hero__facts { justify-content: center; }
-    .home-hero__copy .eyebrow::before { display: none; }
-    .home-hero__art { max-width: 640px; width: 100%; margin-inline: auto; }
-    .steps { grid-template-columns: 1fr; }
     .about { grid-template-columns: 1fr; }
   }
   @media (max-width: 600px) {
     .service-grid, .project-grid { grid-template-columns: 1fr; }
-    .home-hero__actions .btn { flex: 1 1 100%; }
-    .home-hero__facts { display: none; }
-    .step, .service-tile { padding: var(--sp-5); }
+    .service-tile { padding: var(--sp-5); }
+  }
+</style>
+
+<style>
+  /* Scroll story hero: the section is three screens tall and its content stays pinned,
+     so scrolling moves the artwork from sketch to design to the real product. */
+  .home-hero { position: relative; height: 300svh; }
+  .home-hero__pin {
+    position: sticky;
+    top: var(--header-h);
+    height: calc(100svh - var(--header-h));
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+  .home-hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: clamp(32px, 5vw, 72px);
+  }
+
+  .home-hero__copy { display: grid; }
+  .hero-copy {
+    grid-area: 1 / 1;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(16px);
+    transition: opacity .45s var(--ease), transform .45s var(--ease), visibility .45s;
+  }
+  .hero-copy.is-active { opacity: 1; visibility: visible; transform: none; }
+  .hero-copy h1, .hero-copy h2 { font-size: var(--fs-h1); line-height: 1.2; }
+  .hero-copy p { max-width: 520px; margin-top: var(--sp-5); font-size: var(--fs-md); }
+  .home-hero__actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-top: var(--sp-6); }
+
+  /* The artwork is sized by the available height so the whole stage always fits on screen. */
+  .home-hero__art {
+    width: min(100%, calc((100svh - var(--header-h) - 150px) * 1.076));
+    justify-self: center;
+  }
+
+  .home-hero__hint {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    color: var(--c-muted);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    transition: opacity .3s;
+  }
+  .home-hero__hint::after {
+    content: '';
+    width: 2px;
+    height: 22px;
+    border-radius: 2px;
+    background: linear-gradient(var(--c-primary), transparent);
+    animation: hint-drop 1.6s ease-in-out infinite;
+  }
+  .home-hero:not([data-stage='0']) .home-hero__hint { opacity: 0; }
+  @keyframes hint-drop { 0% { transform: translateY(-6px); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(6px); opacity: 0; } }
+
+  @media (max-height: 760px) and (min-width: 901px) {
+    .home-hero__hint { display: none; }
+  }
+
+  /* Phones and tablets: copy on top, artwork below, both inside one pinned screen. */
+  @media (max-width: 900px) {
+    .home-hero__pin { align-items: flex-start; padding-top: clamp(12px, 3svh, 32px); }
+    .home-hero__grid { grid-template-columns: 1fr; gap: clamp(12px, 2.5svh, 24px); }
+    .hero-copy { text-align: center; }
+    .hero-copy .eyebrow { margin-bottom: var(--sp-2); }
+    .hero-copy .eyebrow::before { display: none; }
+    .hero-copy h1, .hero-copy h2 { font-size: clamp(1.65rem, 7vw, 2.6rem); }
+    .hero-copy p {
+      margin: var(--sp-3) auto 0;
+      font-size: .93rem;
+      line-height: 1.8;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .home-hero__actions { justify-content: center; gap: var(--sp-2); margin-top: var(--sp-4); }
+    .home-hero__actions .btn { min-height: 42px; padding: 0 16px; font-size: .9rem; }
+    .home-hero__art { width: min(100%, 560px, calc((100svh - var(--header-h) - 380px) * 1.076)); }
+    .home-hero__hint { display: none; }
+  }
+  @media (max-width: 900px) and (max-height: 700px) {
+    .hero-copy p { -webkit-line-clamp: 2; }
+    .home-hero__art { width: min(100%, calc((100svh - var(--header-h) - 330px) * 1.076)); }
   }
 </style>
