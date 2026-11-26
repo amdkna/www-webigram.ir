@@ -10,7 +10,7 @@ const animated = real && live;
 const color = variant !== 'sketch';
 const prefix = variant;
 const mountainPhoto = `${import.meta.env.BASE_URL}images/mountain-stage3.jpg`;
-const visualLabel = real ? 'اجزای نسخه واقعی و زنده وبیگرام' : color ? 'اجزای مستقل نسخه رنگی وبیگرام' : 'اجزای مستقل طرح اولیه وبیگرام';
+const visualLabel = real ? 'اجزای نسخه واقعی و زنده وبیگرام' : color ? 'اجزای مستقل نسخه رنگی وبیگرام' : 'اجزای مستقل ایده اولیه وبیگرام';
 ---
 
 <div class:list={['sketch-composition', color && 'color-composition', real && 'real-content-composition', animated && 'live-composition']} aria-label={visualLabel} inert={animated}>

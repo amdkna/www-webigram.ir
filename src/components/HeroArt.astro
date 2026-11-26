@@ -9,7 +9,7 @@ import '../styles/composition.css';
 import Composition from './Composition.astro';
 
 const stages = [
-  { key: 'sketch', label: 'طرح اولیه' },
+  { key: 'sketch', label: 'ایده اولیه' },
   { key: 'color', label: 'طراحی' },
   { key: 'real', label: 'نسخه واقعی' },
 ] as const;
@@ -81,6 +81,8 @@ const stages = [
       if (next === stage) return;
       stage = next;
       root.dataset.stage = story.dataset.stage = String(stage);
+      // The first stage ("idea") is shown in greyscale across the whole page chrome (see site.css).
+      document.documentElement.dataset.heroStage = String(stage);
       steps.forEach((step, index) => { if (index === stage) step.setAttribute('aria-current', 'step'); else step.removeAttribute('aria-current'); });
       copies.forEach((copy, index) => {
         const active = index === stage;
@@ -126,7 +128,7 @@ const stages = [
 </script>
 
 <style is:global>
-  .hero-art { margin: 0; }
+  .hero-art { position: relative; margin: 0; }
 
   .hero-art__frame {
     position: relative;
@@ -164,7 +166,17 @@ const stages = [
     overflow: hidden;
   }
 
-  .hero-art__controls { display: flex; justify-content: center; margin-top: var(--sp-4); }
+  /* Stage control floats over the bottom of the artwork, like the original progress dots. */
+  .hero-art__controls {
+    position: absolute;
+    z-index: 5;
+    inset-inline: 0;
+    bottom: clamp(10px, 2.5%, 24px);
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .hero-art__steps { pointer-events: auto; background: rgba(255, 255, 255, .88) !important; backdrop-filter: blur(10px); }
 
   .hero-art__steps {
     position: relative;
@@ -216,7 +228,6 @@ const stages = [
   }
 
   @media (max-width: 480px) {
-    .hero-art__controls { margin-top: var(--sp-3); }
     .hero-art__steps a { padding: 6px 11px; font-size: .8rem; }
     .hero-art__step { display: none; }
   }

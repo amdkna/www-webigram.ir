@@ -83,6 +83,20 @@ button { cursor: pointer; }
 
 .site-main { min-height: 60vh; }
 
+/* ---------- Homepage "idea" stage: greyscale chrome ----------
+   While the homepage hero shows its first (pencil sketch) stage, the logo, menu,
+   buttons and accents turn greyscale. HeroArt sets data-hero-stage on <html>. */
+html[data-hero-stage='0'] {
+  --c-primary: #1c1c1c;
+  --c-primary-hover: #000;
+  --c-primary-soft: rgba(0, 0, 0, .06);
+  --c-violet: #6e6e6e;
+  --gradient-brand: linear-gradient(120deg, #1c1c1c 0%, #7a7a7a 100%);
+}
+html[data-hero-stage='0'] .brand-mark stop:first-child { stop-color: #1c1c1c; }
+html[data-hero-stage='0'] .brand-mark stop:last-child { stop-color: #6e6e6e; }
+html[data-hero-stage='0'] .btn--primary { box-shadow: 0 8px 20px rgba(0, 0, 0, .16); }
+
 /* ---------- Text helpers ---------- */
 .eyebrow {
   display: inline-flex;
@@ -235,11 +249,11 @@ a.card:hover, .card--hover:hover {
   gap: var(--sp-6);
 }
 
+/* Menu sits right next to the logo; the contact button is pushed to the far side. */
 .site-nav {
   display: flex;
   align-items: center;
   gap: var(--sp-1);
-  margin-inline-start: auto;
 }
 .site-nav a {
   position: relative;
@@ -262,7 +276,7 @@ a.card:hover, .card--hover:hover {
   background: var(--c-primary);
 }
 
-.site-header__cta { margin-inline-start: var(--sp-2); }
+.site-header__cta { margin-inline-start: auto; }
 
 .nav-toggle {
   display: none;

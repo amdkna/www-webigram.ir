@@ -7,7 +7,7 @@ export const site = {
   cmsUrl: 'https://cms.webigram.ir',
   tagline: 'از ایده تا اجرای واقعی',
   description:
-    'وبیگرام ایده شما را از طرح اولیه تا یک راهکار دیجیتال واقعی همراهی می‌کند؛ از DevOps و اتوماسیون تا پلتفرم، پنل سازمانی و وب‌سایت.',
+    'وبیگرام ایده شما را از ایده اولیه تا یک راهکار دیجیتال واقعی همراهی می‌کند؛ از DevOps و اتوماسیون تا پلتفرم، پنل سازمانی و وب‌سایت.',
 };
 
 export type NavKey = 'home' | 'services' | 'portfolio' | 'blog' | 'tools' | 'about' | 'contact';
