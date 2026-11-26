@@ -35,15 +35,10 @@ const stages = [
     </div>
   </div>
 
-  <figcaption class="hero-art__controls">
-    <div class="hero-art__steps" aria-label="مراحل اجرای پروژه">
-      {stages.map((stage, index) => (
-        <a href={['#sketch', '#color', '#real'][index]} data-story-jump={index} aria-current={index === 0 ? 'step' : undefined}>
-          <span class="hero-art__step">{['۱', '۲', '۳'][index]}</span>{stage.label}
-        </a>
-      ))}
-      <i class="hero-art__bar" aria-hidden="true"><b data-story-bar></b></i>
-    </div>
+  <figcaption class="hero-art__dots" aria-label="مراحل اجرای پروژه">
+    {stages.map((stage, index) => (
+      <a href={['#sketch', '#color', '#real'][index]} data-story-jump={index} aria-label={stage.label} aria-current={index === 0 ? 'step' : undefined}></a>
+    ))}
   </figcaption>
 </figure>
 
@@ -55,8 +50,7 @@ const stages = [
     const frame = root.querySelector('[data-hero-frame]');
     const canvas = root.querySelector('[data-hero-canvas]');
     const layers = [...root.querySelectorAll('[data-layer]')];
-    const steps = [...root.querySelectorAll('.hero-art__steps [data-story-jump]')];
-    const bar = root.querySelector('[data-story-bar]');
+    const steps = [...root.querySelectorAll('.hero-art__dots [data-story-jump]')];
     const copies = story ? [...story.querySelectorAll('[data-story-copy]')] : [];
     const live = root.querySelector('.live-composition');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -106,8 +100,9 @@ const stages = [
         layer.style.clipPath = `inset(0 0 ${(cover * 100).toFixed(2)}% 0)`;
         layer.style.zIndex = String(layers.length - index);
       });
-      bar.style.transform = `scaleX(${(progress / LAST).toFixed(4)})`;
       setStage(Math.round(progress));
+      // Desktop homepage header sits over the text column while the hero is pinned.
+      document.documentElement.dataset.header = story.getBoundingClientRect().bottom > innerHeight + 1 ? 'hero' : '';
     };
     const queue = () => { if (!raf) raf = requestAnimationFrame(render); };
     addEventListener('scroll', queue, { passive: true });
@@ -166,69 +161,29 @@ const stages = [
     overflow: hidden;
   }
 
-  /* Stage control floats over the bottom of the artwork, like the original progress dots. */
-  .hero-art__controls {
+  /* Stage dots float over the bottom of the artwork, like the original. */
+  .hero-art__dots {
     position: absolute;
     z-index: 5;
-    inset-inline: 0;
-    bottom: clamp(10px, 2.5%, 24px);
+    left: 50%;
+    bottom: clamp(10px, 3%, 28px);
+    transform: translateX(-50%);
     display: flex;
-    justify-content: center;
-    pointer-events: none;
-  }
-  .hero-art__steps { pointer-events: auto; background: rgba(255, 255, 255, .88) !important; backdrop-filter: blur(10px); }
-
-  .hero-art__steps {
-    position: relative;
-    display: inline-flex;
-    gap: 4px;
-    padding: 4px;
-    border: 1px solid var(--c-line);
+    gap: 7px;
+    padding: 7px 9px;
     border-radius: var(--radius-pill);
-    background: var(--c-surface);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
+    background: rgba(255, 255, 255, .78);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(14, 18, 48, .08);
+    direction: ltr;
   }
-  .hero-art__steps a {
-    position: relative;
-    z-index: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 15px;
+  .hero-art__dots a {
+    width: 9px;
+    height: 9px;
     border-radius: var(--radius-pill);
-    color: var(--c-muted);
-    font-size: var(--fs-sm);
-    font-weight: var(--fw-bold);
-    transition: color var(--t-fast), background var(--t-fast);
+    background: rgba(14, 18, 48, .22);
+    transition: width .3s var(--ease), background .3s;
   }
-  .hero-art__steps a:hover { color: var(--c-ink); }
-  .hero-art__steps a[aria-current='step'] { background: var(--c-ink); color: #fff; }
-  .hero-art__step {
-    display: inline-grid;
-    place-items: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--c-bg-soft);
-    color: var(--c-ink);
-    font-size: .72rem;
-  }
-  .hero-art__steps a[aria-current='step'] .hero-art__step { background: rgba(255, 255, 255, .16); color: #fff; }
-
-  /* Thin progress line along the bottom of the step control. */
-  .hero-art__bar { position: absolute; inset-inline: 14px; bottom: 1px; height: 2px; }
-  .hero-art__bar b {
-    display: block;
-    height: 100%;
-    border-radius: 2px;
-    background: var(--gradient-brand);
-    transform: scaleX(0);
-    transform-origin: right;
-  }
-
-  @media (max-width: 480px) {
-    .hero-art__steps a { padding: 6px 11px; font-size: .8rem; }
-    .hero-art__step { display: none; }
-  }
-</style>
+  .hero-art__dots a[aria-current='step'] { width: 30px; background: var(--c-ink); }
+  .hero-art[data-stage='1'] .hero-art__dots a[aria-current='step'] { background: #315cff; }
+  .hero-art[data-stage='2'] .hero-art__dots a[aria-current='step'] { background: #7b43ff; }</style>

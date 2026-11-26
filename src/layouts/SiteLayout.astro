@@ -16,6 +16,8 @@ interface Props {
   bodyClass?: string;
   /** Extra attributes for <body>, e.g. data-cms-collection. */
   bodyAttrs?: Record<string, string>;
+  /** Extra attributes for <html>, e.g. the homepage's hero header mode. */
+  htmlAttrs?: Record<string, string>;
 }
 
 const {
@@ -25,6 +27,7 @@ const {
   canonical,
   bodyClass,
   bodyAttrs = {},
+  htmlAttrs = {},
 } = Astro.props;
 
 // Titles that already name the brand are used as-is; others get the brand suffix.
@@ -34,7 +37,7 @@ const fullTitle = !title
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, site.url).href;
 ---
 <!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" {...htmlAttrs}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />

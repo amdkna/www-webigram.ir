@@ -15,8 +15,9 @@ const { current } = Astro.props;
 
     <nav class="site-nav" id="site-nav" aria-label="منوی اصلی">
       {mainNav.map((item) => (
-        <a href={item.href} aria-current={item.key === current ? 'page' : undefined}>{item.label}</a>
+        <a href={item.href} data-nav={item.key} aria-current={item.key === current ? 'page' : undefined}>{item.label}</a>
       ))}
+      <a class="site-nav__contact" href={contactLink.href}>{contactLink.label}</a>
       <a class="btn btn--primary site-nav__cta" href={contactLink.href} aria-current={current === 'contact' ? 'page' : undefined}>{contactLink.label}</a>
     </nav>
 

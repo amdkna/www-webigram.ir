@@ -10,16 +10,16 @@ const principles = [
   { title: 'ساخته‌شده برای ماندن', text: 'راهکاری می‌سازیم که قابل اتکا، قابل توسعه و قابل نگهداری باشد؛ نه فقط برای روز تحویل.' },
 ];
 ---
-<SiteLayout description={site.description} current="home" canonical="https://webigram.ir/">
+<SiteLayout description={site.description} current="home" canonical="https://webigram.ir/" htmlAttrs={{ class: 'is-home', 'data-header': 'hero', 'data-hero-stage': '0' }}>
   <main>
   <!-- Hero -->
   <!-- Scroll story: the page scrolls through sketch -> design -> real while the hero stays pinned. -->
   <section class="home-hero" data-story aria-label="از ایده تا اجرای واقعی">
     <div class="home-hero__pin">
-      <div class="container home-hero__grid">
+      <div class="home-hero__frame">
         <div class="home-hero__copy">
+          <i class="hero-rule" aria-hidden="true"></i>
           <div class="hero-copy is-active" data-story-copy="0">
-            <span class="eyebrow">مرحله ۱ · ایده اولیه</span>
             <h1>ایده شما،<br />نقطه آغاز است</h1>
             <p>هر پروژه از یک نیاز، مسئله یا ایده آغاز می‌شود. شما ایده را مطرح می‌کنید؛ ما آن را بررسی می‌کنیم تا مسیر تبدیل آن به یک راهکار واقعی مشخص شود.</p>
             <div class="home-hero__actions">
@@ -28,7 +28,6 @@ const principles = [
             </div>
           </div>
           <div class="hero-copy" data-story-copy="1" aria-hidden="true">
-            <span class="eyebrow">مرحله ۲ · طراحی</span>
             <h2>ما مسیر اجرای آن را<br /><em class="text-gradient">طراحی می‌کنیم</em></h2>
             <p>نیازها را تحلیل می‌کنیم، ساختار و تجربه کاربری را شکل می‌دهیم و ایده را به یک طرح روشن، منسجم و قابل اجرا تبدیل می‌کنیم.</p>
             <div class="home-hero__actions">
@@ -37,7 +36,6 @@ const principles = [
             </div>
           </div>
           <div class="hero-copy" data-story-copy="2" aria-hidden="true">
-            <span class="eyebrow">مرحله ۳ · نسخه واقعی</span>
             <h2>ایده شما را به<br /><em class="text-gradient">واقعیت تبدیل می‌کنیم</em></h2>
             <p>از طراحی و توسعه تا استقرار و بهبود، طرح نهایی را به یک وب‌سایت، اپلیکیشن، سامانه یا ابزار اختصاصی واقعی و قابل استفاده تبدیل می‌کنیم.</p>
             <div class="home-hero__actions">
@@ -50,7 +48,6 @@ const principles = [
           <HeroArt />
         </div>
       </div>
-      <span class="home-hero__hint" aria-hidden="true">اسکرول کنید</span>
     </div>
   </section>
 
@@ -230,7 +227,7 @@ const principles = [
   @media (max-width: 1024px) {
     .service-grid, .project-grid { grid-template-columns: repeat(2, 1fr); }
   }
-  @media (max-width: 900px) {
+  @media (max-width: 960px) {
     .about { grid-template-columns: 1fr; }
   }
   @media (max-width: 600px) {
@@ -240,86 +237,95 @@ const principles = [
 </style>
 
 <style>
-  /* Scroll story hero: the section is three screens tall and its content stays pinned,
-     so scrolling moves the artwork from idea to design to the real product.
-     Desktop mirrors the original layout: artwork fills the left 60% edge to edge, copy on the right. */
+  /* Scroll story hero, built on the original geometry: a 1.777:1 frame centred in the
+     viewport, artwork filling the left 60.5% edge to edge, copy in the right 39.5%.
+     The section is three screens tall; scrolling wipes idea -> design -> real. */
   .home-hero { position: relative; height: 300svh; }
-  .home-hero__pin {
-    position: sticky;
-    top: var(--header-h);
-    height: calc(100svh - var(--header-h));
-    overflow: hidden;
+  .home-hero__pin { position: sticky; top: 0; height: 100svh; overflow: hidden; background: var(--c-bg); }
+  .home-hero__frame {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--hero-fw);
+    height: var(--hero-fh);
+    transform: translate(-50%, -50%);
   }
-  .home-hero__grid.container {
-    width: 100%;
-    height: 100%;
-    display: grid;
-    grid-template-columns: minmax(0, 39.5fr) minmax(0, 60.5fr);
-    align-items: center;
-  }
+  .home-hero__art { position: absolute; left: 0; top: 0; width: 60.5%; height: 100%; }
+  .home-hero__art :global(.hero-art),
+  .home-hero__art :global(.hero-art__frame) { width: 100%; height: 100%; }
+  .home-hero__art :global(.hero-art__frame) { aspect-ratio: auto; border: 0; border-radius: 0; box-shadow: none; }
 
   .home-hero__copy {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 39.5%;
+    height: 100%;
     display: grid;
-    padding-inline-start: max(var(--gutter), (100vw - var(--container)) / 2);
-    padding-inline-end: clamp(20px, 3vw, 48px);
+    grid-template-rows: auto 1fr;
+    padding: calc(var(--hero-fh) * .25) calc(var(--hero-fw) * .0285) 0 calc(var(--hero-fw) * .02);
+  }
+  .hero-rule {
+    display: block;
+    height: 2px;
+    margin-bottom: calc(var(--hero-fh) * .045);
+    background: repeating-linear-gradient(90deg, var(--c-ink) 0 4px, transparent 4px 8px);
+    opacity: .18;
   }
   .hero-copy {
-    grid-area: 1 / 1;
+    grid-area: 2 / 1;
     opacity: 0;
     visibility: hidden;
     transform: translateY(16px);
     transition: opacity .45s var(--ease), transform .45s var(--ease), visibility .45s;
   }
   .hero-copy.is-active { opacity: 1; visibility: visible; transform: none; }
-  .hero-copy h1, .hero-copy h2 { font-size: clamp(2.3rem, .6rem + 3.6vw, 4.6rem); line-height: 1.2; }
-  .hero-copy p { max-width: 560px; margin-top: var(--sp-5); font-size: var(--fs-md); }
-  .home-hero__actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-top: var(--sp-6); }
-
-  /* Artwork: as large as the pinned screen allows, flush with the left edge. */
-  .home-hero__art { height: 100%; display: flex; align-items: center; justify-content: flex-end; }
-  .home-hero__art :global(.hero-art) { width: min(100%, calc((100svh - var(--header-h)) * 1.076)); }
-  .home-hero__art :global(.hero-art__frame) { border: 0; border-radius: 0; box-shadow: none; }
-
-  .home-hero__hint {
-    position: absolute;
-    bottom: 22px;
-    right: max(var(--gutter), (100vw - var(--container)) / 2);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--c-muted);
-    font-size: var(--fs-xs);
-    font-weight: var(--fw-bold);
-    transition: opacity .3s;
+  .hero-copy h1, .hero-copy h2 {
+    font-size: clamp(2.2rem, calc(var(--hero-fw) * .039), 4.9rem);
+    font-weight: 900;
+    line-height: 1.18;
+    letter-spacing: -.03em;
   }
-  .home-hero__hint::before {
-    content: '';
-    width: 2px;
-    height: 22px;
-    border-radius: 2px;
-    background: linear-gradient(var(--c-primary), transparent);
-    animation: hint-drop 1.6s ease-in-out infinite;
+  .hero-copy p {
+    margin-top: calc(var(--hero-fh) * .035);
+    font-size: clamp(.92rem, calc(var(--hero-fw) * .0108), 1.25rem);
+    line-height: 2;
   }
-  .home-hero:not([data-stage='0']) .home-hero__hint { opacity: 0; }
-  @keyframes hint-drop { 0% { transform: translateY(-6px); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(6px); opacity: 0; } }
+  .home-hero__actions { display: flex; flex-wrap: nowrap; gap: var(--sp-3); margin-top: calc(var(--hero-fh) * .045); }
+  .home-hero__actions .btn {
+    min-height: clamp(44px, calc(var(--hero-fh) * .058), 58px);
+    padding-inline: clamp(14px, calc(var(--hero-fw) * .012), 24px);
+    font-size: clamp(.85rem, calc(var(--hero-fw) * .0095), 1.05rem);
+  }
 
-  /* Phones and tablets: copy on top, artwork edge to edge below, both inside one pinned screen. */
-  @media (max-width: 900px) {
-    .home-hero__grid.container {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto auto;
-      align-content: center;
-      align-items: start;
+  /* Phones and tablets: copy on top, artwork edge to edge below, inside one pinned screen. */
+  @media (max-width: 960px) {
+    .home-hero__pin { top: var(--header-h); height: calc(100svh - var(--header-h)); }
+    .home-hero__frame {
+      position: static;
+      transform: none;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       gap: clamp(12px, 2.5svh, 24px);
-      padding-top: clamp(12px, 3svh, 32px);
     }
-    .home-hero__copy { padding-inline: var(--gutter); }
-    .hero-copy { text-align: center; }
-    .hero-copy .eyebrow { margin-bottom: var(--sp-2); }
-    .hero-copy .eyebrow::before { display: none; }
+    .home-hero__copy {
+      position: static;
+      order: -1;
+      width: 100%;
+      height: auto;
+      padding: 0 var(--gutter);
+      grid-template-rows: auto;
+      text-align: center;
+    }
+    .hero-rule { display: none; }
+    .hero-copy { grid-area: 1 / 1; }
     .hero-copy h1, .hero-copy h2 { font-size: clamp(1.65rem, 7vw, 2.6rem); }
     .hero-copy p {
       margin: var(--sp-3) auto 0;
+      max-width: 520px;
       font-size: .93rem;
       line-height: 1.8;
       display: -webkit-box;
@@ -329,12 +335,16 @@ const principles = [
     }
     .home-hero__actions { justify-content: center; gap: var(--sp-2); margin-top: var(--sp-4); }
     .home-hero__actions .btn { min-height: 42px; padding: 0 16px; font-size: .9rem; }
-    .home-hero__art { height: auto; justify-content: center; align-items: flex-start; }
-    .home-hero__art :global(.hero-art) { width: min(100%, 640px, calc((100svh - var(--header-h) - 300px) * 1.076)); }
-    .home-hero__hint { display: none; }
+    .home-hero__art {
+      position: relative;
+      align-self: center;
+      width: min(100%, 640px, calc((100svh - var(--header-h) - 300px) * 1.076));
+      height: auto;
+      aspect-ratio: 1162 / 1080;
+    }
   }
-  @media (max-width: 900px) and (max-height: 700px) {
+  @media (max-width: 960px) and (max-height: 700px) {
     .hero-copy p { -webkit-line-clamp: 2; }
-    .home-hero__art :global(.hero-art) { width: min(100%, calc((100svh - var(--header-h) - 270px) * 1.076)); }
+    .home-hero__art { width: min(100%, calc((100svh - var(--header-h) - 270px) * 1.076)); }
   }
 </style>
