@@ -288,14 +288,25 @@ const principles = [
   }
   .hero-copy p {
     margin-top: calc(var(--hero-fh) * .035);
-    font-size: clamp(.92rem, calc(var(--hero-fw) * .0108), 1.25rem);
+    font-size: clamp(.92rem, calc(var(--hero-fw) * .0108), 1.5rem);
     line-height: 2;
   }
   .home-hero__actions { display: flex; flex-wrap: nowrap; gap: var(--sp-3); margin-top: calc(var(--hero-fh) * .045); }
   .home-hero__actions .btn {
-    min-height: clamp(44px, calc(var(--hero-fh) * .058), 58px);
-    padding-inline: clamp(14px, calc(var(--hero-fw) * .012), 24px);
-    font-size: clamp(.85rem, calc(var(--hero-fw) * .0095), 1.05rem);
+    min-height: clamp(44px, calc(var(--hero-fh) * .058), 68px);
+    padding-inline: clamp(14px, calc(var(--hero-fw) * .012), 30px);
+    font-size: clamp(.85rem, calc(var(--hero-fw) * .0095), 1.25rem);
+  }
+
+  /* Small laptops: the normal menu bar stays on top, so the hero frame fits below it. */
+  @media (min-width: 961px) and (max-width: 1199px) {
+    .home-hero { margin-top: var(--header-h); }
+    .home-hero__pin {
+      top: var(--header-h);
+      height: calc(100svh - var(--header-h));
+      --hero-fw: min(100vw, (100svh - var(--header-h)) * 1.776833);
+      --hero-fh: min(100svh - var(--header-h), 100vw / 1.776833);
+    }
   }
 
   /* Phones and tablets: copy on top, artwork edge to edge below, inside one pinned screen. */

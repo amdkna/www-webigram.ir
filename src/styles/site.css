@@ -367,6 +367,9 @@ a.card:hover, .card--hover:hover {
 @media (min-width: 961px) {
   html.is-home .site-header { position: fixed; inset: 0 0 auto; }
   html.is-home:not([data-header='hero']) .site-header { animation: header-slide-in .4s var(--ease) both; }
+}
+/* The floating hero header needs room for logo and menu, so it starts at 1200px. */
+@media (min-width: 1200px) {
   @keyframes header-slide-in { from { transform: translateY(-100%); opacity: 0; } to { transform: none; opacity: 1; } }
   html[data-header='hero'] .site-header {
     left: calc(50vw - var(--hero-fw) / 2 + var(--hero-fw) * .605);
@@ -390,7 +393,7 @@ a.card:hover, .card--hover:hover {
   html[data-header='hero'] .site-nav { gap: 0; }
   html[data-header='hero'] .site-nav a {
     padding: 6px calc(var(--hero-fw) * .0042);
-    font-size: calc(var(--hero-fw) * .0093);
+    font-size: max(.8rem, calc(var(--hero-fw) * .0093));
     white-space: nowrap;
   }
   html[data-header='hero'] .brand { font-size: calc(var(--hero-fw) * .0128); gap: calc(var(--hero-fw) * .005); }

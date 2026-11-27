@@ -92,7 +92,7 @@ const stages = [
     // and scrolls away together with the hero. Once it has left the screen, the normal
     // full-width bar slides in from the top (see site.css). Scrolling back reverses it.
     const header = document.querySelector('[data-site-header]');
-    const desktop = matchMedia('(min-width: 961px)');
+    const desktop = matchMedia('(min-width: 1200px)');
     const placeHeader = () => {
       const html = document.documentElement;
       if (!header || !desktop.matches) {
