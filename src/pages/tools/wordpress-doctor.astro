@@ -1,29 +1,12 @@
 ---
+import SiteLayout from '../../layouts/SiteLayout.astro';
 import '../../styles/public-tools.css';
 import '../../styles/website-doctor.css';
 import '../../styles/wordpress-doctor.css';
 const base = import.meta.env.BASE_URL;
 ---
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#f4f6fb" />
-  <meta name="description" content="دکتر وردپرس وبیگرام؛ تست امنیت، نسخه‌ها، REST API، Cron، Cache، ایمیل، WooCommerce، SEO و سلامت WordPress با Quick Scan و Deep Scan." />
-  <link rel="icon" type="image/svg+xml" href={base + 'favicon.svg'} />
-  <link rel="canonical" href="https://webigram.ir/tools/wordpress-doctor/" />
-  <title>دکتر وردپرس | تست امنیت و سلامت WordPress</title>
-</head>
-<body class="wpd-page">
-<header class="tools-header doctor-site-header">
-  <div class="shell tools-header-inner">
-    <a class="tools-brand" href="/" aria-label="وبیگرام"><svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9"/></svg><strong>Webigram</strong></a>
-    <nav class="tools-nav" aria-label="منوی ابزارها"><a href="/">خانه</a><a class="active" href="/tools/">ابزارها</a></nav>
-  </div>
-</header>
-
-<main class="doctor-main">
+<SiteLayout title={"دکتر وردپرس | تست امنیت و سلامت WordPress"} description="دکتر وردپرس وبیگرام؛ تست امنیت، نسخه‌ها، REST API، Cron، Cache، ایمیل، WooCommerce، SEO و سلامت WordPress با Quick Scan و Deep Scan." current="tools" bodyClass="wpd-page">
+  <main class="doctor-main">
 <section class="doctor-hero wpd-hero">
   <div class="shell">
     <div class="breadcrumb"><a href="/tools/">ابزارها</a><span>/</span><span>دکتر وردپرس</span></div>
@@ -150,7 +133,6 @@ const base = import.meta.env.BASE_URL;
   </div>
 </section>
 </main>
-<footer class="tools-footer"><div class="shell">Webigram WordPress Doctor · وردپرس را قبل از دردسر معاینه کن</div></footer>
-<script is:inline src="/scripts/wordpress-doctor.js"></script>
-</body>
-</html>
+
+  <script is:inline src="/scripts/wordpress-doctor.js"></script>
+</SiteLayout>

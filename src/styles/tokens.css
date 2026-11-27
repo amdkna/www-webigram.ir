@@ -1,0 +1,81 @@
+/* ==========================================================================
+   Webigram design tokens
+   The single source of truth for fonts, colors, spacing, radii and shadows.
+   Every page and component should use these variables instead of raw values.
+   ========================================================================== */
+
+:root {
+  /* Typography: one family (Vazirmatn) covers Persian and Latin text. */
+  --font-sans: 'Vazirmatn Variable', 'Vazirmatn', Tahoma, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-xs: .78rem;
+  --fs-sm: .875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: clamp(1.2rem, 1.05rem + .5vw, 1.4rem);
+  --fs-h3: clamp(1.25rem, 1.1rem + .6vw, 1.6rem);
+  --fs-h2: clamp(1.9rem, 1.4rem + 2vw, 3rem);
+  --fs-h1: clamp(2.3rem, 1.5rem + 3.4vw, 4.4rem);
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-bold: 700;
+  --fw-black: 850;
+
+  --lh-tight: 1.25;
+  --lh-body: 1.9;
+
+  /* Color palette */
+  --c-ink: #0e1230;          /* headings, strong text */
+  --c-text: #474e6b;         /* body text */
+  --c-muted: #7c829b;        /* secondary text */
+  --c-line: rgba(14, 18, 48, .1);
+  --c-line-strong: rgba(14, 18, 48, .18);
+
+  --c-bg: #ffffff;
+  --c-bg-soft: #f6f7fb;
+  --c-surface: #ffffff;
+  --c-dark: #0e1230;         /* dark bands (CTA, footer) */
+  --c-dark-text: #b8bdd6;
+
+  --c-primary: #4757ff;
+  --c-primary-hover: #3846ec;
+  --c-primary-soft: rgba(71, 87, 255, .08);
+  --c-violet: #8b3dff;
+  --c-success: #0f9f76;
+  --c-success-soft: #e8f8f2;
+  --c-danger: #d93a4a;
+  --c-danger-soft: #fff0f2;
+
+  --gradient-brand: linear-gradient(120deg, #2f5bff 0%, #8b3dff 100%);
+
+  /* Layout */
+  --container: 1200px;
+  --gutter: clamp(16px, 4vw, 32px);
+  --header-h: 72px;
+
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+  --sp-section: clamp(64px, 9vw, 120px);
+
+  /* Shape and depth */
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(14, 18, 48, .06), 0 2px 8px rgba(14, 18, 48, .04);
+  --shadow: 0 10px 30px rgba(14, 18, 48, .08);
+  --shadow-lg: 0 24px 60px rgba(14, 18, 48, .12);
+
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --t-fast: .18s;
+}

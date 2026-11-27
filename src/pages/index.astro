@@ -1,240 +1,361 @@
 ---
-import '../styles/scroll-slides.css';
-import '../styles/composition-fixes.css';
-import '../styles/real-composition.css';
-import '../styles/real-photo.css';
-import '../styles/mobile.css';
-import '../styles/home5-live.css';
-import '../styles/home-narratives.css';
-import '../styles/home-section-transition.css';
-import Composition from '../components/Composition.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import HeroArt from '../components/HeroArt.astro';
+import { services, site } from '../data/site';
 
-const base = import.meta.env.BASE_URL;
-const cmsUrl = 'https://cms.webigram.ir';
-const nav = [
-  { label: 'خانه', href: '#sketch', jump: 0, key: 'home' },
-  { label: 'خدمات', href: `${base}services/`, key: 'services' },
-  { label: 'نمونه‌کارها', href: `${base}portfolio/`, key: 'work' },
-  { label: 'بلاگ', href: `${base}blog/`, key: 'blog' },
-  { label: 'درباره‌ما', href: '#real', jump: 2, key: 'about' },
-  { label: 'تماس با ما', href: `${base}contact/`, key: 'contact' },
+
+const principles = [
+  { title: 'اول مسئله، بعد تکنولوژی', text: 'لازم نیست بدانید چه نرم‌افزاری می‌خواهید. مسئله و نتیجه مورد انتظار را می‌شنویم و مسیر فنی را ما طراحی می‌کنیم.' },
+  { title: 'از طرح تا استقرار، یک تیم', text: 'طراحی، توسعه، زیرساخت و استقرار در یک مسیر یکپارچه جلو می‌رود؛ بدون گم شدن جزئیات بین چند تیم.' },
+  { title: 'ساخته‌شده برای ماندن', text: 'راهکاری می‌سازیم که قابل اتکا، قابل توسعه و قابل نگهداری باشد؛ نه فقط برای روز تحویل.' },
 ];
 ---
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#ffffff" />
-  <meta name="description" content="وبیگرام؛ ایده شما را از طرح اولیه تا یک راهکار دیجیتال واقعی همراهی می‌کند." />
-  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  <title>وبیگرام | از ایده تا اجرای واقعی</title>
-</head>
-<body data-stage="0" data-home5-live>
-  <div class="slide-loader" id="loader"><div>در حال آماده‌سازی طرح‌ها<div class="loader-line"></div></div></div>
-  <main class="story" id="story">
-    <i class="anchor a1" id="sketch"></i><i class="anchor a2" id="color"></i><i class="anchor a3" id="real"></i>
-    <div class="viewport">
-      <div class="frame">
-        <svg width="0" height="0" aria-hidden="true" style="position:absolute">
-          <filter id="pencil-rough"><feTurbulence type="fractalNoise" baseFrequency=".014" numOctaves="2" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale=".65"/></filter>
-        </svg>
-
-        <section class="slide slide-sketch active" data-slide="0">
-          <div class="visual visual-sketch"><Composition variant="sketch" /></div>
-          <div class="right">
-            <header class="stage-header">
-              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".42" stroke-width="2"/></svg><span>Webigram</span></a>
-              <nav class="nav" aria-label="منوی مرحله طرح اولیه">{nav.map((item)=><a href={item.href} data-jump={item.jump} class={item.key==='home'?'current':''}>{item.label}</a>)}</nav>
-            </header>
-            <div class="copy">
-              <h1>ایده شما،<br/>نقطه آغاز است</h1>
-              <p>هر پروژه از یک نیاز، مسئله یا ایده آغاز می‌شود.<br/>شما ایده را مطرح می‌کنید؛ ما آن را بررسی می‌کنیم تا مسیر تبدیل آن به یک راهکار واقعی مشخص شود.</p>
-              <div class="actions">
-                <a href="#color" data-jump="1">مشاهده مسیر اجرا <span>←</span></a>
-                <a href={`${base}services/`}>آشنایی با خدمات ما <span>←</span></a>
-              </div>
+<SiteLayout description={site.description} current="home" canonical="https://webigram.ir/" htmlAttrs={{ class: 'is-home', 'data-header': 'hero', 'data-hero-stage': '0' }}>
+  <main>
+  <!-- Hero -->
+  <!-- Scroll story: the page scrolls through sketch -> design -> real while the hero stays pinned. -->
+  <section class="home-hero" data-story aria-label="از ایده تا اجرای واقعی">
+    <div class="home-hero__pin">
+      <div class="home-hero__frame">
+        <div class="home-hero__copy">
+          <i class="hero-rule" aria-hidden="true"></i>
+          <div class="hero-copy is-active" data-story-copy="0">
+            <h1>ایده شما،<br />نقطه آغاز است</h1>
+            <p>هر پروژه از یک نیاز، مسئله یا ایده آغاز می‌شود. شما ایده را مطرح می‌کنید؛ ما آن را بررسی می‌کنیم تا مسیر تبدیل آن به یک راهکار واقعی مشخص شود.</p>
+            <div class="home-hero__actions">
+              <a class="btn btn--primary" href="#color" data-story-jump="1">مشاهده مسیر اجرا <span class="arrow">←</span></a>
+              <a class="btn btn--secondary" href="/services/">آشنایی با خدمات ما</a>
             </div>
           </div>
-        </section>
-
-        <section class="slide slide-color" data-slide="1">
-          <div class="visual visual-color"><Composition variant="color" /></div>
-          <div class="right">
-            <header class="stage-header">
-              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
-              <nav class="nav" aria-label="منوی مرحله طراحی رنگی">{nav.map((item)=><a href={item.href} data-jump={item.jump}>{item.label}</a>)}</nav>
-            </header>
-            <div class="copy">
-              <h2>ما مسیر اجرای آن را<br/><em>طراحی می‌کنیم</em></h2>
-              <p>نیازها را تحلیل می‌کنیم، ساختار و تجربه کاربری را شکل می‌دهیم و ایده را به یک طرح روشن، منسجم و قابل اجرا تبدیل می‌کنیم.</p>
-              <div class="actions">
-                <a href="#real" data-jump="2">مشاهده نتیجه <span>←</span></a>
-                <a href={`${base}services/`}>آشنایی با خدمات ما <span>←</span></a>
-              </div>
+          <div class="hero-copy" data-story-copy="1" aria-hidden="true">
+            <h2>ما مسیر اجرای آن را<br /><em class="text-gradient">طراحی می‌کنیم</em></h2>
+            <p>نیازها را تحلیل می‌کنیم، ساختار و تجربه کاربری را شکل می‌دهیم و ایده را به یک طرح روشن، منسجم و قابل اجرا تبدیل می‌کنیم.</p>
+            <div class="home-hero__actions">
+              <a class="btn btn--primary" href="#real" data-story-jump="2">مشاهده نتیجه <span class="arrow">←</span></a>
+              <a class="btn btn--secondary" href="/services/">آشنایی با خدمات ما</a>
             </div>
           </div>
-        </section>
-
-        <section class="slide slide-real" data-slide="2">
-          <div class="visual visual-real">
-            <div class="real-composition-shell" aria-label="نسخه واقعی همان ترکیب‌بندی طرح اولیه">
-              <Composition variant="real" live />
+          <div class="hero-copy" data-story-copy="2" aria-hidden="true">
+            <h2>ایده شما را به<br /><em class="text-gradient">واقعیت تبدیل می‌کنیم</em></h2>
+            <p>از طراحی و توسعه تا استقرار و بهبود، طرح نهایی را به یک وب‌سایت، اپلیکیشن، سامانه یا ابزار اختصاصی واقعی و قابل استفاده تبدیل می‌کنیم.</p>
+            <div class="home-hero__actions">
+              <a class="btn btn--primary" href="/contact/">شروع همکاری <span class="arrow">←</span></a>
+              <a class="btn btn--secondary" href="/portfolio/">مشاهده نمونه‌کارها</a>
             </div>
           </div>
-          <div class="right">
-            <header class="stage-header">
-              <a class="brand" href="#sketch" data-jump="0"><svg class="brand-mark" viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path d="M7 9 17 41 28 17l8 25L57 9" opacity=".55" stroke-width="2.5"/></svg><span>Webigram</span></a>
-              <nav class="nav" aria-label="منوی مرحله محصول واقعی">{nav.map((item)=><a href={item.href} data-jump={item.jump}>{item.label}</a>)}</nav>
-            </header>
-            <div class="copy">
-              <h2>ایده شما را به<br/><em>واقعیت تبدیل می‌کنیم</em></h2>
-              <p>از طراحی و توسعه تا استقرار و بهبود، طرح نهایی را به یک وب‌سایت، اپلیکیشن، سامانه یا ابزار اختصاصی واقعی و قابل استفاده تبدیل می‌کنیم.</p>
-              <div class="actions">
-                <a href={`${base}contact/`}>شروع همکاری <span>←</span></a>
-                <a href={`${base}portfolio/`}>مشاهده نمونه کارها <span>←</span></a>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  </main>
-
-  <section class="home-narratives" id="narratives" aria-labelledby="narratives-title">
-    <div class="narrative-shell">
-      <header class="narrative-head">
-        <div class="narrative-heading">
-          <span class="narrative-kicker">پروژه‌های Webigram</span>
-          <h2 id="narratives-title">هر پروژه، <em>یک روایت</em></h2>
-          <p>از مسئله‌ای که مطرح شد تا تصمیم‌هایی که گرفته شد و محصولی که در نهایت شکل گرفت؛ هر پروژه مسیر خودش را دارد.</p>
         </div>
-        <a class="narrative-all" href={`${base}portfolio/`}>مشاهده همه پروژه‌ها <span>←</span></a>
-      </header>
-
-      <div class="narrative-list" data-narratives-list>
-        <div class="narrative-empty">در حال دریافت پروژه‌ها…</div>
+        <div class="home-hero__art">
+          <HeroArt />
+        </div>
       </div>
     </div>
   </section>
 
-  <div class="progress" aria-label="مراحل طراحی"><button class="active" data-jump="0" aria-label="طرح اولیه"></button><button data-jump="1" aria-label="طراحی رنگی"></button><button data-jump="2" aria-label="نسخه واقعی"></button></div>
+  <!-- Services -->
+  <section class="section" id="services" aria-labelledby="services-title">
+    <div class="container">
+      <header class="section-head">
+        <div>
+          <span class="eyebrow">خدمات</span>
+          <h2 id="services-title">برای هر مسئله، راه‌حل درست</h2>
+          <p>از زیرساخت و DevOps تا اتوماسیون، پلتفرم، پنل سازمانی و وب‌سایت؛ دقیقا همان چیزی را می‌سازیم که لازم است.</p>
+        </div>
+        <a class="link-arrow" href="/services/">همه خدمات <span>←</span></a>
+      </header>
+      <div class="service-grid">
+        {services.map((service) => (
+          <a class="card service-tile" href={`/services/#${service.slug}`}>
+            <span class="service-tile__icon" aria-hidden="true">{service.icon}</span>
+            <h3>{service.title}</h3>
+            <p>{service.summary}</p>
+            <span class="service-tile__more">بیشتر بخوانید <span aria-hidden="true">←</span></span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
 
-  <script>
-    import '../scripts/home5-live';
-  </script>
-  <script is:inline>
-    const story=document.getElementById('story'),slides=[...document.querySelectorAll('[data-slide]')],dots=[...document.querySelectorAll('.progress button')],loader=document.getElementById('loader');
-    requestAnimationFrame(()=>loader.classList.add('done'));
+  <!-- Projects (from CMS) -->
+  <section class="section section--soft" id="projects" aria-labelledby="projects-title">
+    <div class="container">
+      <header class="section-head">
+        <div>
+          <span class="eyebrow">نمونه‌کارها</span>
+          <h2 id="projects-title">هر پروژه، یک روایت</h2>
+          <p>از مسئله‌ای که مطرح شد تا تصمیم‌هایی که گرفته شد و محصولی که در نهایت شکل گرفت.</p>
+        </div>
+        <a class="link-arrow" href="/portfolio/">همه پروژه‌ها <span>←</span></a>
+      </header>
+      <div class="project-grid" data-projects>
+        <div class="project-empty">در حال دریافت پروژه‌ها…</div>
+      </div>
+    </div>
+  </section>
 
-    const SLIDES_END=.68;
-    const EXIT_START=.76;
-    let current=-1,raf=0;
-    const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
-    const viewportHeight=()=>window.visualViewport?.height||innerHeight;
-    const setStage=n=>{
-      n=clamp(n,0,slides.length-1);
-      if(n===current)return;
-      current=n;
-      document.body.dataset.stage=n;
-      slides.forEach((slide,index)=>slide.classList.toggle('active',index===n));
-      dots.forEach((dot,index)=>dot.classList.toggle('active',index===n));
-      document.documentElement.style.setProperty('--dot',n===0?'#171717':n===1?'#315cff':'#7b43ff');
-    };
+  <!-- About -->
+  <section class="section" id="about" aria-labelledby="about-title">
+    <div class="container about">
+      <div class="about__intro">
+        <span class="eyebrow">درباره وبیگرام</span>
+        <h2 id="about-title">ما چیزی را می‌سازیم که واقعا به کار بیاید</h2>
+        <p>وبیگرام تیمی برای طراحی، توسعه و راه‌اندازی راهکارهای دیجیتال است. هر پروژه با شناخت مسئله شروع می‌شود و ترکیب خدمات بر اساس همان مسئله شکل می‌گیرد.</p>
+      </div>
+      <ul class="about__list">
+        {principles.map((item) => (
+          <li>
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
 
-    const metrics=()=>{
-      const height=viewportHeight();
-      const max=Math.max(1,story.offsetHeight-height);
-      const y=clamp(-story.getBoundingClientRect().top,0,max);
-      const raw=y/max;
-      const progress=clamp(raw/SLIDES_END,0,1)*(slides.length-1);
-      return {max,raw,progress};
-    };
+  <!-- CTA -->
+  <section class="section home-cta" aria-labelledby="cta-title">
+    <div class="container">
+      <div class="cta-band">
+        <div>
+          <h2 id="cta-title">یک مسئله یا ایده دارید؟</h2>
+          <p>مسئله و نتیجه مورد انتظار را بگویید؛ مسیر فنی را با هم پیدا می‌کنیم.</p>
+        </div>
+        <div class="cta-band__actions">
+          <a class="btn btn--light" href="/contact/">شروع گفتگو <span class="arrow">←</span></a>
+          <a class="btn btn--ghost-light" href="/services/">آشنایی با خدمات</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
 
-    const renderExit=raw=>{
-      const linear=clamp((raw-EXIT_START)/(1-EXIT_START),0,1);
-      const eased=linear*linear*(3-2*linear);
-      const root=document.documentElement;
-      const movingOpacity=1-(eased*.28);
-      const controlOpacity=1-eased;
-
-      root.style.setProperty('--section-exit',eased.toFixed(4));
-      root.style.setProperty('--exit-left',`${(-112*eased).toFixed(2)}vw`);
-      root.style.setProperty('--exit-right',`${(112*eased).toFixed(2)}vw`);
-      root.style.setProperty('--exit-header-y',`${(-18*eased).toFixed(2)}vh`);
-      root.style.setProperty('--exit-copy-y',`${(14*eased).toFixed(2)}vh`);
-      root.style.setProperty('--exit-rotate-left',`${(-2.3*eased).toFixed(3)}deg`);
-      root.style.setProperty('--exit-rotate-right',`${(1.4*eased).toFixed(3)}deg`);
-      root.style.setProperty('--exit-scale',(1-(eased*.035)).toFixed(4));
-      root.style.setProperty('--exit-opacity',movingOpacity.toFixed(4));
-      root.style.setProperty('--transition-controls-opacity',controlOpacity.toFixed(4));
-      document.body.classList.toggle('section-exiting',linear>.015);
-    };
-
-    const render=()=>{
-      raf=0;
-      const {raw,progress}=metrics();
-
-      slides.forEach((slide,index)=>{
-        const cover=index<slides.length-1?clamp(progress-index,0,1):0;
-        const inset=`inset(0 0 ${cover*100}% 0)`;
-        slide.style.transform='none';
-        slide.style.clipPath=inset;
-        slide.style.webkitClipPath=inset;
-        slide.style.zIndex=String(slides.length-index);
-        slide.setAttribute('aria-hidden',Math.round(progress)!==index?'true':'false');
-      });
-
-      renderExit(raw);
-      setStage(Math.round(progress));
-    };
-
-    const queueRender=()=>{if(!raf)raf=requestAnimationFrame(render)};
-    addEventListener('scroll',queueRender,{passive:true});
-    addEventListener('resize',queueRender);
-    window.visualViewport?.addEventListener('resize',queueRender);
-    requestAnimationFrame(render);
-
-    document.addEventListener('click',event=>{
-      const el=event.target.closest('[data-jump]');
-      if(!el)return;
-      event.preventDefault();
-      const n=clamp(Number(el.dataset.jump),0,slides.length-1);
-      const {max}=metrics();
-      const target=story.offsetTop+(max*SLIDES_END)*(n/(slides.length-1));
-      scrollTo({top:target,behavior:'smooth'});
-    });
-  </script>
-
-  <script define:vars={{ cmsUrl }} is:inline>
-    (()=>{
-      const list=document.querySelector('[data-narratives-list]');
-      if(!list)return;
-      const esc=(value='')=>String(value).replace(/[&<>'\"]/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[ch]));
-      const asset=(id)=>id?`${cmsUrl}/assets/${encodeURIComponent(id)}?width=900&height=520&fit=cover&quality=86`:'';
-      const fields='id,slug,title,summary,client,year,service,cover_image,featured';
-      fetch(`${cmsUrl}/items/portfolio?filter[status][_eq]=published&sort=-featured,sort,title&limit=4&fields=${encodeURIComponent(fields)}`,{headers:{Accept:'application/json'},cache:'no-store'})
-        .then((response)=>{if(!response.ok)throw new Error(`CMS ${response.status}`);return response.json();})
-        .then(({data})=>{
-          const items=Array.isArray(data)?data:[];
-          if(!items.length){list.innerHTML='<div class="narrative-empty">روایت پروژه‌ها به‌زودی اینجا منتشر می‌شود.</div>';return;}
-          list.innerHTML=items.map((item,index)=>{
-            const image=asset(item.cover_image);
-            const meta=[item.service,item.client,item.year].filter(Boolean).map((value)=>`<span>${esc(value)}</span>`).join('');
-            return `<a class="narrative-row" href="/portfolio/${encodeURIComponent(item.slug)}/">
-              <span class="narrative-index">${String(index+1).padStart(2,'0')}</span>
-              <div class="narrative-main">
-                <div class="narrative-meta">${meta}</div>
+  <script define:vars={{ cmsUrl: site.cmsUrl }} is:inline>
+    (() => {
+      const list = document.querySelector('[data-projects]');
+      if (!list) return;
+      const esc = (value = '') => String(value).replace(/[&<>'"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
+      const asset = (id) => id ? `${cmsUrl}/assets/${encodeURIComponent(id)}?width=800&height=500&fit=cover&quality=82` : '';
+      const fields = 'id,slug,title,summary,client,year,service,cover_image,featured';
+      const empty = (text) => { list.innerHTML = `<div class="project-empty">${text} <a class="link-arrow" href="/portfolio/">صفحه نمونه‌کارها ←</a></div>`; };
+      fetch(`${cmsUrl}/items/portfolio?filter[status][_eq]=published&sort=-featured,sort,title&limit=3&fields=${encodeURIComponent(fields)}`, { headers: { Accept: 'application/json' }, cache: 'no-store' })
+        .then((response) => { if (!response.ok) throw new Error(`CMS ${response.status}`); return response.json(); })
+        .then(({ data }) => {
+          const items = Array.isArray(data) ? data : [];
+          if (!items.length) { empty('روایت پروژه‌ها به‌زودی اینجا منتشر می‌شود.'); return; }
+          list.innerHTML = items.map((item) => {
+            const image = asset(item.cover_image);
+            const meta = [item.service, item.year].filter(Boolean).map((value) => `<span class="chip">${esc(value)}</span>`).join('');
+            return `<a class="card project-card" href="/portfolio/${encodeURIComponent(item.slug)}/">
+              <div class="project-card__cover">${image ? `<img src="${image}" alt="" loading="lazy" />` : '<span aria-hidden="true">W</span>'}</div>
+              <div class="project-card__body">
+                <div class="project-card__meta">${meta}</div>
                 <h3>${esc(item.title)}</h3>
-                <p>${esc(item.summary||'')}</p>
+                <p>${esc(item.summary || '')}</p>
+                ${item.client ? `<span class="project-card__client">${esc(item.client)}</span>` : ''}
               </div>
-              <div class="narrative-cover">${image?`<img src="${image}" alt="${esc(item.title)}" loading="lazy" />`:''}</div>
-              <span class="narrative-cta">مشاهده روایت <b>←</b></span>
             </a>`;
           }).join('');
         })
-        .catch(()=>{list.innerHTML='<div class="narrative-empty">فعلا امکان دریافت پروژه‌ها نیست.</div>';});
+        .catch(() => empty('فعلا امکان دریافت پروژه‌ها نیست.'));
     })();
   </script>
-</body>
-</html>
+</SiteLayout>
+
+<style>
+  /* Services */
+  .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); }
+  .service-tile { display: flex; flex-direction: column; padding: var(--sp-6); }
+  .service-tile__icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--sp-5);
+    border-radius: var(--radius);
+    background: var(--gradient-brand);
+    color: #fff;
+    font-size: 1.3rem;
+  }
+  .service-tile h3 { font-size: var(--fs-lg); margin-bottom: var(--sp-3); }
+  .service-tile p { color: var(--c-text); font-size: .95rem; }
+  .service-tile__more { margin-top: auto; padding-top: var(--sp-5); color: var(--c-primary); font-size: var(--fs-sm); font-weight: var(--fw-bold); }
+
+  /* Projects */
+  .project-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-5); }
+  .project-grid :global(.project-card) { display: flex; flex-direction: column; overflow: hidden; }
+  .project-grid :global(.project-card__cover) {
+    aspect-ratio: 16 / 10;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #eef0ff, #f6f0ff);
+    color: rgba(71, 87, 255, .35);
+    font-size: 3rem;
+    font-weight: var(--fw-black);
+  }
+  .project-grid :global(.project-card__cover img) { width: 100%; height: 100%; object-fit: cover; }
+  .project-grid :global(.project-card__body) { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-5); flex: 1; }
+  .project-grid :global(.project-card__meta) { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .project-grid :global(.project-card h3) { font-size: var(--fs-lg); }
+  .project-grid :global(.project-card p) { font-size: .95rem; }
+  .project-grid :global(.project-card__client) { margin-top: auto; color: var(--c-muted); font-size: var(--fs-sm); font-weight: var(--fw-bold); }
+  .project-grid :global(.project-empty) {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-4);
+    padding: var(--sp-8) var(--sp-5);
+    border: 1px dashed var(--c-line-strong);
+    border-radius: var(--radius-lg);
+    background: var(--c-surface);
+    color: var(--c-muted);
+    text-align: center;
+  }
+
+  /* About */
+  .about { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(32px, 6vw, 96px); align-items: start; }
+  .about__intro h2 { font-size: var(--fs-h2); }
+  .about__intro p { margin-top: var(--sp-5); font-size: var(--fs-md); }
+  .about__list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+  .about__list li { padding: var(--sp-5) 0; border-bottom: 1px solid var(--c-line); }
+  .about__list li:first-child { padding-top: 0; }
+  .about__list h3 { font-size: var(--fs-lg); margin-bottom: var(--sp-2); }
+
+  .home-cta { padding-top: 0; }
+
+  /* Tablet and mobile */
+  @media (max-width: 1024px) {
+    .service-grid, .project-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 960px) {
+    .about { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .service-grid, .project-grid { grid-template-columns: 1fr; }
+    .service-tile { padding: var(--sp-5); }
+  }
+</style>
+
+<style>
+  /* Scroll story hero, built on the original geometry: a 1.777:1 frame centred in the
+     viewport, artwork filling the left 60.5% edge to edge, copy in the right 39.5%.
+     The section is three screens tall; scrolling wipes idea -> design -> real. */
+  .home-hero { position: relative; height: 300svh; }
+  .home-hero__pin { position: sticky; top: 0; height: 100svh; overflow: hidden; background: var(--c-bg); }
+  .home-hero__frame {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--hero-fw);
+    height: var(--hero-fh);
+    transform: translate(-50%, -50%);
+  }
+  .home-hero__art { position: absolute; left: 0; top: 0; width: 60.5%; height: 100%; }
+  .home-hero__art :global(.hero-art),
+  .home-hero__art :global(.hero-art__frame) { width: 100%; height: 100%; }
+  .home-hero__art :global(.hero-art__frame) { aspect-ratio: auto; border: 0; border-radius: 0; box-shadow: none; }
+
+  .home-hero__copy {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 39.5%;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    padding: calc(var(--hero-fh) * .25) calc(var(--hero-fw) * .0285) 0 calc(var(--hero-fw) * .02);
+  }
+  .hero-rule {
+    display: block;
+    height: 2px;
+    margin-bottom: calc(var(--hero-fh) * .045);
+    background: repeating-linear-gradient(90deg, var(--c-ink) 0 4px, transparent 4px 8px);
+    opacity: .18;
+  }
+  .hero-copy {
+    grid-area: 2 / 1;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(16px);
+    transition: opacity .45s var(--ease), transform .45s var(--ease), visibility .45s;
+  }
+  .hero-copy.is-active { opacity: 1; visibility: visible; transform: none; }
+  .hero-copy h1, .hero-copy h2 {
+    font-size: clamp(2.2rem, calc(var(--hero-fw) * .039), 4.9rem);
+    font-weight: 900;
+    line-height: 1.18;
+    letter-spacing: -.03em;
+  }
+  .hero-copy p {
+    margin-top: calc(var(--hero-fh) * .035);
+    font-size: clamp(.92rem, calc(var(--hero-fw) * .0108), 1.5rem);
+    line-height: 2;
+  }
+  .home-hero__actions { display: flex; flex-wrap: nowrap; gap: var(--sp-3); margin-top: calc(var(--hero-fh) * .045); }
+  .home-hero__actions .btn {
+    min-height: clamp(44px, calc(var(--hero-fh) * .058), 68px);
+    padding-inline: clamp(14px, calc(var(--hero-fw) * .012), 30px);
+    font-size: clamp(.85rem, calc(var(--hero-fw) * .0095), 1.25rem);
+  }
+
+  /* Small laptops: the normal menu bar stays on top, so the hero frame fits below it. */
+  @media (min-width: 961px) and (max-width: 1199px) {
+    .home-hero { margin-top: var(--header-h); }
+    .home-hero__pin {
+      top: var(--header-h);
+      height: calc(100svh - var(--header-h));
+      --hero-fw: min(100vw, (100svh - var(--header-h)) * 1.776833);
+      --hero-fh: min(100svh - var(--header-h), 100vw / 1.776833);
+    }
+  }
+
+  /* Phones and tablets: copy on top, artwork edge to edge below, inside one pinned screen. */
+  @media (max-width: 960px) {
+    .home-hero__pin { top: var(--header-h); height: calc(100svh - var(--header-h)); }
+    .home-hero__frame {
+      position: static;
+      transform: none;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: clamp(12px, 2.5svh, 24px);
+    }
+    .home-hero__copy {
+      position: static;
+      order: -1;
+      width: 100%;
+      height: auto;
+      padding: 0 var(--gutter);
+      grid-template-rows: auto;
+      text-align: center;
+    }
+    .hero-rule { display: none; }
+    .hero-copy { grid-area: 1 / 1; }
+    .hero-copy h1, .hero-copy h2 { font-size: clamp(1.65rem, 7vw, 2.6rem); }
+    .hero-copy p {
+      margin: var(--sp-3) auto 0;
+      max-width: 520px;
+      font-size: .93rem;
+      line-height: 1.8;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .home-hero__actions { justify-content: center; gap: var(--sp-2); margin-top: var(--sp-4); }
+    .home-hero__actions .btn { min-height: 42px; padding: 0 16px; font-size: .9rem; }
+    .home-hero__art {
+      position: relative;
+      align-self: center;
+      width: min(100%, 640px, calc((100svh - var(--header-h) - 300px) * 1.076));
+      height: auto;
+      aspect-ratio: 1162 / 1080;
+    }
+  }
+  @media (max-width: 960px) and (max-height: 700px) {
+    .hero-copy p { -webkit-line-clamp: 2; }
+    .home-hero__art { width: min(100%, calc((100svh - var(--header-h) - 270px) * 1.076)); }
+  }
+</style>

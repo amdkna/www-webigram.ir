@@ -1,5 +1,5 @@
 ---
-import '../styles/base.css';
+import SiteLayout from '../layouts/SiteLayout.astro';
 import '../styles/content-pages.css';
 const base = import.meta.env.BASE_URL;
 const cmsUrl = 'https://cms.webigram.ir';
@@ -11,28 +11,11 @@ const fallbackPage = {
   seo_description: 'مقالات وبیگرام درباره DevOps، اتوماسیون، هوش مصنوعی، توسعه نرم افزار و ساخت محصولات دیجیتال.',
 };
 ---
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content={fallbackPage.seo_description} data-page-description />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://webigram.ir/blog/" />
-  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  <title>{fallbackPage.seo_title}</title>
-</head>
-<body>
-  <header class="cp-header"><div class="cp-shell cp-nav">
-    <a class="cp-brand" href={`${base}`}><svg viewBox="0 0 64 52"><path d="M4 7 16 45 28 14l8 31L60 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"/></svg><span>Webigram</span></a>
-    <nav><a href={`${base}`}>خانه</a><a href={`${base}services/`}>خدمات</a><a href={`${base}portfolio/`}>نمونه کارها</a><a class="active" href={`${base}blog/`}>بلاگ</a><a href={`${base}contact/`}>تماس با ما</a></nav>
-  </div></header>
-
+<SiteLayout title={fallbackPage.seo_title} description={fallbackPage.seo_description} current="blog">
   <main>
     <section class="cp-shell cp-hero"><div class="cp-kicker" data-field="hero_kicker">{fallbackPage.hero_kicker}</div><h1 data-field="hero_title">{fallbackPage.hero_title}</h1><p data-field="hero_description">{fallbackPage.hero_description}</p></section>
     <section class="cp-shell" aria-labelledby="blog-heading"><div class="cp-section-head"><div><h2 id="blog-heading">آخرین مطالب</h2><p>دسته بندی را انتخاب کنید یا همه را ببینید.</p></div></div><div class="blog-toolbar" data-blog-filters><button class="blog-filter active" data-category="all">همه</button></div><div class="blog-grid" data-blog-grid><div class="cp-empty" style="grid-column:1/-1">در حال دریافت مطالب…</div></div></section>
   </main>
-  <footer class="cp-shell cp-footer"><span>Webigram</span><span>DevOps · Automation · AI · Engineering</span></footer>
 
   <script define:vars={{ cmsUrl }} is:inline>
     (()=>{
@@ -46,5 +29,4 @@ const fallbackPage = {
       Promise.all([get('/items/blog_page?limit=1'),get('/items/blog_categories?sort=sort,name&limit=100'),get('/items/blog_posts?filter[status][_eq]=published&sort=-featured,-published_at&limit=100&fields=id,slug,title,excerpt,cover_image,published_at,reading_minutes,featured,category_id.id,category_id.name,category_id.slug')]).then(([page,categories,items])=>{setPage(page.data?.[0]);posts=items.data||[];const cats=categories.data||[];filters.innerHTML='<button class="blog-filter active" data-category="all">همه</button>'+cats.map((c)=>`<button class="blog-filter" data-category="${c.id}">${esc(c.name)}</button>`).join('');render();filters.addEventListener('click',(e)=>{const b=e.target.closest('[data-category]');if(!b)return;filters.querySelectorAll('.blog-filter').forEach((x)=>x.classList.remove('active'));b.classList.add('active');render(b.dataset.category);});}).catch(()=>{grid.innerHTML='<div class="cp-empty" style="grid-column:1/-1">فعلا امکان دریافت مطالب نیست.</div>';});
     })();
   </script>
-</body>
-</html>
+</SiteLayout>

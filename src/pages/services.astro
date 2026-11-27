@@ -1,78 +1,12 @@
 ---
-import '../styles/base.css';
+import SiteLayout from '../layouts/SiteLayout.astro';
 import '../styles/content-pages.css';
+import { services } from '../data/site';
 
 const base = import.meta.env.BASE_URL;
 const cmsUrl = 'https://cms.webigram.ir';
 
-const fallbackServices = [
-  {
-    slug: 'devops-infrastructure',
-    title: 'DevOps و زیرساخت',
-    icon: '⌁',
-    featured: true,
-    summary: 'از CI/CD و Docker تا مانیتورینگ، امنیت و معماری استقرار؛ زیرساختی می سازیم که قابل اتکا، قابل توسعه و قابل نگهداری باشد.',
-    details: 'طراحی Pipeline، کانتینرسازی، استقرار روی سرور و Cloud، Reverse Proxy، SSL، مانیتورینگ، Backup و مدیریت محیط های توسعه و Production.',
-    tags: ['CI/CD', 'Docker', 'Linux', 'Nginx', 'Monitoring'],
-    cta_label: 'مشاوره DevOps',
-    cta_url: '/contact/',
-  },
-  {
-    slug: 'automation',
-    title: 'اتوماسیون و یکپارچه سازی',
-    icon: '⚡',
-    featured: true,
-    summary: 'کارهای تکراری را حذف می کنیم و سیستم ها را به هم وصل می کنیم تا فرآیندهای واقعی مجموعه با دخالت انسانی کمتر و خطای پایین تر اجرا شوند.',
-    details: 'طراحی Workflow، اتصال APIها، فرم ها و CRM، اعلان ها، گزارش گیری، Botها، پردازش فایل و داده و ساخت اتوماسیون های اختصاصی.',
-    tags: ['Automation', 'API', 'Workflow', 'Integration', 'Bots'],
-    cta_label: 'بررسی فرآیند',
-    cta_url: '/contact/',
-  },
-  {
-    slug: 'platform-development',
-    title: 'طراحی و ساخت پلتفرم',
-    icon: '◈',
-    featured: true,
-    summary: 'از یک مسئله یا ایده اولیه تا محصول قابل استفاده؛ معماری، تجربه کاربری، Backend، Frontend و استقرار را به صورت یک مسیر یکپارچه جلو می بریم.',
-    details: 'برای پلتفرم های اختصاصی، MVP، SaaS و محصولات داخلی، ابتدا مسئله و جریان کار را مدل می کنیم و بعد راهکار را مرحله به مرحله می سازیم.',
-    tags: ['Platform', 'MVP', 'SaaS', 'Backend', 'Frontend'],
-    cta_label: 'شروع طراحی پلتفرم',
-    cta_url: '/contact/',
-  },
-  {
-    slug: 'enterprise-panels',
-    title: 'پنل های سازمانی و داشبورد',
-    icon: '▦',
-    featured: false,
-    summary: 'پنل مدیریتی و ابزار داخلی را دقیقا مطابق فرآیند سازمان می سازیم؛ نه اینکه سازمان را مجبور کنیم خودش را با یک نرم افزار عمومی تطبیق دهد.',
-    details: 'پنل های مدیریت، داشبوردهای عملیاتی، سیستم های ثبت و پیگیری، گزارش ها، نقش ها و سطح دسترسی، گردش تایید و ابزارهای داخلی تحت وب.',
-    tags: ['Admin Panel', 'Dashboard', 'RBAC', 'Reporting', 'Internal Tools'],
-    cta_label: 'طراحی پنل سازمانی',
-    cta_url: '/contact/',
-  },
-  {
-    slug: 'web-development',
-    title: 'وب سایت و وب اپلیکیشن',
-    icon: '◎',
-    featured: false,
-    summary: 'سایت شرکتی، لندینگ، ابزار آنلاین یا Web App را با تمرکز روی سرعت، تجربه کاربری، سئو و قابلیت توسعه در آینده طراحی و پیاده سازی می کنیم.',
-    details: 'طراحی رابط، توسعه Frontend و Backend، اتصال CMS، فرم ها، سئو فنی، Analytics، بهینه سازی سرعت و استقرار کامل پروژه.',
-    tags: ['Website', 'Web App', 'SEO', 'CMS', 'Performance'],
-    cta_label: 'ساخت وب سایت',
-    cta_url: '/contact/',
-  },
-  {
-    slug: 'ai-solutions',
-    title: 'راهکارهای هوش مصنوعی',
-    icon: '✦',
-    featured: false,
-    summary: 'هوش مصنوعی را جایی وارد محصول و فرآیند می کنیم که واقعا ارزش ایجاد کند؛ از دستیار داخلی تا پردازش متن، جستجو و Agentهای متصل به ابزارها.',
-    details: 'اتصال مدل های زبانی به داده و ابزارهای سازمان، RAG، دستیارهای داخلی، طبقه بندی و استخراج اطلاعات و Agentهای کنترل شده برای وظایف مشخص.',
-    tags: ['AI', 'LLM', 'RAG', 'Agents', 'Knowledge Base'],
-    cta_label: 'بررسی کاربرد AI',
-    cta_url: '/contact/',
-  },
-];
+const fallbackServices = services;
 
 const fallbackPage = {
   hero_kicker: 'خدمات وبیگرام',
@@ -89,35 +23,7 @@ const fallbackPage = {
   seo_description: 'خدمات وبیگرام شامل DevOps و زیرساخت، اتوماسیون، طراحی پلتفرم، پنل های سازمانی، وب سایت و راهکارهای هوش مصنوعی است.',
 };
 ---
-<!doctype html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#fbfaf7" />
-  <meta name="description" content={fallbackPage.seo_description} data-cms-meta="description" />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://webigram.ir/services/" />
-  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
-  <title>{fallbackPage.seo_title}</title>
-</head>
-<body class="services-page" data-cms-collection="services">
-  <header class="cp-header">
-    <div class="cp-shell cp-nav">
-      <a class="cp-brand" href={`${base}`} aria-label="وبیگرام - خانه">
-        <svg viewBox="0 0 64 52" aria-hidden="true"><path d="M4 7 16 45 28 14l8 31L60 7"/><path class="echo" d="M7 9 17 41 28 17l8 25L57 9"/></svg>
-        <span>Webigram</span>
-      </a>
-      <nav aria-label="منوی اصلی">
-        <a href={`${base}`}>خانه</a>
-        <a class="active" href={`${base}services/`}>خدمات</a>
-        <a href={`${base}portfolio/`}>نمونه کارها</a>
-        <a href={`${base}blog/`}>بلاگ</a>
-        <a href={`${base}contact/`}>تماس با ما</a>
-      </nav>
-    </div>
-  </header>
-
+<SiteLayout title={fallbackPage.seo_title} description={fallbackPage.seo_description} current="services" bodyClass="services-page" bodyAttrs={{ 'data-cms-collection': 'services' }}>
   <main>
     <section class="services-hero services-shell">
       <div class="hero-kicker"><span></span><b data-cms-field="hero_kicker">{fallbackPage.hero_kicker}</b></div>
@@ -139,7 +45,7 @@ const fallbackPage = {
 
     <section class="services-list services-shell" id="services-list" aria-label="لیست خدمات وبیگرام" data-services-grid>
       {fallbackServices.map((service, index) => (
-        <article class:list={['service-card', service.featured && 'featured']} data-service-slug={service.slug}>
+        <article class:list={['service-card', service.featured && 'featured']} data-service-slug={service.slug} id={service.slug}>
           <div class="service-topline">
             <span class="service-number">{String(index + 1).padStart(2, '0')}</span>
             <span class="service-icon" aria-hidden="true">{service.icon}</span>
@@ -170,8 +76,6 @@ const fallbackPage = {
       </a>
     </section>
   </main>
-
-  <footer class="cp-shell cp-footer"><span>Webigram</span><span>Build · Automate · Operate</span></footer>
 
   <script define:vars={{ cmsUrl }} is:inline>
     (() => {
@@ -242,7 +146,7 @@ const fallbackPage = {
       const createServiceCard = (service, index) => {
         const article = document.createElement('article');
         article.className = `service-card${service.featured ? ' featured' : ''}`;
-        if (service.slug) article.dataset.serviceSlug = service.slug;
+        if (service.slug) { article.dataset.serviceSlug = service.slug; article.id = service.slug; }
 
         const topLine = document.createElement('div');
         topLine.className = 'service-topline';
@@ -320,63 +224,59 @@ const fallbackPage = {
       });
     })();
   </script>
-</body>
-</html>
+</SiteLayout>
 
 <style>
-  :global(body.services-page){overflow-x:hidden}
-  :global(.services-page *){box-sizing:border-box}
-  :global(.services-page a){color:inherit;text-decoration:none}
-  .services-shell{width:min(1240px,calc(100% - 48px));margin-inline:auto}
+  .services-shell{width:min(var(--container),100% - 2 * var(--gutter));margin-inline:auto}
 
   .services-hero{padding:clamp(72px,10vw,150px) 0 clamp(58px,7vw,94px);display:grid;grid-template-columns:minmax(0,1.18fr) minmax(310px,.82fr);align-items:end;column-gap:60px}
-  .hero-kicker{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:#6c7282;font-size:.9rem;margin-bottom:26px}
-  .hero-kicker span{display:block;width:38px;height:1px;background:#6d4be2}
-  .hero-kicker b{font-weight:800}
-  .services-hero h1{margin:0;color:#101116;font-size:clamp(52px,7.1vw,100px);line-height:1.05;letter-spacing:-.055em;font-weight:800}
-  .services-hero h1 em{font-style:normal;color:#6948dc}
+  .hero-kicker{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:var(--c-primary);font-size:.9rem;margin-bottom:26px}
+  .hero-kicker span{display:block;width:38px;height:1px;background:var(--c-primary)}
+  .hero-kicker b{font-weight:var(--fw-black)}
+  .services-hero h1{margin:0;color:var(--c-ink);font-size:var(--fs-h1);line-height:1.2;letter-spacing:-.02em;font-weight:var(--fw-black)}
+  .services-hero h1 em{font-style:normal;color:var(--c-primary)}
   .hero-copy{display:flex;flex-direction:column;align-items:flex-start;gap:24px;padding-bottom:5px}
-  .hero-copy p{margin:0;color:#5e6472;font-size:clamp(16px,1.28vw,19px);line-height:2.05;max-width:520px}
-  .hero-action{display:inline-flex;align-items:center;gap:32px;padding:13px 18px 13px 13px;border-bottom:1px solid #17181c;font-weight:800}
-  .hero-action span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#17181c;color:white}
+  .hero-copy p{margin:0;color:var(--c-text);font-size:clamp(16px,1.28vw,19px);line-height:2.05;max-width:520px}
+  .hero-action{display:inline-flex;align-items:center;gap:32px;padding:13px 18px 13px 13px;border-bottom:1px solid var(--c-ink);font-weight:var(--fw-black)}
+  .hero-action span{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--c-ink);color:white}
 
   .services-intro{padding:20px 0 52px;border-top:1px solid rgba(20,23,31,.12);display:grid;grid-template-columns:.35fr 1fr;gap:40px;align-items:start}
-  .services-intro span{font:700 .72rem/1.4 Arial,sans-serif;letter-spacing:.16em;color:#777d89;padding-top:8px}
-  .services-intro p{margin:0;max-width:780px;color:#252832;font-size:clamp(20px,2vw,31px);line-height:1.75;font-weight:700;letter-spacing:-.025em}
+  .services-intro span{font:700 .72rem/1.4 var(--font-sans);letter-spacing:.16em;color:var(--c-muted);padding-top:8px}
+  .services-intro p{margin:0;max-width:780px;color:var(--c-ink);font-size:clamp(20px,2vw,31px);line-height:1.75;font-weight:700;letter-spacing:-.025em}
 
   .services-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid rgba(20,23,31,.14);border-right:1px solid rgba(20,23,31,.14)}
   .service-card{min-height:500px;padding:38px clamp(28px,3.4vw,52px) 38px;border-left:1px solid rgba(20,23,31,.14);border-bottom:1px solid rgba(20,23,31,.14);background:rgba(255,255,255,.32);transition:transform .3s,background .3s,box-shadow .3s;position:relative;overflow:hidden;display:flex;flex-direction:column}
-  .service-card::before{content:'';position:absolute;width:190px;height:190px;border-radius:50%;left:-95px;bottom:-115px;background:radial-gradient(circle,rgba(103,74,220,.13),transparent 70%);opacity:0;transition:.3s}
-  .service-card.featured::after{content:'CORE';position:absolute;top:24px;left:28px;font:700 .62rem/1 Arial,sans-serif;letter-spacing:.14em;color:#6846db;border:1px solid rgba(104,70,219,.22);border-radius:999px;padding:6px 8px;background:#fff}
+  .service-card::before{content:'';position:absolute;width:190px;height:190px;border-radius:50%;left:-95px;bottom:-115px;background:radial-gradient(circle,rgba(71,87,255,.12),transparent 70%);opacity:0;transition:.3s}
+  .service-card.featured::after{content:'CORE';position:absolute;top:24px;left:28px;font:700 .62rem/1 var(--font-sans);letter-spacing:.14em;color:var(--c-primary);border:1px solid rgba(71,87,255,.22);border-radius:999px;padding:6px 8px;background:#fff}
   .service-card:hover{background:rgba(255,255,255,.78);transform:translateY(-4px);box-shadow:0 22px 60px rgba(29,32,49,.07)}
   .service-card:hover::before{opacity:1}
-  .service-topline{display:flex;align-items:center;justify-content:space-between;margin-bottom:46px;color:#858b98}
+  .service-topline{display:flex;align-items:center;justify-content:space-between;margin-bottom:46px;color:var(--c-muted)}
   .service-number{font-size:.8rem;font-weight:800;letter-spacing:.08em}
-  .service-icon{display:grid;place-items:center;width:52px;height:52px;border:1px solid rgba(20,23,31,.13);border-radius:16px;color:#6948dc;font-size:1.45rem;background:#fff}
-  .service-card h2{margin:0 0 15px;color:#17181c;font-size:clamp(27px,2.3vw,37px);line-height:1.35;letter-spacing:-.03em}
-  .service-summary{margin:0;color:#4f5563;line-height:1.95;font-size:1rem;max-width:550px}
-  .service-details{margin:17px 0 0;color:#7b808b;line-height:1.9;font-size:.88rem;max-width:560px}
+  .service-icon{display:grid;place-items:center;width:52px;height:52px;border:1px solid rgba(20,23,31,.13);border-radius:16px;color:var(--c-primary);font-size:1.45rem;background:#fff}
+  .service-card h2{margin:0 0 15px;color:var(--c-ink);font-size:clamp(27px,2.3vw,37px);line-height:1.35;letter-spacing:-.03em}
+  .service-summary{margin:0;color:var(--c-text);line-height:1.95;font-size:1rem;max-width:550px}
+  .service-details{margin:17px 0 0;color:var(--c-muted);line-height:1.9;font-size:.88rem;max-width:560px}
   .service-bottom{margin-top:auto;padding-top:30px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
   .service-tags{display:flex;flex-wrap:wrap;gap:7px;direction:ltr;justify-content:flex-end}
-  .service-tags span{padding:6px 10px;border:1px solid rgba(20,23,31,.1);border-radius:999px;color:#737987;background:#ffffff9e;font-size:.7rem;font-weight:700}
-  .service-link{flex:none;display:inline-flex;align-items:center;gap:9px;color:#5e40ca;font-size:.82rem;font-weight:800;border-bottom:1px solid rgba(94,64,202,.25);padding-bottom:5px}
+  .service-tags span{padding:6px 10px;border:1px solid rgba(20,23,31,.1);border-radius:999px;color:var(--c-muted);background:#ffffff9e;font-size:.7rem;font-weight:700}
+  .service-link{flex:none;display:inline-flex;align-items:center;gap:9px;color:var(--c-primary);font-size:.82rem;font-weight:800;border-bottom:1px solid rgba(71,87,255,.25);padding-bottom:5px}
   .service-link span{font-size:1rem}
 
-  .services-cta{margin-top:clamp(80px,10vw,140px);margin-bottom:20px;padding:clamp(42px,6vw,75px);border-radius:34px;background:#14151b;color:white;display:flex;align-items:flex-end;justify-content:space-between;gap:54px;position:relative;overflow:hidden}
-  .services-cta::after{content:'';position:absolute;width:420px;height:420px;border-radius:50%;left:-130px;top:-220px;background:radial-gradient(circle,rgba(117,89,235,.44),transparent 67%);pointer-events:none}
+  .services-cta{margin-top:clamp(80px,10vw,140px);margin-bottom:20px;padding:clamp(42px,6vw,75px);border-radius:34px;background:var(--c-dark);color:white;display:flex;align-items:flex-end;justify-content:space-between;gap:54px;position:relative;overflow:hidden}
+  .services-cta::after{content:'';position:absolute;width:420px;height:420px;border-radius:50%;left:-130px;top:-220px;background:radial-gradient(circle,rgba(139,61,255,.45),transparent 67%);pointer-events:none}
   .cta-copy{position:relative;z-index:1;max-width:790px}
-  .cta-label{display:block;color:#aaaec0;font-size:.88rem;font-weight:700;margin-bottom:18px}
-  .services-cta h2{margin:0;white-space:pre-line;font-size:clamp(34px,4.2vw,62px);line-height:1.3;letter-spacing:-.04em}
-  .services-cta p{margin:22px 0 0;max-width:670px;color:#b8bbc7;font-size:.95rem;line-height:1.95}
+  .cta-label{display:block;color:var(--c-dark-text);font-size:.88rem;font-weight:700;margin-bottom:18px}
+  .services-cta h2{margin:0;color:#fff;white-space:pre-line;font-size:clamp(34px,4.2vw,62px);line-height:1.3;letter-spacing:-.04em}
+  .services-cta p{margin:22px 0 0;max-width:670px;color:var(--c-dark-text);font-size:.95rem;line-height:1.95}
   .cta-button{position:relative;z-index:1;display:flex;align-items:center;gap:34px;padding:16px 19px;border:1px solid rgba(255,255,255,.22);border-radius:16px;font-weight:800;white-space:nowrap;transition:.25s}
-  .cta-button:hover{background:white;color:#16171c}
+  .cta-button:hover{background:white;color:var(--c-ink)}
   .cta-button b{font-size:1.4rem;font-weight:400}
 
   @media(max-width:900px){
-    .services-shell{width:min(100% - 28px,1240px)}
+    
     .services-hero{grid-template-columns:1fr;padding-top:72px;row-gap:34px}
     .hero-kicker{margin-bottom:0}
-    .services-hero h1{font-size:clamp(46px,11vw,72px)}
+    
     .hero-copy{padding:0}
     .services-intro{grid-template-columns:1fr;gap:14px;padding-bottom:38px}
     .services-list{grid-template-columns:1fr}
@@ -385,9 +285,9 @@ const fallbackPage = {
   }
 
   @media(max-width:560px){
-    .services-shell{width:min(100% - 22px,1240px)}
+    
     .services-hero{padding:54px 0 48px}
-    .services-hero h1{font-size:clamp(42px,13vw,62px)}
+    
     .service-card{min-height:auto;padding:28px 22px 28px}
     .service-topline{margin-bottom:36px}
     .service-bottom{align-items:flex-start;flex-direction:column}

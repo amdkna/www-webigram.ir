@@ -1,0 +1,46 @@
+---
+import BrandMark from './BrandMark.astro';
+import { mainNav, contactLink, type NavKey } from '../data/site';
+
+interface Props { current?: NavKey }
+const { current } = Astro.props;
+---
+<header class="site-header" data-site-header>
+  <div class="container site-header__inner">
+    <BrandMark id="header-brand" />
+
+    <button class="nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false" data-nav-toggle>
+      <span></span><b class="sr-only">باز کردن منو</b>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="منوی اصلی">
+      {mainNav.map((item) => (
+        <a href={item.href} data-nav={item.key} aria-current={item.key === current ? 'page' : undefined}>{item.label}</a>
+      ))}
+      <a class="site-nav__contact" href={contactLink.href}>{contactLink.label}</a>
+      <a class="btn btn--primary site-nav__cta" href={contactLink.href} aria-current={current === 'contact' ? 'page' : undefined}>{contactLink.label}</a>
+    </nav>
+
+    <a class="btn btn--primary btn--sm site-header__cta" href={contactLink.href}>{contactLink.label}</a>
+  </div>
+</header>
+
+<script is:inline>
+  (() => {
+    const header = document.querySelector('[data-site-header]');
+    const toggle = document.querySelector('[data-nav-toggle]');
+    if (!header || !toggle) return;
+    const root = document.documentElement;
+    const setOpen = (open) => {
+      root.classList.toggle('nav-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+    toggle.addEventListener('click', () => setOpen(!root.classList.contains('nav-open')));
+    header.querySelectorAll('.site-nav a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setOpen(false); });
+    matchMedia('(min-width: 961px)').addEventListener('change', (event) => { if (event.matches) setOpen(false); });
+    const onScroll = () => header.classList.toggle('is-scrolled', scrollY > 4);
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
