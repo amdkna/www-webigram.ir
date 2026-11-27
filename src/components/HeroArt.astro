@@ -88,6 +88,31 @@ const stages = [
       live?.toggleAttribute('data-live-playing', stage === LAST && !reduced.matches);
     };
 
+    // Desktop homepage header: while the hero is on screen it sits above the text column
+    // and scrolls away together with the hero. Once it has left the screen, the normal
+    // full-width bar slides in from the top (see site.css). Scrolling back reverses it.
+    const header = document.querySelector('[data-site-header]');
+    const desktop = matchMedia('(min-width: 961px)');
+    const placeHeader = () => {
+      const html = document.documentElement;
+      if (!header || !desktop.matches) {
+        html.dataset.header = '';
+        if (header) header.style.transform = '';
+        return;
+      }
+      const frameH = Math.min(innerHeight, innerWidth / 1.776833);
+      const heroHeaderBottom = (innerHeight - frameH) / 2 + frameH * .165;
+      const exit = Math.max(0, innerHeight - story.getBoundingClientRect().bottom);
+      if (exit < heroHeaderBottom) {
+        html.dataset.header = 'hero';
+        header.style.transform = exit ? `translateY(${-exit}px)` : '';
+      } else {
+        html.dataset.header = '';
+        header.style.transform = '';
+      }
+    };
+    desktop.addEventListener('change', () => placeHeader());
+
     let raf = 0;
     const render = () => {
       raf = 0;
@@ -101,8 +126,7 @@ const stages = [
         layer.style.zIndex = String(layers.length - index);
       });
       setStage(Math.round(progress));
-      // Desktop homepage header sits over the text column while the hero is pinned.
-      document.documentElement.dataset.header = story.getBoundingClientRect().bottom > innerHeight + 1 ? 'hero' : '';
+      placeHeader();
     };
     const queue = () => { if (!raf) raf = requestAnimationFrame(render); };
     addEventListener('scroll', queue, { passive: true });

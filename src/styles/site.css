@@ -366,6 +366,8 @@ a.card:hover, .card--hover:hover {
 }
 @media (min-width: 961px) {
   html.is-home .site-header { position: fixed; inset: 0 0 auto; }
+  html.is-home:not([data-header='hero']) .site-header { animation: header-slide-in .4s var(--ease) both; }
+  @keyframes header-slide-in { from { transform: translateY(-100%); opacity: 0; } to { transform: none; opacity: 1; } }
   html[data-header='hero'] .site-header {
     left: calc(50vw - var(--hero-fw) / 2 + var(--hero-fw) * .605);
     right: calc(50vw - var(--hero-fw) / 2);
